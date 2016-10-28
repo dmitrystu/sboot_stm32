@@ -1,0 +1,3 @@
+[submodule "libusb_stm32"]
+	path = libusb_stm32
+	url = http://github.com/dmitrystu/libusb_stm32.git
