@@ -12,21 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef _DFU_BOOTLOADER_H_
 #define _DFU_BOOTLOADER_H_
 #if defined(__cplusplus)
     extern "C" {
 #endif
 
-
-
 /** Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
-//#define DFU_DNLOAD_NOSYNC
+#define DFU_DNLOAD_NOSYNC
 /** Add extra DFU interface for EEPROM */
-//#define DFU_INTF_EEPROM
+#define DFU_INTF_EEPROM
 /** Firmware can be uploaded from device */
-//#define DFU_CAN_UPLOAD
+#define DFU_CAN_UPLOAD
+
 /** Add DFU_DETACH request handling in DFU mode. System reset will be issued. */
 //#define DFU_DETACH_ENABLED
 
