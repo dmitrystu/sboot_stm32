@@ -12,22 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "../config.h"
+#include "memmap.h"
 
+#if ((DFU_BLOCKSZ % (FLASH_PAGESZ / 2)) != 0)
+    #error DFU Transfer size must be divisible to MCU halfpage size. Adjust DFU_BLOCKSZ
+#endif
 
-#define FLASH_R_BASE    0x40022000
-#define PEKEYR0         0x89ABCDEF
-#define PEKEYR1         0x02030405
-#define PRGKEYR0        0x8C9DAEBF
-#define PRGKEYR1        0x13141516
-
-
-#define PECR            0x04
-#define PEKEYR          0x0C
-#define PRGKEYR         0x10
-#define SR              0x18
-
+#define HP_MASK ((FLASH_PAGESZ / 2) - 1)
 
 
     .syntax unified
@@ -51,81 +44,63 @@
  */
 program_flash:
     push    {r4, r5, lr}
-    ldr     r3, =#FLASH_R_BASE
+
 /* checking halfpage alignment */
-    movs    r4, #0x3F
-    ands    r4, r0
-    bne    Err_unaligned
+    movs    r4, #HP_MASK
+    tst     r4, r0
+    bne     Err_unaligned
 /* adjust block size to halfpage */
-    movs    r4, #0x40
-    movs    r5, #0x3F
-    subs    r4, r2
-    ands    r4, r5
-    adds    r2, r4
+    adds    r5, r4, #0x01
+    subs    r5, r2
+    ands    r5, r4
+    adds    r2, r5
 /* unlock program enable */
-    ldr     r4, =#PEKEYR0
-    ldr     r5, =#PEKEYR1
-    str     r4, [r3, #PEKEYR]
-    str     r5, [r3, #PEKEYR]
-.L_w_unlock_pe:
-    ldr     r4, [r3, #0x04]
-    lsrs    r4, #0x01
-    bcs     .L_w_unlock_pe
+    bl      unlock_pe
 /* unlocking program memoty */
-    ldr     r4, =#PRGKEYR0
-    ldr     r5, =#PRGKEYR1
-    str     r4, [r3, #PRGKEYR]
-    str     r5, [r3, #PRGKEYR]
+    ldr     r4, =#FLASH_PRGKEY0
+    ldr     r5, =#FLASH_PRGKEY1
+    str     r4, [r3, #FLASH_PRGKEYR]
+    str     r5, [r3, #FLASH_PRGKEYR]
 .L_w_unlock_prg:
-    ldr     r4, [r3, #PECR]
+    ldr     r4, [r3, #FLASH_PECR]
     lsrs    r4, #0x02
     bcs     .L_w_unlock_prg
 /* flash loop */
 .L_flash_loop:
 /* checking if page erase required */
-    movs    r4, #0x7F
+    movs    r4, #HP_MASK
+    lsls    r4, #0x01
     ands    r4, r0
     bne     .L_write_halfpage
 /* do page erase */
     movs    r4, #0x41
     lsls    r4, #0x03       //ERASE | PROG
-    str     r4, [r3, #PECR]
+    str     r4, [r3, #FLASH_PECR]
+    movs    r4, #0x00
     str     r4, [r0]        //fake write to rom to start erase
-.L_w_erase_done:
-    ldr     r4, [r3, #SR]  //FLASH->SR
-    lsrs    r4, #0x01       //BSY->CF
-    bcs     .L_w_erase_done
-/* check EOP */
-    lsrs    r4, #0x01
+    bl      .L_wait_prog_done
     bcc     Err_erase
-/* clear EOP */
-    movs    r4, #0x02
-    str     r4, [r3, #SR]
-/* prepare halfpage write */
 .L_write_halfpage:
     movs    r4, #0x81
     lsls    r4, #0x03       // FPRG | PROG
-    str     r4, [r3, #PECR]
+    str     r4, [r3, #FLASH_PECR]
+/* wait BSY */
+.L_w_bsy:
+    ldr     r4, [r3, #FLASH_SR]
+    lsrs    r4, #0x01       //BSY->CF
+    bcs     .L_w_bsy
     movs    r5, #0x00
 /* do halfpage write */
 .L_hp_loop:
     ldr     r4, [r1, r5]
     str     r4, [r0, r5]
     adds    r5, #0x04
-    cmp     r5, #0x40
-    bne     .L_hp_loop
-.L_w_prog_done:
-    ldr     r4, [r3, #SR]
-    lsrs    r4, #0x01
-    bcs     .L_w_prog_done
-/* checking EOP */
-    lsrs    r4, #0x01
+    cmp     r5, #HP_MASK
+    blo     .L_hp_loop
+    bl      .L_wait_prog_done
     bcc     Err_prog
-/* clearing EOP */
-    movs    r4, 0x02
-    str     r4, [r3, #SR]
     movs    r4, #0x00
-    str     r4, [r3, #PECR]
+    str     r4, [r3, #FLASH_PECR]
 /* do hp verify */
 .L_verify_loop:
     ldr     r4, [r0]
@@ -135,7 +110,7 @@ program_flash:
     adds    r0, #0x04
     adds    r1, #0x04
     subs    r2, #0x04
-    movs    r4, #0x3F
+    movs    r4, #HP_MASK
     ands    r4, r2
     bne     .L_verify_loop
 /* checking for done */
@@ -158,8 +133,39 @@ Err_verify:
     movs    r0, #0x07       //errVERIFY
 .L_exit:
     movs    r4, #0x07
-    str     r4, [r3, #PECR] // locking flash
+    str     r4, [r3, #FLASH_PECR] // locking flash
     pop     {r4, r5, pc}
+
+/* wait for programming done */
+/* return CF=0 if program failed */
+.L_wait_prog_done:
+    ldr     r4, [r3, #FLASH_SR]
+    lsrs    r4, #0x01               //BSY -> CF
+    bcs     .L_wait_prog_done       //wait BSY low
+    lsrs    r4, #0x02               //ENDHV -> CF
+    bcc     .L_wait_prog_done       //wait ENDHV high
+    ldr     r4, [r3, #FLASH_SR]     //reload FLASH_SR
+    lsrs    r4, #0x02               //EOP -> CF
+    //bcc     .L_wpd_exit
+    movs    r4, #0x02               //clear EOP
+    str     r4, [r3, #FLASH_SR]
+.L_wpd_exit:
+    bx      lr
+
+/* unlock program enable function and set R3 to FLASH_R_BASE */
+unlock_pe:
+    ldr     r3, =#FLASH_R_BASE
+    ldr     r4, =#FLASH_PEKEY0
+    ldr     r5, =#FLASH_PEKEY1
+    str     r4, [r3, #FLASH_PEKEYR]
+    str     r5, [r3, #FLASH_PEKEYR]
+.L_w_unlock_pe:
+    ldr     r4, [r3, #FLASH_PECR]
+    lsrs    r4, #0x01
+    bcs     .L_w_unlock_pe
+    bx      lr
+
+
     .size program_flash, . - program_flash
 
 #ifdef DFU_INTF_EEPROM
@@ -173,20 +179,12 @@ Err_verify:
  */
 program_eeprom:
     push    {r4, r5, lr}
-    ldr     r3, =#FLASH_R_BASE
 /* unlock program enable */
-    ldr     r4, =#PEKEYR0
-    ldr     r5, =#PEKEYR1
-    str     r4, [r3, #PEKEYR]
-    str     r5, [r3, #PEKEYR]
-.L_wait_unlock:
-    ldr     r4, [r3, #PECR]
-    lsrs    r4, #0x01
-    bcs     .L_wait_unlock
+    bl      unlock_pe
 /* flash unlocked. let's do write */
     movs    r4, #0x22
     lsls    r4, #0x03   // FIX | DATA
-    str     r4, [r0, #PECR]
+    str     r4, [r3, #FLASH_PECR]
 /* writing byte by byte */
 .L_ee_write:
     ldrb    r4, [r1]

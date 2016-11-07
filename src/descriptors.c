@@ -78,7 +78,7 @@ static const struct config_desc dfu_config_desc = {
         .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_WILL_DETACH | USB_DFU_ATTR_MANIF_TOL,
 #endif
         .wDetachTimeout         = DFU_DETACH_TIMEOUT,
-        .wTransferSize          = 0x80,
+        .wTransferSize          = DFU_BLOCKSZ,
         .bcdDFUVersion          = VERSION_BCD(1,1,0),
     },
 };
@@ -98,9 +98,9 @@ static const struct usb_string_descriptor * const dtable[] = {
     &dfu_product_sdesc,
     &dfu_config_sdesc,
     &dfu_flash_sdesc,
-#ifdef DFU_INTF_EEPROM   
+#ifdef DFU_INTF_EEPROM
     &dfu_eeprom_sdesc,
-#endif       
+#endif
 };
 
 

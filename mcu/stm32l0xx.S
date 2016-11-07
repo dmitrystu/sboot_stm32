@@ -1,23 +1,5 @@
 #include "../config.h"
-
-#define FLASH_R_BASE    0x40022000
-#define FLASH_ACR       0x00
-
-#define PWR_BASE        0x40007000
-#define PWR_CR          0x00
-#define PWR_CSR         0x04
-
-#define RCC_BASE        0x40021000
-#define RCC_CR          0x00
-#define RCC_CFGR        0x0C
-#define RCC_APB1ENR     0x38
-#define RCC_IOPENR      0x2C
-#define RCC_IOPRSTR     0x1C
-
-#define GPIOA           0x50000000
-#define GPIOB           0x50000400
-#define GPIOC           0x50000800
-
+#include "memmap.h"
 
 
 #if (DFU_BOOTSTRAP_GPIO == GPIOA)
@@ -25,20 +7,20 @@
 #elif (DFU_BOOTSTRAP_GPIO == GPIOB)
     #define BOOTSTRAP_RCC   0x02
 #elif (DFU_BOOTSTRAP_GPIO == GPIOC)
-    #define BOOTSTRAP_RCC   0x03
+    #define BOOTSTRAP_RCC   0x04
+#elif (DFU_BOOTSTRAP_GPIO == GPIOD)
+    #define BOOTSTRAP_RCC   0x08
+#elif (DFU_BOOTSTRAP_GPIO == GPIOE)
+    #define BOOTSTRAP_RCC   0x10
+#elif (DFU_BOOTSTRAP_GPIO == GPIOH)
+    #define BOOTSTRAP_RCC   0x20
+#elif (DFU_BOOTSTRAP_GPIO == GPIOF)
+    #define BOOTSTRAP_RCC   0x40
+#elif (DFU_BOOTSTRAP_GPIO == GPIOG)
+    #define BOOTSTRAP_RCC   0x80
 #else
     #error "Bootstrap port undefined"
 #endif
-
-
-
-
-
-#define GPIO_MODER      0x00
-#define GPIO_PUPDR      0x0C
-#define GPIO_IDR        0x10
-
-
 
     .syntax unified
     .cpu cortex-m0plus
@@ -50,23 +32,24 @@
     .align 2
     .globl __isr_vector
 __isr_vector:
-    .long    __stack                   // Top of Stack
-    .long    Reset_Handler             // Reset Handler
-    .long    NMI_Handler               // NMI Handler
-    .long    HardFault_Handler         // Hard Fault Handler
-    .long    0                         // Reserved
-    .long    0                         // Reserved
-    .long    0                         // Reserved
-    .long    0                         // Reserved
-    .long    0                         // Reserved
-    .long    0                         // Reserved
-    .long    0                         // Reserved
-    .long    SVC_Handler               // SVCall Handler
-    .long    DebugMon_Handler          // Debug Monitor Handler
-    .long    0                         // Reserved
-    .long    PendSV_Handler            // PendSV Handler
-    .long    SysTick_Handler           // SysTick Handler
+    .long    __stack                        // Top of Stack
+    .long    Reset_Handler                  // Reset Handler
+    .long    NMI_Handler                    // NMI Handler
 
+    .long    HardFault_Handler              // Hard Fault Handler
+    .long    0                              // Reserved
+    .long    0                              // Reserved
+    .long    0                              // Reserved
+    .long    0                              // Reserved
+    .long    0                              // Reserved
+    .long    0                              // Reserved
+    .long    0                              // Reserved
+    .long    SVC_Handler                    // SVCall Handler
+    .long    DebugMon_Handler               // Debug Monitor Handler
+    .long    0                              // Reserved
+    .long    PendSV_Handler                 // PendSV Handler
+    .long    SysTick_Handler                // SysTick Handler
+#if !defined(DFU_NO_EXTINT)
                 // External Interrupts
     .long    WWDG_IRQHandler                // 0  Window Watchdog
     .long    PVD_IRQHandler                 // 1  PVD through EXTI Line detect
@@ -100,7 +83,7 @@ __isr_vector:
     .long    AES_RNG_LPUART1_IRQHandler     // 29 AES, RNG and LPUART1
     .long    0                              // 30 Reserved
     .long    USB_IRQHandler                 // 31 USB
-
+#endif
     .size    __isr_vector, . - __isr_vector
 
 
@@ -137,7 +120,7 @@ Reset_Handler:
     movs    r4, #0x10
 .L_scan_bootstrap:
     ldr     r2, [r1, #GPIO_IDR]
-    lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)
+    lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
     sbcs    r3, r3
     movs    r2, #0x01
     orrs    r2, r3

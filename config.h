@@ -26,8 +26,11 @@
 /** Firmware can be uploaded from device */
 #define DFU_CAN_UPLOAD
 
-/** Add DFU_DETACH request handling in DFU mode. System reset will be issued. */
+/** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 //#define DFU_DETACH_ENABLED
+
+/** Shrinks ISR vector table to core peripherals */
+#define DFU_NO_EXTINT
 
 
 #define DFU_VENDOR_ID       0x0483
@@ -39,11 +42,12 @@
 #define DFU_EP0_SIZE        8
 #define DFU_POLL_TIMEOUT    20
 #define DFU_DETACH_TIMEOUT  200
+#define DFU_BLOCKSZ         0x100
 
 
 #define DFU_USER_APP        __app_start
 
-#define DFU_BOOTKEY_ADDR    __StackTop
+#define DFU_BOOTKEY_ADDR    __stack
 #define DFU_BOOTKEY         0x157F32D4
 #define DFU_BOOTSTRAP_GPIO  GPIOA
 #define DFU_BOOTSTRAP_PIN   1

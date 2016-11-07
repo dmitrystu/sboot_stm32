@@ -15,7 +15,7 @@ static const char *shelp = "Usage: encrypter [option] infile outfile\n" \
 
 static const char *sferr = "Error: unable to open file %s\n";
 
-static const uint8_t key[] = {DFU_AES_KEY};
+
 
 
 static int help(void) {
@@ -72,10 +72,11 @@ static int file_crypt(char *stro, char *stri, int dir) {
 
 
 int main (int argc, char *argv[]) {
-
-    if (argc != 4) return help();
+#if defined(DFU_USE_CIPHER)
+    static const uint8_t key[] = {DFU_AES_KEY};
     aes_init(key);
-
+#endif
+    if (argc != 4) return help();
     if (!strcmp(argv[1], "-e")) {
         return file_crypt(argv[3], argv[2], 1);
     } else if (!strcmp(argv[1], "-d")) {

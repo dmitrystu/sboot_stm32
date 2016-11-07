@@ -34,7 +34,7 @@ extern uint8_t __ee_start;
 extern uint8_t __ee_end;
 
 
-static uint32_t dfu_buffer[0x40];
+static uint32_t dfu_buffer[0x88];
 static usbd_device dfu;
 
 
