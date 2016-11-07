@@ -9,8 +9,6 @@ SWTOOLS    ?=
 USBDIR     ?= libusb_stm32
 SWCFALGS   ?=
 
-FWDEFS     += FORCE_ASM_DRIVER
-
 
 FWTARGETS  = stm32l100x6a stm32l100x8a stm32l100xba stm32l100xc stm32l151x6a stm32l151x8a stm32l151xba
 FWTARGETS += stm32l052x8 
@@ -18,7 +16,7 @@ FWTARGETS += stm32l052x8
 FWCFLAGS   ?= -mcpu=cortex-m0plus -mfloat-abi=soft -mthumb
 FWDEFS     ?= STM32L0 STM32L052xx
 FWSTARTUP  ?= mcu/stm32l0xx.S
-FWSCRIPT   ?= mcu/stm32l52x8.ld
+FWSCRIPT   ?= mcu/stm32l052x8.ld
 
 FWCPPFLAGS  = -Os -Wall -std=gnu99 -flto -s
 FWINCS      = $(CMSISDIR)/device/ST $(CMSISDIR)/include $(USBDIR) inc
@@ -144,6 +142,6 @@ stm32l151xba :
 	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l151xba.ld'
 
 stm32l052x8 :
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m0plus -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l0xx.S' FWDEFS='STM32L0 STM32L052xx' FWSCRIPT='mcu/stm32l52x8.ld'
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m0plus -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l0xx.S' FWDEFS='STM32L0 STM32L052xx' FWSCRIPT='mcu/stm32l052x8.ld'
 
 .PHONY: clean bootloader crypter all rebuild fwclean $(FWTARGETS)
