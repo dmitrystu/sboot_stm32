@@ -44,14 +44,17 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l151xc   | STM32L151CC, STM32L151QC, SRM32L151RC, STM32L151UC |                 |
 | stm32l151xd   | STM32L151QD, STM32L151RD, STM32L151VD, STM32L151ZD |                 |
 | stm32l151xe   | STM32L151QE, STM32L151RE, STM32L151VE, STM32L151ZE |                 |
+| stm32l152x6a  | STM32L152C6-A, STM32L152R6-A                       |                 |
+| stm32l152x8a  | STM32L152C8-A, STM32L152R8-A, STM31L152V8-A        |                 |
+| stm32l152xba  | STM32L152CB-A, STM32L152RB-A, STM31L152VB-A        |                 |
+| stm32l152xc   | STM32L152CC, STM32L152QC, SRM32L152RC, STM32L152UC |                 |
+| stm32l152xd   | STM32L152QD, STM32L152RD, STM32L152VD, STM32L152ZD |                 |
+| stm32l152xe   | STM32L152QE, STM32L152RE, STM32L152VE, STM32L152ZE |                 |
+| stm32l162xc   | STM32L162RC, STM32L162VC                           |                 |
+| stm32l162xd   | STM32L162QD, STM32L156RD, STM32L162VD, STM32L162ZD |                 |
+| stm32l162xe   | STM32L162QE, STM32L156RE, STM32L162VE, STM32L162ZE |                 |
+| stm32l052x6   | STM32L052K6, STM32L052T6, STM32L052C6, STM32L052R6 |                 |
 | stm32l052x8   | STM32L052K8, STM32L052T8, STM32L052C8, STM32L052R8 | tested, default |
-
-
-
-
-
-
-
 
 
 #### Adjusting user firmware
