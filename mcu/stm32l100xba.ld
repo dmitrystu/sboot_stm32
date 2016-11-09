@@ -1,13 +1,11 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
-/* Memory Spaces Definitions */
 MEMORY
 {
     ROM     (rx) : ORIGIN = 0x08000000, LENGTH = 128K
     RAM    (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
     EEPROM  (rw) : ORIGIN = 0x08080000, LENGTH = 2K
 }
-
 SECTIONS
 {
     .text :
@@ -38,12 +36,9 @@ SECTIONS
         *(COMMON)
         __bss_end__ = .;
     } > RAM
-
-
     PROVIDE(__romend = ORIGIN(ROM) + LENGTH(ROM));
     PROVIDE(__stack = ORIGIN(RAM) + LENGTH(RAM) - 4);
-    PROVIDE(__ee_start = ORIGIN(EEPROM));
-    PROVIDE(__ee_end = ORIGIN(EEPROM) + LENGTH(EEPROM));
     PROVIDE(__app_start = __usrapp);
-
+	PROVIDE(__ee_start = ORIGIN(EEPROM));
+	PROVIDE(__ee_end = ORIGIN(EEPROM) + LENGTH(EEPROM));
 }

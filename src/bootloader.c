@@ -15,7 +15,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include "stm32.h"
 #include "usb.h"
 #include "inc/usb_dfu.h"

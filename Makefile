@@ -10,22 +10,24 @@ USBDIR     ?= libusb_stm32
 SWCFALGS   ?=
 
 
-FWTARGETS  = stm32l100x6a stm32l100x8a stm32l100xba stm32l100xc stm32l151x6a stm32l151x8a stm32l151xba
-FWTARGETS += stm32l052x8 
+FWTARGETS  = stm32l100x6a stm32l100x8a stm32l100xba stm32l100xc
+FWTARGETS += stm32l151x6a stm32l151x8a stm32l151xba stm32l151xc stm32l151xc stm32l151xd stm32l151xe
+FWTARGETS += stm32l052x8
 
 FWCFLAGS   ?= -mcpu=cortex-m0plus -mfloat-abi=soft -mthumb
 FWDEFS     ?= STM32L0 STM32L052xx
 FWSTARTUP  ?= mcu/stm32l0xx.S
 FWSCRIPT   ?= mcu/stm32l052x8.ld
 
-FWCPPFLAGS  = -Os -Wall -std=gnu99 -flto -s
+
+
+override FWCFLAGS   += -mthumb -Os -Wall -std=gnu99 -flto -s
+override FWDEFS     += FORCE_ASM_DRIVER
 FWINCS      = $(CMSISDIR)/device/ST $(CMSISDIR)/include $(USBDIR) inc
-FWLDFLAGS   = -s -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,--script=$(FWSCRIPT) -Wl,-Map=$(OUTDIR)/$(FWNAME).map
-
-FWDEFS     += FORCE_ASM_DRIVER
+FWLDFLAGS   = -s -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,-Map=$(OUTDIR)/$(FWNAME).map
 
 
-SWCFLAGS   += -Os -s
+override SWCFLAGS   += -Os -s
 SWLDFLAGS   = -libstd
 SWINCS      = inc
 SWDEFS      =
@@ -45,12 +47,12 @@ FWOBJ     = $(addprefix $(FWODIR)/, $(addsuffix .o, $(notdir $(basename $(FW_SRC
 SWOBJ     = $(addprefix $(SWODIR)/, $(addsuffix .o, $(notdir $(basename $(SW_SRC)))))
 SRCPATH   = $(sort $(dir $(FW_SRC)))
 
-
-
 ifeq ($(OS),Windows_NT)
-	RM = rd /s /q
+	RM = del /Q
+	FixPath = $(subst /,\, $1)
 else
-	RM = rm -rf
+	RM = rm -f
+	FixPath = $1
 endif
 
 
@@ -81,8 +83,8 @@ $(OUTDIR)/$(FWNAME).bin: $(OUTDIR)/$(FWNAME).elf
 	@$(FWTOOLS)objcopy -O binary $< $@
 
 $(OUTDIR)/$(FWNAME).elf: $(FWOBJ)
-	@echo building bootloader for $(FWTARGET)
-	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWLDFLAGS) $(FWOBJ) -o $@
+	@echo building bootloader
+	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWLDFLAGS) -Wl,--script=$(FWSCRIPT) $(FWOBJ) -o $@
 
 
 $(SWOBJ): | $(SWODIR)
@@ -104,44 +106,54 @@ $(SWODIR)/%.o: %.c
 
 $(FWODIR)/%.o: %.c
 	@echo compiling $<
-	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPPFLAGS) $(addprefix -D,$(FWDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
+	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCFLAGS2) $(addprefix -D,$(FWDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
 
 $(FWODIR)/%.o: %.S
 	@echo assembling $<
 	@$(FWTOOLS)gcc $(FWCFLAGS) $(addprefix -D,$(FWDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
 
-clean:
-	@$(RM) $(OUTDIR)
+fwclean: | $(FWODIR)
+	@$(RM) $(call FixPath, $(FWODIR)/*.*)
 
-fwclean:
-	@$(RM) $(FWODIR)
+swclean: | $(SWODIR)
+	@$(RM) $(call FixPath, $(SWODIR)/*.*)
+
+clean: swclean fwclean
+	@$(RM) $(call FixPath, $(OUTDIR)/*.*)
 
 
+stm32l100x6a :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100x6a.ld'
 
+stm32l100x8a :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100x8a.ld'
 
+stm32l100xba :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100xba.ld'
 
-stm32l100x6a : 
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100x6.ld'
-
-stm32l100x8a : 
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100x8.ld'
-
-stm32l100xba : 
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xBA' FWSCRIPT='mcu/stm32l100xba.ld'
-
-stm32l100xc : 
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xC' FWSCRIPT='mcu/stm32l100xc.ld'
+stm32l100xc :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L100xC' FWSCRIPT='mcu/stm32l100xc.ld'
 
 stm32l151x6a :
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l151x6a.ld'
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l1xxx6a.ld'
 
 stm32l151x8a :
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l151x8a.ld'
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l1xxx8a.ld'
 
 stm32l151xba :
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l151xba.ld'
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xBA' FWSCRIPT='mcu/stm32l1xxxba.ld'
+
+stm32l151xc :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xC' FWSCRIPT='mcu/stm32l1xxxc.ld'
+
+stm32l151xd :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xD' FWSCRIPT='mcu/stm32l1xxxd.ld'
+
+stm32l151xe :
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m3 -mfloat-abi=soft' FWSTARTUP='mcu/stm32l1xx.S' FWDEFS='STM32L1 STM32L151xE' FWSCRIPT='mcu/stm32l1xxxe.ld'
 
 stm32l052x8 :
-	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m0plus -mfloat-abi=soft -mthumb' FWSTARTUP='mcu/stm32l0xx.S' FWDEFS='STM32L0 STM32L052xx' FWSCRIPT='mcu/stm32l052x8.ld'
+	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m0plus -mfloat-abi=soft' FWSTARTUP='mcu/stm32l0xx.S' FWDEFS='STM32L0 STM32L052xx' FWSCRIPT='mcu/stm32l052x8.ld'
+
 
 .PHONY: clean bootloader crypter all rebuild fwclean $(FWTARGETS)

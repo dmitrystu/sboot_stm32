@@ -41,7 +41,16 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l151x6a  | STM32L151C6-A, STM32L151R6-A                       |                 |
 | stm32l151x8a  | STM32L151C8-A, STM32L151R8-A, STM31L151V8-A        |                 |
 | stm32l151xba  | STM32L151CB-A, STM32L151RB-A, STM31L151VB-A        |                 |
+| stm32l151xc   | STM32L151CC, STM32L151QC, SRM32L151RC, STM32L151UC |                 |
+| stm32l151xd   | STM32L151QD, STM32L151RD, STM32L151VD, STM32L151ZD |                 |
+| stm32l151xe   | STM32L151QE, STM32L151RE, STM32L151VE, STM32L151ZE |                 |
 | stm32l052x8   | STM32L052K8, STM32L052T8, STM32L052C8, STM32L052R8 | tested, default |
+
+
+
+
+
+
 
 
 
