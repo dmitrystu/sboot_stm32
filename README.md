@@ -14,7 +14,7 @@
 + Software for firmaware encryption/decription included
 + Supported STM32 family
   + STM32L0x2
-  + STM31L1xx
+  + STM32L1xx
 
 #### Usage:
 
@@ -55,6 +55,17 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l162xe   | STM32L162QE, STM32L156RE, STM32L162VE, STM32L162ZE |                 |
 | stm32l052x6   | STM32L052K6, STM32L052T6, STM32L052C6, STM32L052R6 |                 |
 | stm32l052x8   | STM32L052K8, STM32L052T8, STM32L052C8, STM32L052R8 | tested, default |
+| stm32l053x6   | STM32L053C6, STM32L053R6                           |                 |
+| stm32l053x8   | STM32L053C8, STM32L053R8                           |                 |
+| stm32l062x8   | STM32L062K8                                        |                 |
+| stm32l063x8   | STM32L063C8, STM32L063R8                           |                 |
+| stm32l072v8   | STM32L072V8                                        |                 |
+| stm32l072xb   | STM32L072KB, STM32L072CB, STM32L072RB, STM32L072VB |                 |
+| stm32l072xz   | STM32L072KZ, STM32L072CZ, STM32L072RZ, STM32L072VZ |                 |
+| stm32l073v8   | STM32L073V8                                        |                 |
+| stm32l073xb   | STM32L073CB, STM32L073RB, STM32L073VB              |                 |
+| stm32l073xz   | STM32L073CZ, STM32L073RZ, STM32L073VZ              |                 |
+
 
 
 #### Adjusting user firmware

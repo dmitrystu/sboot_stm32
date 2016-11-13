@@ -27,7 +27,7 @@
 #define DFU_CAN_UPLOAD
 
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
-//#define DFU_DETACH_ENABLED
+#define DFU_DETACH_ENABLED
 
 /** Shrinks ISR vector table to core peripherals */
 #define DFU_NO_EXTINT
