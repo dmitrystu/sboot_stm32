@@ -23,7 +23,7 @@ FWTARGETS += stm32l073v8 stm32l073xb stm32l073xc
 FWCFLAGS   ?= -mcpu=cortex-m0plus -mfloat-abi=soft -mthumb
 FWDEFS     ?= STM32L0 STM32L052xx
 FWSTARTUP  ?= mcu/stm32l0xx.S
-FWSCRIPT   ?= mcu/stm32l052x8.ld
+FWSCRIPT   ?= mcu/stm32l0xxx8.ld
 
 
 
@@ -86,7 +86,7 @@ $(OUTDIR)/$(FWNAME).bin: $(OUTDIR)/$(FWNAME).elf
 	@echo creating $@
 	@$(FWTOOLS)objcopy -O binary $< $@
 
-$(OUTDIR)/$(FWNAME).elf: $(FWOBJ)
+.SECONDARY $(OUTDIR)/$(FWNAME).elf: $(FWOBJ)
 	@echo building bootloader
 	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWLDFLAGS) -Wl,--script=$(FWSCRIPT) $(FWOBJ) -o $@
 
@@ -117,12 +117,14 @@ $(FWODIR)/%.o: %.S
 
 fwclean: | $(FWODIR)
 	@$(RM) $(call FixPath, $(FWODIR)/*.*)
+	@$(RM) $(call FixPath, $(OUTDIR)/$(FWNAME)*)
 
 swclean: | $(SWODIR)
 	@$(RM) $(call FixPath, $(SWODIR)/*.*)
+	@$(RM) $(call FixPath, $(OUTDIR)/$(SWNAME)*)
 
 clean: swclean fwclean
-	@$(RM) $(call FixPath, $(OUTDIR)/*.*)
+
 
 
 stm32l100x6a :
@@ -219,4 +221,4 @@ stm32l073xc :
 	$(MAKE) fwclean bootloader FWCFLAGS='-mcpu=cortex-m0plus -mfloat-abi=soft' FWSTARTUP='mcu/stm32l0xx.S' FWDEFS='STM32L0 STM32L073xx' FWSCRIPT='mcu/stm32l0xxxc.ld'
 
 
-.PHONY: clean bootloader crypter all rebuild fwclean $(FWTARGETS)
+.PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
