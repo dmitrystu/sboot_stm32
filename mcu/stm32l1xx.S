@@ -182,7 +182,7 @@ Reset_Handler:
     ldr     r3, =__bss_end__
 .L_clear_bss_loop:
     str     r0, [r2], #0x04
-    cmp     r2, r3
+    cmp     r3, r2
     bcs     .L_clear_bss_loop
 
 /* Setup clock 24Mhz HSI PLL for USB use
@@ -310,5 +310,5 @@ _default_handler:
     def_irq_handler DMA2_Channel3_IRQHandler
     def_irq_handler DMA2_Channel4_IRQHandler
     def_irq_handler DMA2_Channel5_IRQHandler
-    def_irq_handler AES_IRQHandler 
+    def_irq_handler AES_IRQHandler
     def_irq_handler COMP_ACQ_IRQHandler
