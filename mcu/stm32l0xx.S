@@ -117,7 +117,7 @@ Reset_Handler:
     lsls    r2, #(DFU_BOOTSTRAP_PIN * 2)
     orrs    r3, r2
     str     r3, [r1, #GPIO_PUPDR]
-    movs    r4, #0x10
+    movs    r4, #0x08
 .L_scan_bootstrap:
     ldr     r2, [r1, #GPIO_IDR]
     lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
@@ -126,7 +126,7 @@ Reset_Handler:
     orrs    r2, r3
     adds    r4, r2
     beq     .L_reset_gpio
-    cmp     r4, #0x20
+    cmp     r4, #0x10
     bne     .L_scan_bootstrap
 .L_reset_gpio:
     movs    r2, #BOOTSTRAP_RCC

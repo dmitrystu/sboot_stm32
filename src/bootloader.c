@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#define FORCE_ASM_DRIVER
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32.h"
@@ -201,7 +203,7 @@ static void dfu_reset(usbd_device *dev, uint8_t ev, uint8_t ep) {
     NVIC_SystemReset();
 }
 
-static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_ctl_complete *callback) {
+static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_callback *callback) {
     (void)callback;
     if ((req->bmRequestType  & (USB_REQ_TYPE | USB_REQ_RECIPIENT)) == (USB_REQ_STANDARD | USB_REQ_INTERFACE)) {
         switch (req->bRequest) {
@@ -228,7 +230,7 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_ctl_co
         switch (req->bRequest) {
 #ifdef DFU_DETACH_ENABLED
         case USB_DFU_DETACH:
-            *callback = (usbd_ctl_complete)dfu_reset;
+            *callback = (usbd_rqc_callback)dfu_reset;
             return usbd_ack;
 #endif
         case USB_DFU_DNLOAD:
