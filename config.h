@@ -19,6 +19,8 @@
     extern "C" {
 #endif
 
+#define FORCE_ASM_DRIVER
+
 /** Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
 #define DFU_DNLOAD_NOSYNC
 /** Add extra DFU interface for EEPROM */
@@ -64,6 +66,7 @@
 //#define DFU_CIPHER_RAIDEN
 //#define DFU_CIPHER_RC5
 //#define DFU_CIPHER_RC5_A
+//#define DFU_CIPHER_NONE
 
 
 /** DFU secure key. */

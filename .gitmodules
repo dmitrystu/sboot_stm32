@@ -1,4 +1,4 @@
 [submodule "libusb_stm32"]
-	path = libusb_stm32
+	path = usb
 	url = http://github.com/dmitrystu/libusb_stm32.git
 	branch = master

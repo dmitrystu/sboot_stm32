@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-#define FORCE_ASM_DRIVER
-
 #include <stdint.h>
 #include <stdbool.h>
+#include "../config.h"
 #include "stm32.h"
 #include "usb.h"
 #include "inc/usb_dfu.h"
-#include "../config.h"
 #include "descriptors.h"
 #include "flash.h"
 #include "crypto.h"

@@ -228,9 +228,7 @@ Reset_Handler:
     movs    r1, #0x03
     strb    r1, [r3, #RCC_CFGR + 0]
 
-
-
-    b       main
+    bl      main
     .size Reset_Handler, .-Reset_Handler
 
 

@@ -209,7 +209,7 @@ Reset_Handler:
     strb    r1, [r3, #RCC_CFGR + 0]
 
 /* jump to bootloader */
-    b       main
+    bl       main
 
     .size Reset_Handler, . - Reset_Handler
 
