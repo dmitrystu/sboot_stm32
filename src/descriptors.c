@@ -104,7 +104,7 @@ static const struct usb_string_descriptor * const dtable[] = {
 };
 
 
-bool dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len) {
+usbd_respond dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len) {
     const uint8_t dtype = req->wValue >> 8;
     const uint8_t dindx = req->wValue & 0xFF;
     const void *desc;
@@ -124,17 +124,16 @@ bool dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len) {
         if (dindx < _countof(dtable)) {
             desc = dtable[dindx];
         } else {
-            return false;
+            return usbd_fail;
         }
         break;
     default:
-        return false;
+        return usbd_fail;
     }
     if (dlen == 0) dlen = ((struct usb_string_descriptor*)desc)->bLength;
     *len = dlen;
     *address = (void*)desc;
-
-    return true;
+    return usbd_ack;
 
 }
 

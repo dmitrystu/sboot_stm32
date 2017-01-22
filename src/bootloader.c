@@ -247,19 +247,23 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
             return dfu_err_badreq();
         }
     }
-    return false;
+    return usbd_fail;
 }
 
 
-static bool dfu_config(usbd_device *dev, uint8_t config) {
+static usbd_respond dfu_config(usbd_device *dev, uint8_t config) {
     (void)dev;
-    if (config == 1) {
-        usbd_reg_event(&dfu, usbd_evt_reset, dfu_reset);
-        return true;
-    } else {
+    switch (config) {
+    case 0:
         usbd_reg_event(&dfu, usbd_evt_reset, 0);
+        break;
+    case 1:
+        usbd_reg_event(&dfu, usbd_evt_reset, dfu_reset);
+        break;
+    default:
+        return usbd_fail;
     }
-    return false;
+    return usbd_ack;
 }
 
 

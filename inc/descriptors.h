@@ -19,7 +19,7 @@
     extern "C" {
 #endif
 
-bool dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len);
+usbd_respond dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len);
 
 
 #if defined (__cplusplus)
