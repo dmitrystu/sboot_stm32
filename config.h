@@ -37,10 +37,10 @@
 
 #define DFU_VENDOR_ID       0x0483
 #define DFU_DEVICE_ID       0xDF11
-#define DFU_STR_MANUF       'Y','o','u','r',' ','c','o','m','p','a','n','y',' ','n','a','m','e'
-#define DFU_STR_PRODUCT     'A','E','S',' ','b','o','o','t','l','o','a','d','e','r'
-#define DFU_STR_INTF0       'I','n','t','e','r','n','a','l',' ','f','l','a','s','h'
-#define DFU_STR_INTF1       'I','n','t','e','r','n','a','l',' ','e','e','p','r','o','m'
+#define DFU_STR_MANUF       "Your company name"
+#define DFU_STR_PRODUCT     "Secure bootloader"
+#define DFU_STR_INTF0       "Internal flash"
+#define DFU_STR_INTF1       "Internal EEPROM"
 #define DFU_EP0_SIZE        8
 #define DFU_POLL_TIMEOUT    20
 #define DFU_DETACH_TIMEOUT  200

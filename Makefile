@@ -2,7 +2,7 @@ OUTDIR     ?= build
 FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
 FWTOOLS	   ?= arm-none-eabi-
-CMSISDIR   ?= ../cmsis
+CMSIS      ?= ../cmsis
 
 
 
@@ -38,7 +38,7 @@ vpath %.c $(SRCPATH)
 vpath %.S $(SRCPATH)
 
 #includes
-CMSISINC    = $(CMSISDIR)/device/ST $(CMSISDIR)/include
+CMSISINC    = $(CMSIS)/device/ST $(CMSIS)/include
 FWINCS      = $(CMSISINC) inc $(MODULES) $(MODULES)/inc
 SWINCS      = inc
 
@@ -87,7 +87,7 @@ $(OUTDIR)/$(FWNAME).bin: $(OUTDIR)/$(FWNAME).elf
 
 $(FWODIR)/lib%.a: %
 	@echo building module $<
-	@$(MAKE) module -C $< MOUT=$(abspath $@) MDEFS='$(FWDEFS)' MINCS='$(abspath $(CMSISINC))' MCFLAGS='$(FWXFLAGS) $(FWCPU)'
+	@$(MAKE) module -C $< MODULE=$(abspath $@) DEFINES='$(FWDEFS)' INCLUDES='$(abspath $(CMSISINC))' CFLAGS='$(FWXFLAGS) $(FWCPU)'
 
 
 $(SWOBJ): | $(SWODIR)

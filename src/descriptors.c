@@ -84,10 +84,10 @@ static const struct config_desc dfu_config_desc = {
 };
 
 
-static const struct usb_string_descriptor dfu_lang_sdesc    = USB_STRING_DESC(USB_LANGID_ENG_US);
+static const struct usb_string_descriptor dfu_lang_sdesc    = USB_ARRAY_DESC(USB_LANGID_ENG_US);
 static const struct usb_string_descriptor dfu_manuf_sdesc   = USB_STRING_DESC(DFU_STR_MANUF);
 static const struct usb_string_descriptor dfu_product_sdesc = USB_STRING_DESC(DFU_STR_PRODUCT);
-static const struct usb_string_descriptor dfu_config_sdesc  = USB_STRING_DESC('D','F','U',' ','m','o','d','e');
+static const struct usb_string_descriptor dfu_config_sdesc  = USB_STRING_DESC("DFU mode");
 static const struct usb_string_descriptor dfu_flash_sdesc   = USB_STRING_DESC(DFU_STR_INTF0);
 #ifdef DFU_INTF_EEPROM
 static const struct usb_string_descriptor dfu_eeprom_sdesc  = USB_STRING_DESC(DFU_STR_INTF1);
@@ -102,7 +102,6 @@ static const struct usb_string_descriptor * const dtable[] = {
     &dfu_eeprom_sdesc,
 #endif
 };
-
 
 usbd_respond dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len) {
     const uint8_t dtype = req->wValue >> 8;
