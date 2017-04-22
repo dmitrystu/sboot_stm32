@@ -72,9 +72,9 @@
     #define GPIOC           0x40020800
     #define GPIOD           0x40020C00
     #define GPIOE           0x40021000
-    #define GPIOH           0x40021400
-    #define GPIOF           0x40021800
-    #define GPIOG           0x40021C00
+    #define GPIOF           0x40021400
+    #define GPIOG           0x40021800
+    #define GPIOH           0x40021C00
 
     #define SCB             0xE000ED00
     #define SCB_VTOR        0x08
@@ -84,8 +84,47 @@
     #define GPIO_PUPDR      0x0C
     #define GPIO_IDR        0x10
 
+#elif defined(STM32L476xx)
+    #define FLASH_R_BASE    0x40022000
+    #define FLASH_ACR       0x00
+    #define FLASH_KEYR      0x08
+    #define FLASH_SR        0x10
+    #define FLASH_CR        0x14
+    #define FLASH_PRGKEY0   0x45670123
+    #define FLASH_PRGKEY1   0xCDEF89AB
+
+    #define RCC_BASE        0x40021000
+    #define RCC_CR          0x00
+    #define RCC_AHB2RSTR    0x2C
+    #define RCC_AHB2ENR     0x4C
+    #define RCC_APB1ENR1    0x58
+    #define RCC_CCIPR       0x88
+
+    #define PWR_BASE        0x40007000
+    #define PWR_CR1         0x00
+    #define PWR_SR2         0x14
+
+    #define GPIOA           0x48000000
+    #define GPIOB           0x48000400
+    #define GPIOC           0x48000800
+    #define GPIOD           0x48000C00
+    #define GPIOE           0x48001000
+    #define GPIOF           0x48001400
+    #define GPIOG           0x48001800
+    #define GPIOH           0x48001C00
+
+    #define GPIO_MODER      0x00
+    #define GPIO_PUPDR      0x0C
+    #define GPIO_IDR        0x10
+    #define GPIO_AFRL       0x20
+    #define GPIO_AFRH       0x24
+
+    #define SCB             0xE000ED00
+    #define SCB_VTOR        0x08
+
 
 #endif
+
 
 #if defined(__cplusplus)
     }

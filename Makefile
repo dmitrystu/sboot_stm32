@@ -225,5 +225,13 @@ stm32l073xb :
 stm32l073xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus -mfloat-abi=soft' FWSTARTUP='mcu/stm32l0xx.S' FWDEFS='STM32L0 STM32L073xx' FWSCRIPT='mcu/stm32l0xxxc.ld'
 
+stm32l476xc :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' FWSTARTUP='mcu/stm32l4xx.S' FWDEFS='STM32L4 STM32L476xx' FWSCRIPT='mcu/stm32l4xxxc.ld'
+
+stm32l476xe :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' FWSTARTUP='mcu/stm32l4xx.S' FWDEFS='STM32L4 STM32L476xx' FWSCRIPT='mcu/stm32l4xxxe.ld'
+
+stm32l476xg :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' FWSTARTUP='mcu/stm32l4xx.S' FWDEFS='STM32L4 STM32L476xx' FWSCRIPT='mcu/stm32l4xxxg.ld'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)

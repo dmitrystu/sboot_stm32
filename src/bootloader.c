@@ -23,20 +23,30 @@
 #include "flash.h"
 #include "crypto.h"
 
-typedef uint8_t(*flash_rom)(void *romptr, const void *buffer, uint32_t blksize);
-
-
 /* extern vaiables from linker */
 extern uint8_t __app_start;
 extern uint8_t __romend;
-extern uint8_t __ee_start;
-extern uint8_t __ee_end;
+
+#if defined(DFU_INTF_EEPROM)
+    #if defined(DATA_EEPROM_BASE)
+        #define EE_START    DATA_EEPROM_BASE
+        #define EE_LENGTH   (DATA_EEPROM_END - DATA_EEPROM_BASE + 1)
+    #elif defined(FLASH_EEPROM_BASE)
+        #define EE_START    FLASH_EEPROM_BASE
+        #define EE_LENGTH   (FLASH_EEPROM_END - FLASH_EEPROM_BASE + 1 )
+    #else
+        #error No EEPROM found. Disable DFU interface for EEPROM.
+    #endif
+#endif
+
+#define APP_START   (&__app_start)
+#define APP_LENGTH  (&__romend - &__app_start)
+
+typedef uint8_t(*flash_rom)(void *romptr, const void *buffer, uint32_t blksize);
 
 
 static uint32_t dfu_buffer[0x88];
 static usbd_device dfu;
-
-
 
 static struct {
     flash_rom   flash;
@@ -57,16 +67,16 @@ static usbd_respond dfu_set_idle(void) {
     dfu_data.bState = USB_DFU_STATE_DFU_IDLE;
     dfu_data.bStatus = USB_DFU_STATUS_OK;
     switch (dfu_data.interface){
-#ifdef DFU_INTF_EEPROM
+#if defined(DFU_INTF_EEPROM)
     case 1:
-        dfu_data.dptr = &__ee_start;
-        dfu_data.remained = &__ee_end - &__ee_start;
+        dfu_data.dptr = (void*)EE_START;
+        dfu_data.remained = EE_LENGTH;
         dfu_data.flash = program_eeprom;
         break;
 #endif
     default:
-        dfu_data.dptr = &__app_start;
-        dfu_data.remained = &__romend - &__app_start;
+        dfu_data.dptr = APP_START;
+        dfu_data.remained = APP_LENGTH;
         dfu_data.flash = program_flash;
         break;
     }
@@ -79,17 +89,16 @@ static usbd_respond dfu_err_badreq(void) {
     return usbd_fail;
 }
 
-
 static usbd_respond dfu_upload(usbd_device *dev, int32_t blksize) {
     switch (dfu_data.bState) {
-#ifdef DFU_CAN_UPLOAD
+#if defined(DFU_CAN_UPLOAD)
     case USB_DFU_STATE_DFU_IDLE:
     case USB_DFU_STATE_DFU_UPLOADIDLE:
         if (dfu_data.remained == 0) {
             dev->status.data_count = 0;
             return dfu_set_idle();
         }
-#ifdef DFU_USE_CIPHER
+#if defined(DFU_USE_CIPHER)
         aes_encrypt(dev->status.data_ptr, dfu_data.dptr, blksize);
 #else
         dev->status.data_ptr = dfu_data.dptr;
@@ -117,7 +126,7 @@ static usbd_respond dfu_dnload(void *buf, int32_t blksize) {
             dfu_data.bState = USB_DFU_STATE_DFU_ERROR;
             return usbd_ack;
         }
-#ifdef DFU_USE_CIPHER
+#if defined(DFU_USE_CIPHER)
         aes_decrypt(buf, buf, blksize );
 #endif
         dfu_data.bStatus = dfu_data.flash(dfu_data.dptr, buf, blksize);
@@ -125,7 +134,7 @@ static usbd_respond dfu_dnload(void *buf, int32_t blksize) {
         if (dfu_data.bStatus == USB_DFU_STATUS_OK) {
             dfu_data.dptr += blksize;
             dfu_data.remained -= blksize;
-#ifdef DFU_DNLOAD_NOSYNC
+#if defined(DFU_DNLOAD_NOSYNC)
             dfu_data.bState = USB_DFU_STATE_DFU_DNLOADIDLE;
 #else
             dfu_data.bState = USB_DFU_STATE_DFU_DNLOADSYNC;
@@ -139,7 +148,6 @@ static usbd_respond dfu_dnload(void *buf, int32_t blksize) {
         return dfu_err_badreq();
     }
 }
-
 
 static usbd_respond dfu_getstatus(void *buf) {
     /* make answer */
@@ -209,7 +217,7 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
             if (req->wIndex != 0) return usbd_fail;
             switch (req->wValue) {
             case 0: break;
-#ifdef DFU_INTF_EEPROM
+#if defined(DFU_INTF_EEPROM)
             case 1: break;
 #endif
             default:
@@ -226,7 +234,7 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
     }
     if ((req->bmRequestType & (USB_REQ_TYPE | USB_REQ_RECIPIENT)) == (USB_REQ_CLASS | USB_REQ_INTERFACE)) {
         switch (req->bRequest) {
-#ifdef DFU_DETACH_ENABLED
+#if defined(DFU_DETACH_ENABLED)
         case USB_DFU_DETACH:
             *callback = (usbd_rqc_callback)dfu_reset;
             return usbd_ack;
@@ -267,7 +275,6 @@ static usbd_respond dfu_config(usbd_device *dev, uint8_t config) {
 }
 
 
-
 static void dfu_init (void) {
     dfu_set_idle();
     usbd_init(&dfu, &usbd_hw, DFU_EP0_SIZE, dfu_buffer, sizeof(dfu_buffer));
@@ -278,13 +285,9 @@ static void dfu_init (void) {
     usbd_control(&dfu, usbd_cmd_connect);
 }
 
-
 int main (void) {
     dfu_init();
     while(1) {
         usbd_poll(&dfu);
     }
 }
-
-
-

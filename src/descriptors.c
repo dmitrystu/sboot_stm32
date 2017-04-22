@@ -7,11 +7,10 @@
 
 #define _countof(a) (sizeof(a)/sizeof(*(a)))
 
-
 struct config_desc {
     struct usb_config_descriptor    config;
     struct usb_interface_descriptor flash;
-#ifdef DFU_INTF_EEPROM
+#if defined(DFU_INTF_EEPROM)
     struct usb_interface_descriptor eeprom;
 #endif
     struct usb_dfu_func_desc        dfufunc;
@@ -56,7 +55,7 @@ static const struct config_desc dfu_config_desc = {
         .bInterfaceProtocol     = USB_DFU_PROTO_DFU,
         .iInterface             = 4,
     },
-#ifdef DFU_INTF_EEPROM
+#if defined(DFU_INTF_EEPROM)
     .eeprom = {
         .bLength                = sizeof(struct usb_interface_descriptor),
         .bDescriptorType        = USB_DTYPE_INTERFACE,
@@ -72,7 +71,7 @@ static const struct config_desc dfu_config_desc = {
     .dfufunc = {
         .bLength                = sizeof(struct usb_dfu_func_desc),
         .bDescriptorType        = USB_DTYPE_DFU_FUNCTIONAL,
-#ifdef DFU_CAN_UPLOAD
+#if defined(DFU_CAN_UPLOAD)
         .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_CAN_UPLOAD | /*USB_DFU_ATTR_WILL_DETACH |*/ USB_DFU_ATTR_MANIF_TOL,
 #else
         .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_WILL_DETACH | USB_DFU_ATTR_MANIF_TOL,
@@ -82,7 +81,6 @@ static const struct config_desc dfu_config_desc = {
         .bcdDFUVersion          = VERSION_BCD(1,1,0),
     },
 };
-
 
 static const struct usb_string_descriptor dfu_lang_sdesc    = USB_ARRAY_DESC(USB_LANGID_ENG_US);
 static const struct usb_string_descriptor dfu_manuf_sdesc   = USB_STRING_DESC(DFU_STR_MANUF);
@@ -108,7 +106,6 @@ usbd_respond dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len)
     const uint8_t dindx = req->wValue & 0xFF;
     const void *desc;
     uint16_t dlen = 0;
-
     switch (dtype) {
     case USB_DTYPE_DEVICE:
         desc = &dfu_device_desc;
@@ -133,6 +130,4 @@ usbd_respond dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len)
     *len = dlen;
     *address = (void*)desc;
     return usbd_ack;
-
 }
-

@@ -39,6 +39,6 @@ SECTIONS
     PROVIDE(__romend = ORIGIN(ROM) + LENGTH(ROM));
     PROVIDE(__stack = ORIGIN(RAM) + LENGTH(RAM) - 4);
     PROVIDE(__app_start = __usrapp);
-	PROVIDE(__ee_start = ORIGIN(EEPROM));
-	PROVIDE(__ee_end = ORIGIN(EEPROM) + LENGTH(EEPROM));
+    PROVIDE(__ee_start = ORIGIN(EEPROM));
+    PROVIDE(__ee_end = ORIGIN(EEPROM) + LENGTH(EEPROM));
 }

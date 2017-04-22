@@ -65,6 +65,9 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l073v8   | STM32L073V8                                        |                 |
 | stm32l073xb   | STM32L073CB, STM32L073RB, STM32L073VB              |                 |
 | stm32l073xz   | STM32L073CZ, STM32L073RZ, STM32L073VZ              |                 |
+| stm32l476xc   | STM32L476RC, STM32L476VC                           |                 |
+| stm32l476xe   | STM32L476RE, STM32L476JE, STM32L476ME, STM32L476VE |                 |
+| stm32l476xg   | STM32L476RG, STM32L476JG, STM32L476MG, STM32L476VG | tesetd          |
 
 
 

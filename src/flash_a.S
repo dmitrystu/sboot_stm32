@@ -15,25 +15,17 @@
 
 #include "../config.h"
 #include "memmap.h"
-
+    .syntax unified
+#if defined(STM32L0) || defined(STM32L1)
 #if ((DFU_BLOCKSZ % (FLASH_PAGESZ / 2)) != 0)
     #error DFU Transfer size must be divisible to MCU halfpage size. Adjust DFU_BLOCKSZ
 #endif
-
 #define HP_MASK ((FLASH_PAGESZ / 2) - 1)
-
-
-    .syntax unified
     .cpu cortex-m0plus
-    .fpu softvfp
     .thumb
-
-
 /* using RAM for this functions */
-
     .section .data
     .align 2
-
     .thumb_func
     .globl program_flash
     .type program_flash, %function
@@ -44,7 +36,6 @@
  */
 program_flash:
     push    {r4, r5, lr}
-
 /* checking halfpage alignment */
     movs    r4, #HP_MASK
     tst     r4, r0
@@ -164,8 +155,6 @@ unlock_pe:
     lsrs    r4, #0x01
     bcs     .L_w_unlock_pe
     bx      lr
-
-
     .size program_flash, . - program_flash
 
 #ifdef DFU_INTF_EEPROM
@@ -200,12 +189,115 @@ program_eeprom:
 
     .size   program_eeprom, . - program_eeprom
 #endif
-
-
-
-
-
-
+#elif defined(STM32L476xx)
+    .cpu cortex-m4
+    .thumb
+/* using RAM for this functions */
+    .section .data
+    .align 2
+    .thumb_func
+    .globl program_flash
+    .type program_flash, %function
+/* R0 <- addrss to flash
+ * R1 <- buffer
+ * R2 <- block size (nonzero less than 0x40)
+ * R0 -> DFU_STATUS
+ */
+program_flash:
+    push    {r4, r5, r6, lr}
+/* checking doubleword alignment */
+    movs    r4, #0x07
+    tst     r4, r0
+    bne     Err_unaligned
+/* unlocking flash */
+    ldr     r3, =#FLASH_R_BASE
+.L_flash_unlock:
+    ldr     r4, [r3, #FLASH_SR]
+    lsls    r4, #16                 /* BSY->CF */
+    bcs     .L_flash_unlock
+    ldr     r4, =#FLASH_PRGKEY0
+    ldr     r5, =#FLASH_PRGKEY1
+    str     r4, [r3, #FLASH_KEYR]
+    str     r5, [r3, #FLASH_KEYR]
+    movs    r6, #0
+.L_flash_loop:
+/* checking end of block */
+    cmp     r6, r2
+    bhs     .L_do_verify
+/* clean FLASH_SR */
+    ldr     r4, [r3, #FLASH_SR]
+    str     r4, [r3, #FLASH_SR]
+/* check for the page start (2k page)*/
+    mov     r4, r6
+    adds    r4, r0
+    lsls    r5, r4, #21
+    bne     .L_do_write
+/* erasing page */
+/* calculating PNB[7:0] and BKER */
+    lsls    r4, #12
+    lsrs    r4, #23
+    lsls    r4, #3
+/* set PER */
+    adds    r4, #0x02
+    str     r4, [r3, #FLASH_CR]
+    movs    r4, #0x01
+    strh    r4, [r3, #FLASH_CR + 0x02]  /* set STRT */
+.L_wait_bsy:
+    ldr     r4, [r3, #FLASH_SR]
+    lsls    r4, #16
+    bcs     .L_wait_bsy
+    bne     Err_erase
+/* perform doubleword write */
+.L_do_write:
+    movs    r4, #0x01                   /* set PG */
+    str     r4, [r3, #FLASH_CR]
+    ldr     r4, [r1, r6]
+    str     r4, [r0, r6]
+    adds    r6, #0x04
+    ldr     r4, [r1, r6]
+    str     r4, [r0, r6]
+    adds    r6, #0x04
+.L_check_ok:
+    ldr     r4, [r3, #FLASH_SR]
+    lsls    r4, #16                 /* BSY-> CF */
+    bcs     .L_check_ok
+    lsrs    r4, #17                 /* EOP -> CF */
+    beq     .L_flash_loop           /* if no errors */
+    b       Err_prog
+.L_do_verify:
+/* disabling programming */
+    movs    r4, #0x00
+    str     r4, [r3, #FLASH_CR]
+.L_verify_loop:
+    subs    r2, #1
+    bcc     Err_done
+    ldrb    r4, [r0, r2]
+    ldrb    r5, [r1, r2]
+    cmp     r4, r5
+    bne     Err_verify
+    b      .L_verify_loop
+/* all done */
+Err_done:
+    movs    r0, #0x00       //OK
+    b       .L_exit
+Err_unaligned:
+    movs    r0, #0x03       // errWRITE (unaligned access)
+    b       .L_exit
+Err_erase:
+    movs    r0, #0x04       //errERASE
+    b       .L_exit
+Err_prog:
+    movs    r0, #0x06       //errPROG
+    b       .L_exit
+Err_verify:
+    movs    r0, #0x07       //errVERIFY
+.L_exit:
+    movs    r4, #0x03
+    lsls    r4, #30
+    str     r4, [r3, #FLASH_CR] // locking flash
+    pop     {r4, r5, r6, pc}
+#else
+    #error MPU not supported
+#endif
     .pool
-
     .end
