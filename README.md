@@ -1,6 +1,6 @@
 ### Secure USB DFU1.1 bootloader for STM32
 #### Features
-+ Small size. Fits in 4K ROM segment.
++ Small size. Fits in 4K ROM segment (ASM or no encription, otherwise a bit more).
 + USB DFU1.1 compatible
 + supports by [dfu-util](http://dfu-util.sourceforge.net/)
 + Supports one of the following ciphers
@@ -15,6 +15,7 @@
 + Supported STM32 family
   + STM32L0x2
   + STM32L1xx
+  + STM32L476xx (OTG FS in device mode)
 
 #### Usage:
 
@@ -31,7 +32,7 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 + **make mcu_target** to build bootloader
 + **make program** to flash bootloader using st-flash
 + **make crypter** to build encryption software
- 
+
 | mcu_target    | MCU                                                | remarks         |
 |---------------|----------------------------------------------------|-----------------|
 | stm32l100x6a  | STM32L100C6-A                                      |                 |
@@ -67,8 +68,7 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l073xz   | STM32L073CZ, STM32L073RZ, STM32L073VZ              |                 |
 | stm32l476xc   | STM32L476RC, STM32L476VC                           |                 |
 | stm32l476xe   | STM32L476RE, STM32L476JE, STM32L476ME, STM32L476VE |                 |
-| stm32l476xg   | STM32L476RG, STM32L476JG, STM32L476MG, STM32L476VG | tesetd          |
-
+| stm32l476xg   | STM32L476RG, STM32L476JG, STM32L476MG, STM32L476VG | tested          |
 
 
 #### Adjusting user firmware
