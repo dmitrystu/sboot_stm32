@@ -23,6 +23,8 @@
 #include "flash.h"
 #include "crypto.h"
 
+/* DFU request buffer size data + request header */
+#define DFU_BUFSZ  ((DFU_BLOCKSZ + 3 + 8) >> 2)
 /* extern vaiables from linker */
 extern uint8_t __app_start;
 extern uint8_t __romend;
@@ -45,7 +47,7 @@ extern uint8_t __romend;
 typedef uint8_t(*flash_rom)(void *romptr, const void *buffer, uint32_t blksize);
 
 
-static uint32_t dfu_buffer[0x88];
+static uint32_t dfu_buffer[DFU_BUFSZ];
 static usbd_device dfu;
 
 static struct {
@@ -286,6 +288,9 @@ static void dfu_init (void) {
 }
 
 int main (void) {
+#if (DFU_SEAL_LEVEL != _OFF)
+    seal_flash();
+#endif
     dfu_init();
     while(1) {
         usbd_poll(&dfu);

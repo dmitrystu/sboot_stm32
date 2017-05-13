@@ -10,12 +10,16 @@
     #define FLASH_PECR      0x04
     #define FLASH_PEKEYR    0x0C
     #define FLASH_PRGKEYR   0x10
+    #define FLASH_OPTKEYR   0x14
     #define FLASH_SR        0x18
+    #define FLASH_OPTR      0x1C
     #define FLASH_PEKEY0    0x89ABCDEF
     #define FLASH_PEKEY1    0x02030405
     #define FLASH_PRGKEY0   0x8C9DAEBF
     #define FLASH_PRGKEY1   0x13141516
-
+    #define FLASH_OPTKEY0   0xFBEAD9C8
+    #define FLASH_OPTKEY1   0x24252627
+    #define FLASH_OB_BASE   0x1FF80000
     #define FLASH_PAGESZ    0x80
 
     #define RCC_BASE        0x40021000
@@ -48,12 +52,16 @@
     #define FLASH_PECR      0x04
     #define FLASH_PEKEYR    0x0C
     #define FLASH_PRGKEYR   0x10
+    #define FLASH_OPTKEYR   0x14
     #define FLASH_SR        0x18
+    #define FLASH_OPTR      0x1C
     #define FLASH_PEKEY0    0x89ABCDEF
     #define FLASH_PEKEY1    0x02030405
     #define FLASH_PRGKEY0   0x8C9DAEBF
     #define FLASH_PRGKEY1   0x13141516
-
+    #define FLASH_OPTKEY0   0xFBEAD9C8
+    #define FLASH_OPTKEY1   0x24252627
+    #define FLASH_OB_BASE   0x1FF80000
     #define FLASH_PAGESZ    256
 
     #define RCC_BASE        0x40023800

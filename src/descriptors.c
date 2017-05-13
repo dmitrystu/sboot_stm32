@@ -87,7 +87,7 @@ static const struct usb_string_descriptor dfu_manuf_sdesc   = USB_STRING_DESC(DF
 static const struct usb_string_descriptor dfu_product_sdesc = USB_STRING_DESC(DFU_STR_PRODUCT);
 static const struct usb_string_descriptor dfu_config_sdesc  = USB_STRING_DESC("DFU mode");
 static const struct usb_string_descriptor dfu_flash_sdesc   = USB_STRING_DESC(DFU_STR_INTF0);
-#ifdef DFU_INTF_EEPROM
+#if defined(DFU_INTF_EEPROM)
 static const struct usb_string_descriptor dfu_eeprom_sdesc  = USB_STRING_DESC(DFU_STR_INTF1);
 #endif
 static const struct usb_string_descriptor * const dtable[] = {
@@ -96,7 +96,7 @@ static const struct usb_string_descriptor * const dtable[] = {
     &dfu_product_sdesc,
     &dfu_config_sdesc,
     &dfu_flash_sdesc,
-#ifdef DFU_INTF_EEPROM
+#if defined(DFU_INTF_EEPROM)
     &dfu_eeprom_sdesc,
 #endif
 };

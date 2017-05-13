@@ -22,7 +22,7 @@
 /** Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
 #define DFU_DNLOAD_NOSYNC
 /** Add extra DFU interface for EEPROM */
-//#define DFU_INTF_EEPROM
+#define DFU_INTF_EEPROM
 /** Firmware can be uploaded from device */
 #define DFU_CAN_UPLOAD
 
@@ -32,6 +32,8 @@
 /** Shrinks ISR vector table to core peripherals */
 #define DFU_NO_EXTINT
 
+/** Memory Readout Protection level **/
+#define DFU_SEAL_LEVEL      1
 
 #define DFU_VENDOR_ID       0x0483
 #define DFU_DEVICE_ID       0xDF11
@@ -43,15 +45,12 @@
 #define DFU_POLL_TIMEOUT    20
 #define DFU_DETACH_TIMEOUT  200
 #define DFU_BLOCKSZ         0x100
-
-
-#define DFU_USER_APP        __app_start
-
-#define DFU_BOOTKEY_ADDR    __stack
 #define DFU_BOOTKEY         0x157F32D4
 #define DFU_BOOTSTRAP_GPIO  GPIOA
 #define DFU_BOOTSTRAP_PIN   1
 
+#define DFU_USER_APP        __app_start
+#define DFU_BOOTKEY_ADDR    __stack
 
 
 /** DFU cipher selection. Block ciphers runs in CBC mode

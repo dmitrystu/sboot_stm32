@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef _FLASH_H_
 #define _FLASH_H_
 #if defined(__cplusplus)
@@ -20,6 +20,7 @@
 #endif
 __attribute__((long_call)) uint8_t program_eeprom(void *romaddr, const void *buffer, uint32_t blksize);
 __attribute__((long_call)) uint8_t program_flash(void *romaddr, const void *buffer, uint32_t blksize);
+__attribute__((long_call)) uint8_t seal_flash(void);
 #if defined(__cplusplus)
     }
 #endif
