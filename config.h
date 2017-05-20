@@ -22,7 +22,7 @@
 /** Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
 #define DFU_DNLOAD_NOSYNC
 /** Add extra DFU interface for EEPROM */
-#define DFU_INTF_EEPROM
+//#define DFU_INTF_EEPROM
 /** Firmware can be uploaded from device */
 #define DFU_CAN_UPLOAD
 

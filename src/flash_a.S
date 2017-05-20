@@ -282,10 +282,7 @@ program_flash:
     str     r4, [r3, #FLASH_CR]
     movs    r4, #0x01
     strh    r4, [r3, #FLASH_CR + 0x02]  /* set STRT */
-.L_wait_bsy:
-    ldr     r4, [r3, #FLASH_SR]
-    lsls    r4, #16
-    bcs     .L_wait_bsy
+    bl      wait_flash_ready
     bne     Err_erase
 /* perform doubleword write */
 .L_do_write:
@@ -297,13 +294,9 @@ program_flash:
     ldr     r4, [r1, r6]
     str     r4, [r0, r6]
     adds    r6, #0x04
-.L_check_ok:
-    ldr     r4, [r3, #FLASH_SR]
-    lsls    r4, #16                 /* BSY-> CF */
-    bcs     .L_check_ok
-    lsrs    r4, #17                 /* EOP -> CF */
-    beq     .L_flash_loop           /* if no errors */
-    b       Err_prog
+    bl      wait_flash_ready
+    bne     Err_prog
+    b      .L_flash_loop           /* if no errors */
 .L_do_verify:
 /* disabling programming */
     movs    r4, #0x00
@@ -336,14 +329,57 @@ Err_verify:
     lsls    r4, #30
     str     r4, [r3, #FLASH_CR] // locking flash
     pop     {r4, r5, r6, pc}
+    .size program_flash, . - program_flash
+
+
+    .thumb_func
+    .type   wait_flash_ready, %function
+wait_flash_ready:
+    ldr     r4, [r3, #FLASH_SR]
+    lsls    r4, #16         //BSY->CF
+    bcs     wait_flash_ready
+    lsrs    r4, #17         //EOP->CF
+    bx      lr
+    .size wait_flash_ready, . - wait_flash_ready
+
 
 #if (DFU_SEAL_LEVEL != 0)
-#warning Seal function for this MCU not ready yet
     .thumb_func
     .globl seal_flash
     .type seal_flash, %function
 seal_flash:
-    bx      lr
+    push    {r4, r5, r6, lr}
+    ldr     r3, =#FLASH_R_BASE
+    ldrb    r1, [r3, #FLASH_OPTR]
+#if (DFU_SEAL_LEVEL == 0x02)
+    #warning Protection Level 2 is an irreversible operation.
+    cmp     r1, #0xCC
+    beq     Err_done
+    movs    r0, #0xCC
+#else
+    cmp     r1, #0xAA
+    bne     Err_done
+    movs    r0, #0x18
+#endif
+    ldr     r4, =#FLASH_PRGKEY0
+    ldr     r5, =#FLASH_PRGKEY1
+    str     r4, [r3, #FLASH_KEYR]
+    str     r5, [r3, #FLASH_KEYR]
+    ldr     r4, =#FLASH_OPTKEY0
+    ldr     r5, =#FLASH_OPTKEY1
+    str     r4, [r3, #FLASH_OPTKEYR]
+    str     r5, [r3, #FLASH_OPTKEYR]
+/* clean FLASH_SR */
+    ldr     r4, [r3, #FLASH_SR]
+    str     r4, [r3, #FLASH_SR]
+/* modify OPTR */
+    strb    r0, [r3, #FLASH_OPTR]
+/* set OPT_STRT */
+    movs    r4, #0x02
+    strb    r4, [r3, #FLASH_CR + 0x02]
+    bl      wait_flash_ready
+    bne     Err_prog
+    b       Err_done
     .size seal_flash, . - seal_flash
 #endif
 #else

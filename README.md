@@ -11,6 +11,9 @@
   + GOST R 34.12-2015 "MAGMA" block cipher in CBC mode
   + RAIDEN block cipher in CBC mode
 + Different interfaces for flash and eeprom programming
++ Autoseal using RDP level 1 or 2 (prevents reading decrypted FW trough debug interface).
+  Be careful when you set RDP to level 2. This operation is irreversible and disables
+  all debug functions and option bytes programming.
 + Software for firmaware encryption/decription included
 + Supported STM32 family
   + STM32L0x2
@@ -89,7 +92,3 @@ To decrypt:
 ````
 fwcrypt -d infile.bin outfile.bin
 ````
-
- #### Todo ####
- + Add "autoseal" feature to set prtection level 2 on bootloader start
-

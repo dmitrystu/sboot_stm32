@@ -96,10 +96,14 @@
     #define FLASH_R_BASE    0x40022000
     #define FLASH_ACR       0x00
     #define FLASH_KEYR      0x08
+    #define FLASH_OPTKEYR   0x0C
     #define FLASH_SR        0x10
     #define FLASH_CR        0x14
+    #define FLASH_OPTR      0x20
     #define FLASH_PRGKEY0   0x45670123
     #define FLASH_PRGKEY1   0xCDEF89AB
+    #define FLASH_OPTKEY0   0x08192A3B
+    #define FLASH_OPTKEY1   0x4C5D6E7F
 
     #define RCC_BASE        0x40021000
     #define RCC_CR          0x00
