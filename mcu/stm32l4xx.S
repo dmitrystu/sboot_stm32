@@ -61,7 +61,7 @@ Reset_Handler:
     ldr     r0, [r1]
     str     r3, [r1]
     cmp     r0, r2
-    b     .L_start_boot
+    beq     .L_start_boot
 /* checking bootstrap pin */
     ldr     r0, =#RCC_BASE
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
