@@ -283,8 +283,8 @@ static void dfu_init (void) {
     usbd_reg_config(&dfu, dfu_config);
     usbd_reg_control(&dfu, dfu_control);
     usbd_reg_descr(&dfu, dfu_get_descriptor);
-    usbd_control(&dfu, usbd_cmd_enable);
-    usbd_control(&dfu, usbd_cmd_connect);
+    usbd_enable(&dfu, 1);
+    usbd_connect(&dfu, 1);
 }
 
 int main (void) {

@@ -33,7 +33,7 @@
 #define DFU_NO_EXTINT
 
 /** Memory Readout Protection level **/
-#define DFU_SEAL_LEVEL      1
+#define DFU_SEAL_LEVEL      0
 
 #define DFU_VENDOR_ID       0x0483
 #define DFU_DEVICE_ID       0xDF11
