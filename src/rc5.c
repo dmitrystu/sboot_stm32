@@ -3,7 +3,7 @@
  * RC5-32/12/128-CBC block cipher implementation based on
  * Ronald L. Rivest "The RC5 Encryption Algorithm"
  * http://people.csail.mit.edu/rivest/Rivest-rc5rev.pdf
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <stdint.h>
 #include "rot.h"
 #include "rc5.h"
@@ -32,9 +32,9 @@
 
 
 inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    do {
+    while(sz--) {
         *(uint8_t*)dst++ = *(uint8_t*)src++;
-    } while (--sz);
+    }
 }
 
 static uint32_t rc5_keys[t];

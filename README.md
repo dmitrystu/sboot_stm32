@@ -10,6 +10,7 @@
   + RC5-32/12/128 block cipher in CBC mode (C and ASM implementation)
   + GOST R 34.12-2015 "MAGMA" block cipher in CBC mode
   + RAIDEN block cipher in CBC mode
+  + SPECK 64/128 block cipher in CBC mode
 + Different interfaces for flash and eeprom programming
 + Autoseal using RDP level 1 or 2 (prevents reading decrypted FW trough debug interface).
   Be careful when you set RDP to level 2. This operation is irreversible and disables

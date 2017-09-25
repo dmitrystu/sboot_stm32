@@ -1,6 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * Raiden-CBC block cipher implementation based on original code developed by 
+ * Raiden-CBC block cipher implementation based on original code developed by
  * Julio César Hernández Castro and Javier Polimón Olabarrieta
  * https://sourceforge.net/projects/raiden-cipher/
  *
@@ -26,9 +26,9 @@ static uint32_t CK[2];
 
 
 inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    do {
+    while(sz--) {
         *(uint8_t*)dst++ = *(uint8_t*)src++;
-    } while (--sz);
+    }
 }
 
 

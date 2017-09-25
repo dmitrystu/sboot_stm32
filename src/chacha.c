@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <stdint.h>
 #include "../config.h"
 #include "rot.h"
@@ -26,9 +26,9 @@
 
 
 inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    do {
+    while(sz--) {
         *(uint8_t*)dst++ = *(uint8_t*)src++;
-    } while (--sz);
+    };
 }
 
 

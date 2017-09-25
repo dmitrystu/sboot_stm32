@@ -59,12 +59,11 @@
 //#define DFU_CIPHER_ARC4
 //#define DFU_CIPHER_CHACHA
 //#define DFU_CIPHER_CHACHA_A
-#define DFU_CIPHER_GOST
+//#define DFU_CIPHER_GOST
 //#define DFU_CIPHER_RAIDEN
 //#define DFU_CIPHER_RC5
 //#define DFU_CIPHER_RC5_A
-//#define DFU_CIPHER_NONE
-
+#define DFU_CIPHER_SPECK
 
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, \

@@ -26,7 +26,7 @@ FWSTARTUP  ?= mcu/stm32l0xx.S
 FWSCRIPT   ?= mcu/stm32l0xxx8.ld
 
 #sources
-CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c
+CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c src/speck.c
 FW_SRC      = $(CRYPT_SRC) $(FWSTARTUP) src/descriptors.c src/bootloader.c src/flash_a.S src/rc5a.S src/chacha_a.S
 SW_SRC      = $(CRYPT_SRC) src/encrypter.c
 
