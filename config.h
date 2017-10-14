@@ -63,7 +63,9 @@
 //#define DFU_CIPHER_RAIDEN
 //#define DFU_CIPHER_RC5
 //#define DFU_CIPHER_RC5_A
-#define DFU_CIPHER_SPECK
+//#define DFU_CIPHER_SPECK
+//#define DFU_CIPHER_XTEA
+#define DFU_CIPHER_XTEA1
 
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, \

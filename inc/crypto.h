@@ -57,6 +57,20 @@
     #define aes_encrypt(out, in, b) speck_encrypt(out, in, b)
     #define aes_decrypt(out, in, b) speck_decrypt(out, in, b)
 
+#elif defined(DFU_CIPHER_XTEA)
+    #include "xtea.h"
+    #define DFU_AES_KEY DFU_AES_KEY_A
+    #define aes_init(key) xtea_init(key)
+    #define aes_encrypt(out, in, b) xtea_encrypt(out, in, b)
+    #define aes_decrypt(out, in, b) xtea_decrypt(out, in, b)
+
+#elif defined(DFU_CIPHER_XTEA1)
+    #include "xtea.h"
+    #define DFU_AES_KEY DFU_AES_KEY_A
+    #define aes_init(key) xtea_init(key)
+    #define aes_encrypt(out, in, b) xtea_encrypt(out, in, b)
+    #define aes_decrypt(out, in, b) xtea_decrypt(out, in, b)
+
 #elif defined(DFU_CIPHER_ARC4)
     #include "arc4.h"
     #define DFU_AES_KEY DFU_AES_KEY_A

@@ -1,11 +1,8 @@
 OUTDIR     ?= build
 FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
-FWTOOLS	   ?= arm-none-eabi-
-CMSIS      ?= ../cmsis
-
-
-
+FWTOOLS    ?= arm-none-eabi-
+CMSIS      ?= ../CMSIS
 
 ifeq ($(OS),Windows_NT)
 	RM = del /Q
@@ -26,7 +23,7 @@ FWSTARTUP  ?= mcu/stm32l0xx.S
 FWSCRIPT   ?= mcu/stm32l0xxx8.ld
 
 #sources
-CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c src/speck.c
+CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c src/speck.c src/xtea.c
 FW_SRC      = $(CRYPT_SRC) $(FWSTARTUP) src/descriptors.c src/bootloader.c src/flash_a.S src/rc5a.S src/chacha_a.S
 SW_SRC      = $(CRYPT_SRC) src/encrypter.c
 
@@ -38,7 +35,7 @@ vpath %.c $(SRCPATH)
 vpath %.S $(SRCPATH)
 
 #includes
-CMSISINC    = $(CMSIS)/device/ST $(CMSIS)/include
+CMSISINC    = $(CMSIS)/Device/ST $(CMSIS)/Include
 FWINCS      = $(CMSISINC) inc $(MODULES) $(MODULES)/inc
 SWINCS      = inc
 

@@ -42,24 +42,24 @@ inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
     };
 }
 
-static void speck_encrypt_block(uint32_t *dst, const uint32_t *src) {
-    uint32_t A = src[0] ^ CK[0];
-    uint32_t B = src[1] ^ CK[1];
+static void speck_encrypt_block(uint32_t *out, const uint32_t *in) {
+    uint32_t A = in[0] ^ CK[0];
+    uint32_t B = in[1] ^ CK[1];
     for (int i = 0; i < ROUNDS; i++) {
         speck_round(&B, &A, roundkey[i]);
     }
-    CK[0] = dst[0] = A;
-    CK[1] = dst[1] = B;
+    CK[0] = out[0] = A;
+    CK[1] = out[1] = B;
 }
 
-static void speck_decrypt_block(uint32_t *dst, const uint32_t *src) {
-    uint32_t A = src[0];
-    uint32_t B = src[1];
+static void speck_decrypt_block(uint32_t *out, const uint32_t *in) {
+    uint32_t A = in[0];
+    uint32_t B = in[1];
     for (int i = ROUNDS-1; i >= 0; i--) {
         speck_back(&B, &A, roundkey[i]);
     }
-    A ^= CK[0]; CK[0] = src[0]; dst[0] = A;
-    B ^= CK[1]; CK[1] = src[1]; dst[1] = B;
+    A ^= CK[0]; CK[0] = in[0]; out[0] = A;
+    B ^= CK[1]; CK[1] = in[1]; out[1] = B;
 }
 
 

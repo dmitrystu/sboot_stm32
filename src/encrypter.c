@@ -1,9 +1,22 @@
+/* This file is the part of the STM32 secure bootloader
+ *
+ * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
 #include "../config.h"
 #include "crypto.h"
 
@@ -43,7 +56,7 @@ static int file_crypt(char *stro, char *stri, int dir) {
     }
     do {
         size_t inbytes = fread(buff, 1, sizeof(buff), fi);
-      
+
 	inbytes = ((inbytes + (CRYPTO_BLKSIZE - 1)) / CRYPTO_BLKSIZE) * CRYPTO_BLKSIZE;
 
 #if defined(DFU_USE_CIPHER)
@@ -56,12 +69,12 @@ static int file_crypt(char *stro, char *stri, int dir) {
 #endif
         bytes += inbytes;
         size_t outbytes = fwrite(buff, 1, inbytes, fo);
-	
+
     } while (!feof(fi));
 
     fclose(fi);
     fclose(fo);
-  
+
 
     printf("Processed %u bytes use " CRYPTO_NAME "\n", bytes);
     return 0;

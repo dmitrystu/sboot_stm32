@@ -10,3 +10,7 @@ build/*
 
 #OpenOCD configuration
 openocd.cfg
+
+#sublime project files
+*.sublime-project
+*.sublime-workspace
