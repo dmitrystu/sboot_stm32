@@ -46,7 +46,7 @@ SWOBJ     = $(addprefix $(SWODIR)/, $(addsuffix .o, $(notdir $(basename $(SW_SRC
 #modules
 MODULES     = usb
 MLIBS       = $(addprefix $(FWODIR)/lib, $(addsuffix .a, $(MODULES)))
-
+MDEFS       = USBD_SOF_DISABLED
 
 #compiler flags
 FWCFLAGS    = -mthumb -Os -Wall -std=gnu99
@@ -84,7 +84,7 @@ $(OUTDIR)/$(FWNAME).bin: $(OUTDIR)/$(FWNAME).elf
 
 $(FWODIR)/lib%.a: %
 	@echo building module $<
-	@$(MAKE) module -C $< MODULE=$(abspath $@) DEFINES='$(FWDEFS)' INCLUDES='$(abspath $(CMSISINC))' CFLAGS='$(FWXFLAGS) $(FWCPU)'
+	@$(MAKE) module -C $< MODULE=$(abspath $@) DEFINES='$(FWDEFS) $(MDEFS)' INCLUDES='$(abspath $(CMSISINC))' CFLAGS='$(FWXFLAGS) $(FWCPU)'
 
 
 $(SWOBJ): | $(SWODIR)
