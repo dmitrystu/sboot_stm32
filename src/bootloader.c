@@ -288,9 +288,6 @@ static void dfu_init (void) {
 }
 
 int main (void) {
-#if (DFU_SEAL_LEVEL != _OFF)
-    seal_flash();
-#endif
     dfu_init();
     while(1) {
         usbd_poll(&dfu);

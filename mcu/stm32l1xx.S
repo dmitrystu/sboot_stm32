@@ -1,5 +1,49 @@
 #include "../config.h"
-#include "memmap.h"
+#define FLASH_R_BASE    0x40023C00
+#define FLASH_ACR       0x00
+#define FLASH_PECR      0x04
+#define FLASH_PEKEYR    0x0C
+#define FLASH_PRGKEYR   0x10
+#define FLASH_OPTKEYR   0x14
+#define FLASH_SR        0x18
+#define FLASH_OPTR      0x1C
+#define FLASH_PEKEY0    0x89ABCDEF
+#define FLASH_PEKEY1    0x02030405
+#define FLASH_PRGKEY0   0x8C9DAEBF
+#define FLASH_PRGKEY1   0x13141516
+#define FLASH_OPTKEY0   0xFBEAD9C8
+#define FLASH_OPTKEY1   0x24252627
+#define FLASH_OB_BASE   0x1FF80000
+#define FLASH_PAGESZ    0x100
+#define FLASH_HP_MASK   0x7F
+
+#define RCC_BASE        0x40023800
+#define RCC_CR          0x00
+#define RCC_CFGR        0x08
+#define RCC_AHBRSTR     0x10
+#define RCC_AHBENR      0x1C
+#define RCC_APB1ENR     0x24
+
+#define PWR_BASE        0x40007000
+#define PWR_CR          0x00
+#define PWR_CSR         0x04
+
+#define GPIOA           0x40020000
+#define GPIOB           0x40020400
+#define GPIOC           0x40020800
+#define GPIOD           0x40020C00
+#define GPIOE           0x40021000
+#define GPIOF           0x40021400
+#define GPIOG           0x40021800
+#define GPIOH           0x40021C00
+
+#define SCB             0xE000ED00
+#define SCB_VTOR        0x08
+
+#define GPIO_MODER      0x00
+#define GPIO_OTYPER     0x04
+#define GPIO_PUPDR      0x0C
+#define GPIO_IDR        0x10
 
 #if (DFU_BOOTSTRAP_GPIO == GPIOA)
     #define BOOTSTRAP_RCC   0x01
@@ -16,6 +60,9 @@
     #error "Bootstrap port undefined"
 #endif
 
+#if ((DFU_BLOCKSZ % (FLASH_PAGESZ / 2)) != 0)
+#error "DFU block sise must be multiple of flash halfpage size (0x80)"
+#endif
 
     .syntax unified
     .cpu cortex-m3
@@ -43,70 +90,8 @@ __isr_vector:
     .word   0                           /* 0x034 Reserved */
     .word   PendSV_Handler
     .word   SysTick_Handler
-#if !defined(DFU_NO_EXTINT)
-/* STM32 Pripherals interrupts */
-    .word   WWDG_IRQHandler             /*  0 Window Watchdog interrupt */
-    .word   PVD_IRQHandler              /*  1 PVD through EXTI line16 detection interrupt */
-    .word   TAMPER_STAMP_IRQHandler     /*  2 Tamper, LSECSS and TimeStamp through EXTI line19 interrupts */
-    .word   RTC_WKUP_IRQHandler         /*  3 RTC Wakeup through EXTI line20 interrupt */
-    .word   FLASH_IRQHandler            /*  4 Flash global interrupt */
-    .word   RCC_IRQHandler              /*  5 RCC global interrupt */
-    .word   EXTI0_IRQHandler            /*  6 EXTI Line0 interrupt */
-    .word   EXTI1_IRQHandler            /*  7 EXTI Line1 interrupt */
-    .word   EXTI2_IRQHandler            /*  8 EXTI Line2 interrupt */
-    .word   EXTI3_IRQHandler            /*  9 EXTI Line3 interrupt */
-    .word   EXTI4_IRQHandler            /* 10 EXTI Line4 interrupt */
-    .word   DMA1_Channel1_IRQHandler    /* 11 DMA1 Channel1 global interrupt */
-    .word   DMA1_Channel2_IRQHandler    /* 12 DMA1 Channel2 global interrupt */
-    .word   DMA1_Channel3_IRQHandler    /* 13 DMA1 Channel3 global interrupt */
-    .word   DMA1_Channel4_IRQHandler    /* 14 DMA1 Channel4 global interrupt */
-    .word   DMA1_Channel5_IRQHandler    /* 15 DMA1 Channel5 global interrupt */
-    .word   DMA1_Channel6_IRQHandler    /* 16 DMA1 Channel6 global interrupt */
-    .word   DMA1_Channel7_IRQHandler    /* 17 DMA1 Channel7 global interrupt */
-    .word   ADC1_IRQHandler
-    .word   USB_HP_IRQHandler
-    .word   USB_LP_IRQHandler
-    .word   DAC_IRQHandler
-    .word   COMP_IRQHandler
-    .word   EXTI9_5_IRQHandler
-    .word   LCD_IRQHandler
-    .word   TIM9_IRQHandler
-    .word   TIM10_IRQHandler
-    .word   TIM11_IRQHandler
-    .word   TIM2_IRQHandler
-    .word   TIM3_IRQHandler
-    .word   TIM4_IRQHandler
-    .word   I2C1_EV_IRQHandler
-    .word   I2C1_ER_IRQHandler
-    .word   I2C2_EV_IRQHandler
-    .word   I2C2_ER_IRQHandler
-    .word   SPI1_IRQHandler
-    .word   SPI2_IRQHandler
-    .word   USART1_IRQHandler
-    .word   USART2_IRQHandler
-    .word   USART3_IRQHandler               /* 0x0DC */
-    .word   EXTI15_10_IRQHandler            /* 0x0E0 */
-    .word   RTC_Alarm_IRQHandler            /* 0x0E4 */
-    .word   USB_FS_WKUP_IRQHandler          /* 0x0E8 */
-    .word   TIM6_IRQHandler                 /* 0x0EC */
-    .word   TIM7_IRQHandler                 /* 0x0F0 */
-    .word   0                               /* 0x0F4 */
-    .word   TIM5_IRQHandler                 /* 0x0F8 */
-    .word   SPI3_IRQHandler                 /* 0x0FC */
-    .word   0                               /* 0x100 */
-    .word   0                               /* 0x104 */
-    .word   DMA2_Channel1_IRQHandler        /* 0x108 */
-    .word   DMA2_Channel2_IRQHandler        /* 0x10C */
-    .word   DMA2_Channel3_IRQHandler        /* 0x110 */
-    .word   DMA2_Channel4_IRQHandler        /* 0x114 */
-    .word   DMA2_Channel5_IRQHandler        /* 0x118 */
-    .word   AES_IRQHandler                  /* 0x11C */
-    .word   COMP_ACQ_IRQHandler             /* 0x120 */
-
-#endif
+/* Peripheral interrupts are not used */
     .size __isr_vector, . - __isr_vector
-
-
 
     .section .text
     .thumb_func
@@ -227,7 +212,10 @@ Reset_Handler:
 /* set SW[1:0] to PLL */
     movs    r1, #0x03
     strb    r1, [r3, #RCC_CFGR + 0]
-
+#if (DFU_SEAL_LEVEL != 0)
+    ldr     r3, =#seal_flash
+    blx     r3 
+#endif  
     bl      main
     .size Reset_Handler, .-Reset_Handler
 
@@ -256,57 +244,208 @@ _default_handler:
     def_irq_handler DebugMon_Handler
     def_irq_handler PendSV_Handler
     def_irq_handler SysTick_Handler
-    def_irq_handler WWDG_IRQHandler
-    def_irq_handler PVD_IRQHandler
-    def_irq_handler TAMPER_STAMP_IRQHandler
-    def_irq_handler RTC_WKUP_IRQHandler
-    def_irq_handler FLASH_IRQHandler
-    def_irq_handler RCC_IRQHandler
-    def_irq_handler EXTI0_IRQHandler
-    def_irq_handler EXTI1_IRQHandler
-    def_irq_handler EXTI2_IRQHandler
-    def_irq_handler EXTI3_IRQHandler
-    def_irq_handler EXTI4_IRQHandler
-    def_irq_handler DMA1_Channel1_IRQHandler
-    def_irq_handler DMA1_Channel2_IRQHandler
-    def_irq_handler DMA1_Channel3_IRQHandler
-    def_irq_handler DMA1_Channel4_IRQHandler
-    def_irq_handler DMA1_Channel5_IRQHandler
-    def_irq_handler DMA1_Channel6_IRQHandler
-    def_irq_handler DMA1_Channel7_IRQHandler
-    def_irq_handler ADC1_IRQHandler
-    def_irq_handler USB_HP_IRQHandler
-    def_irq_handler USB_LP_IRQHandler
-    def_irq_handler DAC_IRQHandler
-    def_irq_handler COMP_IRQHandler
-    def_irq_handler EXTI9_5_IRQHandler
-    def_irq_handler LCD_IRQHandler
-    def_irq_handler TIM9_IRQHandler
-    def_irq_handler TIM10_IRQHandler
-    def_irq_handler TIM11_IRQHandler
-    def_irq_handler TIM2_IRQHandler
-    def_irq_handler TIM3_IRQHandler
-    def_irq_handler TIM4_IRQHandler
-    def_irq_handler I2C1_EV_IRQHandler
-    def_irq_handler I2C1_ER_IRQHandler
-    def_irq_handler I2C2_EV_IRQHandler
-    def_irq_handler I2C2_ER_IRQHandler
-    def_irq_handler SPI1_IRQHandler
-    def_irq_handler SPI2_IRQHandler
-    def_irq_handler USART1_IRQHandler
-    def_irq_handler USART2_IRQHandler
-    def_irq_handler USART3_IRQHandler
-    def_irq_handler EXTI15_10_IRQHandler
-    def_irq_handler RTC_Alarm_IRQHandler
-    def_irq_handler USB_FS_WKUP_IRQHandler
-    def_irq_handler TIM6_IRQHandler
-    def_irq_handler TIM7_IRQHandler
-    def_irq_handler TIM5_IRQHandler
-    def_irq_handler SPI3_IRQHandler
-    def_irq_handler DMA2_Channel1_IRQHandler
-    def_irq_handler DMA2_Channel2_IRQHandler
-    def_irq_handler DMA2_Channel3_IRQHandler
-    def_irq_handler DMA2_Channel4_IRQHandler
-    def_irq_handler DMA2_Channel5_IRQHandler
-    def_irq_handler AES_IRQHandler
-    def_irq_handler COMP_ACQ_IRQHandler
+
+    .section .data
+    .align 2
+    .thumb_func
+    .globl program_flash
+    .type program_flash, %function
+/* R0 <- addrss to flash
+ * R1 <- buffer
+ * R2 <- block size (nonzero less than 0x40)
+ * R0 -> DFU_STATUS
+ */
+program_flash:
+    push    {r4, r5, lr}
+/* checking halfpage alignment */
+    movs    r4, #FLASH_HP_MASK
+    tst     r4, r0
+    bne     Err_unaligned
+/* adjust block size to halfpage */
+    adds    r5, r4, #0x01
+    subs    r5, r2
+    ands    r5, r4
+    adds    r2, r5
+/* unlock program enable */
+    bl      unlock_pe
+/* unlocking program memoty */
+    ldr     r4, =#FLASH_PRGKEY0
+    ldr     r5, =#FLASH_PRGKEY1
+    str     r4, [r3, #FLASH_PRGKEYR]
+    str     r5, [r3, #FLASH_PRGKEYR]
+/* flash loop */
+.L_flash_loop:
+/* checking if page erase required */
+    movs    r4, #FLASH_HP_MASK
+    lsls    r4, #0x01
+    ands    r4, r0
+    bne     .L_write_halfpage
+/* do page erase */
+    movs    r4, #0x41
+    lsls    r4, #0x03       //ERASE | PROG
+    str     r4, [r3, #FLASH_PECR]
+    movs    r4, #0x00
+    str     r4, [r0]        //fake write to rom to start erase
+    bl      wait_prog_done
+    bcc     Err_erase
+.L_write_halfpage:
+    movs    r4, #0x81
+    lsls    r4, #0x03       // FPRG | PROG
+    str     r4, [r3, #FLASH_PECR]
+    movs    r5, #0x00
+/* do halfpage write */
+.L_hp_loop:
+    ldr     r4, [r1, r5]
+    str     r4, [r0, r5]
+    adds    r5, #0x04
+    cmp     r5, #FLASH_HP_MASK
+    blo     .L_hp_loop
+    bl      wait_prog_done
+    bcc     Err_prog
+    movs    r4, #0x00
+    str     r4, [r3, #FLASH_PECR]
+/* do hp verify */
+.L_verify_loop:
+    ldr     r4, [r0]
+    ldr     r5, [r1]
+    cmp     r4, r5
+    bne     Err_verify
+    adds    r0, #0x04
+    adds    r1, #0x04
+    subs    r2, #0x04
+    movs    r4, #FLASH_HP_MASK
+    ands    r4, r2
+    bne     .L_verify_loop
+/* checking for done */
+    cmp     r2, #0x00
+    bne     .L_flash_loop
+/* all done */
+Err_done:
+    movs    r0, #0x00       //OK
+    b       .L_exit
+Err_unaligned:
+    movs    r0, #0x03       // errWRITE (unaligned access)
+    b       .L_exit
+Err_erase:
+    movs    r0, #0x04       //errERASE
+    b       .L_exit
+Err_prog:
+    movs    r0, #0x06       //errPROG
+    b       .L_exit
+Err_verify:
+    movs    r0, #0x07       //errVERIFY
+.L_exit:
+    movs    r4, #0x07
+    str     r4, [r3, #FLASH_PECR] // locking flash
+    pop     {r4, r5, pc}
+    .size program_flash, . - program_flash
+
+/* wait for programming done */
+/* return CF=0 if program failed */
+    .thumb_func
+    .type wait_prog_done, %function
+wait_prog_done:
+    ldr     r4, [r3, #FLASH_SR]
+    lsrs    r4, #0x01               //BSY -> CF
+    bcs     wait_prog_done          //wait BSY low
+    lsrs    r4, #0x02               //ENDHV -> CF
+    bcc     wait_prog_done          //wait ENDHV high
+    ldr     r4, [r3, #FLASH_SR]     //reload FLASH_SR
+    lsrs    r4, #0x02               //EOP -> CF
+    //bcc     .L_wpd_exit
+    movs    r4, #0x02               //clear EOP
+    str     r4, [r3, #FLASH_SR]
+.L_wpd_exit:
+    bx      lr
+    .size wait_prog_done, . - wait_prog_done
+
+/* unlock program enable function and set R3 to FLASH_R_BASE */
+    .thumb_func
+    .type unlock_pe, %function
+unlock_pe:
+    ldr     r3, =#FLASH_R_BASE
+    ldr     r4, =#FLASH_PEKEY0
+    ldr     r5, =#FLASH_PEKEY1
+    str     r4, [r3, #FLASH_PEKEYR]
+    str     r5, [r3, #FLASH_PEKEYR]
+    bx      lr
+    .size unlock_pe, . - unlock_pe
+
+
+    .thumb_func
+    .globl program_eeprom
+    .type program_eeprom, %function
+/* R0 <- Address to flash
+ * R1 <- Buffer
+ * R2 <- block size (nonzero!)
+ * R0 -> DFU STATUS
+ */
+program_eeprom:
+    push    {r4, r5, lr}
+/* unlock program enable */
+    bl      unlock_pe
+/* flash unlocked. let's do write using word write */
+    movs    r4, #0x00
+    str     r4, [r3, #FLASH_PECR]
+/* writing byte by byte */
+.L_ee_write:
+    ldr     r4, [r1]
+    str     r4, [r0]
+    ldr     r5, [r0]
+    cmp     r5, r4
+    bne     Err_verify
+    adds    r0, #0x04
+    adds    r1, #0x04
+    subs    r2, #0x04
+    bgt     .L_ee_write
+    b       Err_done
+    .size   program_eeprom, . - program_eeprom
+
+#if (DFU_SEAL_LEVEL != 0)
+    .thumb_func
+    .type seal_flash, %function
+/* R0 -> DFU_STATUS */
+seal_flash:
+    push    {r4, r5, lr}
+    bl      unlock_pe
+    ldr     r0, [r3, #FLASH_OPTR]
+    uxtb    r1, r0
+    eors    r0, r1
+#if (DFU_SEAL_LEVEL == 2)
+    #warning Protection Level 2 is an irreversible.
+    cmp     r1, #0xCC
+    beq     .L_seal_end
+    adds    r0, #0xCC
+#else
+    cmp     r1, #0xAA
+    bne     .L_seal_end
+    adds    r0, #0x81
+#endif
+/* unlocking flash and option bytes */
+    ldr     r4, =#FLASH_OPTKEY0
+    ldr     r5, =#FLASH_OPTKEY1
+    str     r4, [r3, #FLASH_OPTKEYR]
+    str     r5, [r3, #FLASH_OPTKEYR]
+/* preparing OBL data R4:R5*/
+    mvns    r4, r0
+    lsls    r4, #0x10
+    uxth    r5, r0
+    orrs    r4, r5
+    lsrs    r0, #0x10
+    mvns    r5, r0
+    lsls    r5, #0x10
+    orrs    r5, r0
+/* program user option */
+    ldr     r1, =#FLASH_OB_BASE
+    str     r4, [r1, #0x00]
+    str     r5, [r1, #0x04]
+    bl      wait_prog_done
+/* do lock and exit */
+    bcc     Err_prog
+.L_seal_end:
+    b       Err_done
+    .size seal_flash, . - seal_flash
+#endif     
+    .pool
+
+    .end
