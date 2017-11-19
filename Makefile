@@ -3,6 +3,7 @@ FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
 FWTOOLS    ?= arm-none-eabi-
 CMSIS      ?= ../CMSIS
+CMSISDEV   ?= $(CMSIS)/Device
 
 ifeq ($(OS),Windows_NT)
 	RM = del /Q
@@ -35,7 +36,7 @@ vpath %.c $(SRCPATH)
 vpath %.S $(SRCPATH)
 
 #includes
-CMSISINC    = $(CMSIS)/Device/ST $(CMSIS)/Include
+CMSISINC    = $(CMSISDEV)/ST $(CMSIS)/CMSIS/Include
 FWINCS      = $(CMSISINC) inc $(MODULES) $(MODULES)/inc
 SWINCS      = inc
 
