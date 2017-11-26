@@ -17,8 +17,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "usb.h"
-#include "inc/usb_dfu.h"
-#include "../config.h"
+#include "usb_dfu.h"
+#include "config.h"
 
 #define _countof(a) (sizeof(a)/sizeof(*(a)))
 

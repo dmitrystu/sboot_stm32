@@ -15,10 +15,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../config.h"
+#include "config.h"
 #include "stm32.h"
 #include "usb.h"
-#include "inc/usb_dfu.h"
+#include "usb_dfu.h"
 #include "descriptors.h"
 #include "flash.h"
 #include "crypto.h"
