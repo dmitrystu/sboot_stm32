@@ -18,25 +18,26 @@
  */
 
 #include <stdint.h>
-#include "../config.h"
-#include "rot.h"
+#include "misc.h"
+#include "config.h"
+#include "chacha.h"
 
 #define QR(s,a,b,c,d) Qround((s), (a) << 24 | (b) << 16 | (c) << 8 | (d) << 0)
 
+#define SPLIT(x) (x) & 0xFF, ((x) >> 8) & 0xFF, ((x) >> 16) & 0xFF, ((x) >> 24) & 0xFF
 
-
-inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    while(sz--) {
-        *(uint8_t*)dst++ = *(uint8_t*)src++;
-    };
-}
-
-
-
+static const uint8_t _key[] = {
+    0x65, 0x78, 0x70, 0x61, 0x6e, 0x64, 0x20, 0x33,
+    0x32, 0x2d, 0x62, 0x79, 0x74, 0x65, 0x20, 0x6b,
+    DFU_AES_KEY_A, DFU_AES_KEY_B,
+    0x00, 0x00, 0x00, 0x00,
+    SPLIT(DFU_AES_NONCE0),
+    SPLIT(DFU_AES_NONCE1),
+    SPLIT(DFU_AES_NONCE2)
+};
 
 static uint32_t inits[16];
 static uint32_t state[16];
-
 
 static void Qround (uint32_t *s, uint32_t abcd) {
 
@@ -45,10 +46,10 @@ static void Qround (uint32_t *s, uint32_t abcd) {
     uint32_t C = s[(abcd >> 8 ) & 0x0F];
     uint32_t D = s[(abcd >> 0 ) & 0x0F];
 
-    A += B; D ^= A; D = __ror(D, 32 - 16);
-    C += D; B ^= C; B = __ror(B, 32 - 12);
-    A += B; D ^= A; D = __ror(D, 32 - 8);
-    C += D; B ^= C; B = __ror(B, 32 - 7);
+    A += B; D ^= A; D = __ror32(D, 32 - 16);
+    C += D; B ^= C; B = __ror32(B, 32 - 12);
+    A += B; D ^= A; D = __ror32(D, 32 - 8);
+    C += D; B ^= C; B = __ror32(B, 32 - 7);
 
     s[(abcd >> 24) & 0x0F] = A;
     s[(abcd >> 16) & 0x0F] = B;
@@ -70,23 +71,9 @@ static void chacha_block() {
     }
 }
 
-void chacha_init(const uint8_t *key) {
-    /* set constants */
-    inits[0] = 0x61707865;
-    inits[1] = 0x3320646e;
-    inits[2] = 0x79622d32;
-    inits[3] = 0x6b206574;
-    /* set key */
-    __memcpy(&inits[4], key, 0x40);
-    /* set counter */
-    inits[12] = 0x00;
-     /* set nonse */
-    inits[13] = DFU_AES_NONCE0;
-    inits[14] = DFU_AES_NONCE1;
-    inits[15] = DFU_ASE_NONCE2;
+void chacha_init(void) {
+    __memcpy(inits, _key, sizeof(inits));
 }
-
-
 
 void chacha_crypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
     while (bytes > 0) {

@@ -2,7 +2,7 @@
  *
  * GOST R 34.12-2015 "MAGMA" CBC block cipher implementation based on
  * official GOST R 34.12-2015 national standard of the Russian Federation
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,16 +17,16 @@
  */
 
 #include <stdint.h>
+#include "misc.h"
+#include "config.h"
 #include "gost.h"
-#include "../config.h"
-#include "rot.h"
 
 #define rounds 32
 
+static const uint8_t key[] = {DFU_AES_KEY_A, DFU_AES_KEY_B};
 
 static uint32_t RK[32];
 static uint32_t CK[2];
-
 
 static const uint32_t S[] = {
     0xC6BC7581, 0x4838FDE7, 0x62525F2E, 0x2381A65D,
@@ -50,7 +50,7 @@ static uint32_t sbox(uint32_t in) {
 
 
 __attribute__((noinline))static uint32_t F(uint32_t data, uint32_t round) {
-    return __ror(sbox(data + RK[round]), 32 - 11);
+    return __ror32(sbox(data + RK[round]), 32 - 11);
 }
 
 static void gost_encrypt_block(uint32_t *out, const uint32_t *in) {
@@ -82,16 +82,12 @@ static void gost_decrypt_block(uint32_t *out, const uint32_t *in) {
     CK[1] = i1;
 }
 
-
-
-
-void gost_init(const uint8_t *key){
+void gost_init(void){
     for (int i = 0; i < 8; i++) {
         RK[i] = key[4*i] << 24 | key[4*i+1] << 16 | key[4*i+2] << 8 | key[4*i+3];
         RK[8+i] = RK[i];
         RK[16+i] = RK[i];
         RK[31-i] = RK[i];
-
     }
     CK[0] = DFU_AES_NONCE0;
     CK[1] = DFU_AES_NONCE1;

@@ -26,7 +26,7 @@
 #define CRYPTO_BLKSIZE 8
 #define CRYPTO_NAME    "RAIDEN-CBC"
 
-void raiden_init(const uint8_t *key);
+void raiden_init(void);
 void raiden_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 void raiden_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 

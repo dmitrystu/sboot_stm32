@@ -20,28 +20,25 @@
  */
 
 #include <stdint.h>
-#include "rot.h"
-#include "../config.h"
+#include "misc.h"
+#include "config.h"
+#include "xtea.h"
 
 #define rounds  32
 #define delta   0x9E3779B9
 
 #if defined(DFU_CIPHER_XTEA1)
-    #define RA(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol(k[s & 0x03], x)
-    #define RB(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol(k[(s >> 11) & 0x03], x)
+    #define RA(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol32(k[s & 0x03], x)
+    #define RB(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol32(k[(s >> 11) & 0x03], x)
 #else
     #define RA(x, s, k) (((x << 4) ^ (x >> 5)) +  x) ^ (s + k[s & 0x03])
     #define RB(x, s, k) (((x << 4) ^ (x >> 5)) +  x) ^ (s + k[(s >> 11) & 0x03])
 #endif
 
+static const uint8_t key[] = {DFU_AES_KEY_A};
+
 static uint32_t K[4];
 static uint32_t CK[2];
-
-inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    while(sz--) {
-        *(uint8_t*)dst++ = *(uint8_t*)src++;
-    }
-}
 
 static void xtea_encrypt_block(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0] ^ CK[0];
@@ -69,7 +66,7 @@ static void xtea_decrypt_block(uint32_t *out, const uint32_t *in) {
     B ^= CK[1]; CK[1] = in[1]; out[1] = B;
 }
 
-void xtea_init(const uint8_t *key) {
+void xtea_init(void) {
     __memcpy(K, key, sizeof(K));
     CK[0] = DFU_AES_NONCE0;
     CK[1] = DFU_AES_NONCE1;

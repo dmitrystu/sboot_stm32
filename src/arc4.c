@@ -12,16 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <stdint.h>
+#include "config.h"
 #include "arc4.h"
+
+static const uint8_t key[] = {DFU_AES_KEY_A};
 static uint8_t S[256];
 static uint8_t si;
 static uint8_t sj;
 
-
-
-void arc4_init (const uint8_t *key) {
+void arc4_init (void) {
     for (int i=0; i < 256; i++) {
         S[i] = i;
     }

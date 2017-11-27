@@ -17,7 +17,7 @@
  * limitations under the License.
  */
  
-#include "../config.h"
+#include "config.h"
 
 #define R       12
 #define T       2 * (R + 1)
@@ -39,8 +39,9 @@ _rc5_init:
     push    {r4,r5,r6,r7, lr}
     sub     sp, #0x14
     mov     r2, sp
-    movs    r1, #0x10
 /* copy key to L */
+    movs    r1, #0x10
+    adr     r0, _rc5_key
 .L_copy_key:
     subs    r1, #0x01
     ldrb    r3, [r0, r1]
@@ -221,7 +222,8 @@ _rc5_decrypt:
     pop     {r4, r5, r6, r7, pc}
     .size _rc5_decrypt, . - _rc5_decrypt
 
-
+_rc5_key:
+    .byte   DFU_AES_KEY_A
 
 
     .pool

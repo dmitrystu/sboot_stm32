@@ -18,9 +18,9 @@
  */
 
 #include <stdint.h>
-#include "rot.h"
+#include "misc.h"
+#include "config.h"
 #include "rc5.h"
-#include "../config.h"
 
 #define rounds      12
 #define c           4
@@ -30,24 +30,17 @@
 #define Pw          0xb7e15163
 #define Qw          0x9e3779b9
 
-
-inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    while(sz--) {
-        *(uint8_t*)dst++ = *(uint8_t*)src++;
-    }
-}
+static const uint8_t key[] = {DFU_AES_KEY_A};
 
 static uint32_t rc5_keys[t];
 static uint32_t CK[2];
-
-
 
 static void rc5_encode_block (uint32_t *out, const uint32_t *in) {
     uint32_t A = (in[0] ^ CK[0]) + rc5_keys[0];
     uint32_t B = (in[1] ^ CK[1]) + rc5_keys[1];
     for (int i = 1; i <= rounds; i++) {
-        A = __rol((A ^ B), B) + rc5_keys[2 * i];
-        B = __rol((B ^ A), A) + rc5_keys[2 * i + 1];
+        A = __rol32((A ^ B), B) + rc5_keys[2 * i];
+        B = __rol32((B ^ A), A) + rc5_keys[2 * i + 1];
     }
     CK[0] = out[0] = A;
     CK[1] = out[1] = B;
@@ -59,8 +52,8 @@ static void rc5_decode_block (uint32_t *out, const uint32_t *in) {
     uint32_t i0 = A;
     uint32_t i1 = B;
     for (int i = rounds; i > 0; i--) {
-        B = __ror((B - rc5_keys[2 * i + 1]), A) ^ A;
-        A = __ror((A - rc5_keys[2 * i]), B) ^ B;
+        B = __ror32((B - rc5_keys[2 * i + 1]), A) ^ A;
+        A = __ror32((A - rc5_keys[2 * i]), B) ^ B;
     }
     out[0] = (A - rc5_keys[0]) ^ CK[0];
     out[1] = (B - rc5_keys[1]) ^ CK[1];
@@ -68,7 +61,7 @@ static void rc5_decode_block (uint32_t *out, const uint32_t *in) {
     CK[1] = i1;
 }
 
-void rc5_init (const uint8_t *key) {
+void rc5_init (void) {
     uint32_t L[4];
     __memcpy(L, key, 16);
     rc5_keys[0] = Pw;
@@ -76,8 +69,8 @@ void rc5_init (const uint8_t *key) {
         rc5_keys[i] = rc5_keys[i-1] + Qw;
     }
     for (uint32_t A = 0, B = 0, i = 0, j = 0, k = 3 * t; k > 0; k--) {
-        A = rc5_keys[i] = __rol(rc5_keys[i] + A + B, 3);
-        B = L[j] = __rol(L[j] + A + B, (A + B));
+        A = rc5_keys[i] = __rol32(rc5_keys[i] + A + B, 3);
+        B = L[j] = __rol32(L[j] + A + B, (A + B));
         if (++i == t) i = 0;
         if (++j == c) j = 0;
     }

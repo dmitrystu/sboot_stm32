@@ -18,29 +18,27 @@
  */
 
 #include <stdint.h>
-#include "rot.h"
-#include "../config.h"
+#include "misc.h"
+#include "config.h"
+#include "speck.h"
 
 #define ROUNDS  27
+
+static const uint8_t key[] = {DFU_AES_KEY_A, DFU_AES_KEY_B};
 
 static uint32_t roundkey[ROUNDS];
 static uint32_t CK[2];
 
 inline static void speck_round(uint32_t *a, uint32_t *b, const uint32_t key) {
-    *a = key ^ (__ror(*a, 8) + *b);
-    *b = *a ^ __rol(*b, 3);
+    *a = key ^ (__ror32(*a, 8) + *b);
+    *b = *a ^ __rol32(*b, 3);
 }
 
 inline static void speck_back(uint32_t *a, uint32_t *b, const uint32_t key) {
-    *b = __ror(*b ^ *a, 3);
-    *a = __rol((key ^ *a) - *b, 8);
+    *b = __ror32(*b ^ *a, 3);
+    *a = __rol32((key ^ *a) - *b, 8);
 }
 
-inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    while(sz--) {
-        *(uint8_t*)dst++ = *(uint8_t*)src++;
-    };
-}
 
 static void speck_encrypt_block(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0] ^ CK[0];
@@ -63,7 +61,7 @@ static void speck_decrypt_block(uint32_t *out, const uint32_t *in) {
 }
 
 
-void speck_init(const uint8_t *key) {
+void speck_init(void) {
     uint32_t K[4];
     __memcpy(K, key, 16);
     for (int i = 0, j = 0 ; i < ROUNDS; i++) {

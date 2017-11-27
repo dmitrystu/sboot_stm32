@@ -62,10 +62,7 @@ static struct {
 
 /** Processing DFU_SET_IDLE request */
 static usbd_respond dfu_set_idle(void) {
-#if defined(DFU_USE_CIPHER)
-    static const uint8_t key[] = {DFU_AES_KEY};
-    aes_init(key);
-#endif
+    aes_init();
     dfu_data.bState = USB_DFU_STATE_DFU_IDLE;
     dfu_data.bStatus = USB_DFU_STATUS_OK;
     switch (dfu_data.interface){
@@ -128,9 +125,7 @@ static usbd_respond dfu_dnload(void *buf, int32_t blksize) {
             dfu_data.bState = USB_DFU_STATE_DFU_ERROR;
             return usbd_ack;
         }
-#if defined(DFU_USE_CIPHER)
         aes_decrypt(buf, buf, blksize );
-#endif
         dfu_data.bStatus = dfu_data.flash(dfu_data.dptr, buf, blksize);
 
         if (dfu_data.bStatus == USB_DFU_STATUS_OK) {
