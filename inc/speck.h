@@ -26,7 +26,7 @@
 #define CRYPTO_BLKSIZE 8
 #define CRYPTO_NAME    "SPECK 64/128-CBC"
 
-void speck_init(const uint8_t *key);
+void speck_init(void);
 void speck_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 void speck_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 

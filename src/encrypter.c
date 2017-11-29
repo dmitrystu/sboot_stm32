@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../config.h"
+#include "config.h"
 #include "crypto.h"
 
 
@@ -28,19 +28,12 @@ static const char *shelp = "Usage: encrypter [option] infile outfile\n" \
 
 static const char *sferr = "Error: unable to open file %s\n";
 
-
-
-
 static int help(void) {
     printf(shelp);
     return -1;
 }
 
-
-
 static int file_crypt(char *stro, char *stri, int dir) {
-
-
     uint32_t buff[0x100];
     uint32_t bytes = 0;
     FILE *fi = fopen(stri, "rb");
@@ -54,10 +47,11 @@ static int file_crypt(char *stro, char *stri, int dir) {
         printf(sferr, stro);
         return 2;
     }
+    aes_init();
     do {
         size_t inbytes = fread(buff, 1, sizeof(buff), fi);
 
-	inbytes = ((inbytes + (CRYPTO_BLKSIZE - 1)) / CRYPTO_BLKSIZE) * CRYPTO_BLKSIZE;
+    inbytes = ((inbytes + (CRYPTO_BLKSIZE - 1)) / CRYPTO_BLKSIZE) * CRYPTO_BLKSIZE;
 
 #if defined(DFU_USE_CIPHER)
 
@@ -85,10 +79,6 @@ static int file_crypt(char *stro, char *stri, int dir) {
 
 
 int main (int argc, char *argv[]) {
-#if defined(DFU_USE_CIPHER)
-    static const uint8_t key[] = {DFU_AES_KEY};
-    aes_init(key);
-#endif
     if (argc != 4) return help();
     if (!strcmp(argv[1], "-e")) {
         return file_crypt(argv[3], argv[2], 1);

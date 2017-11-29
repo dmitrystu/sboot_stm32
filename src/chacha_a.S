@@ -33,30 +33,14 @@
     .type _chacha_init, %function
 /* R0 <- key pointer */
 _chacha_init:
+    adr     r0, _initial
     ldr     r1, =_inits
-    ldr     r2, =#0x61707865
-    str     r2, [r1, #0x00]
-    ldr     r2, =#0x3320646e
-    str     r2, [r1, #0x04]
-    ldr     r2, =#0x79622d32
-    str     r2, [r1, #0x08]
-    ldr     r2, =#0x6b206574
-    str     r2, [r1, #0x0C]
-    adds    r1, #0x10
-    movs    r3, #0x3F
+    movs    r3, 0x3F
 .L_copy_key:
     ldrb    r2, [r0, r3]
     strb    r2, [r1, r3]
-    subs    r3, #0x01
-    bcs     .L_copy_key
-    movs    r2, #0x00
-    str     r2, [r1, #0x20]
-    ldr     r2, =#DFU_AES_NONCE0
-    str     r2, [r1, #0x24]
-    ldr     r2, =#DFU_AES_NONCE1
-    str     r2, [r1, #0x28]
-    ldr     r2, =#DFU_ASE_NONCE2
-    str     r2, [r1, #0x2C]
+    subs    r3, 0x01
+    bhs     .L_copy_key
     bx      lr
     .size _chacha_init, . - _chacha_init
 
@@ -80,12 +64,12 @@ _chacha_crypt:
     str     r3, [r4, #0x30]
 /* copy init to state */
     ldr     r5, =_state
-    movs    r6, #0x7C
+    movs    r6, #0x3C
 .L_copy_state:
     ldr     r3, [r4, r6]
     str     r3, [r5, r6]
     subs    r6, #0x04
-    bcs     .L_copy_state
+    bhs     .L_copy_state
     movs    r6, #10
     ldr     r3, =_Qround
 .L_qrounds:
@@ -187,11 +171,17 @@ _Qround:
 
     .size _Qround, . - _Qround
 
+_initial:
+    .long   0x61707865, 0x3320646e, 0x79622d32, 0x6b206574
+    .byte   DFU_AES_KEY_A, DFU_AES_KEY_B
+    .long   0x00
+    .long   DFU_AES_NONCE0, DFU_AES_NONCE1, DFU_AES_NONCE2
+
     .pool
 
 
 
     .section .bss
-    .align 3
+    .align 2
 _inits:     .space 64
 _state:     .space 64

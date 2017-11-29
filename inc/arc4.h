@@ -22,7 +22,7 @@
 #define CRYPTO_BLKSIZE 1
 #define CRYPTO_NAME    "ARCFOUR"
 
-void arc4_init(const uint8_t *key);
+void arc4_init(void);
 void arc4_crypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 
 #if defined(__cplusplus)

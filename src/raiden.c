@@ -18,19 +18,14 @@
  */
 
 #include <stdint.h>
+#include "misc.h"
+#include "config.h"
 #include "raiden.h"
-#include "../config.h"
+
+static const uint8_t key[] = {DFU_AES_KEY_A};
 
 static uint32_t subkey[0x10];
 static uint32_t CK[2];
-
-
-inline static void __memcpy(void *dst, const void *src, uint32_t sz) {
-    while(sz--) {
-        *(uint8_t*)dst++ = *(uint8_t*)src++;
-    }
-}
-
 
 static void raiden_encrypt_block(uint32_t *out, const uint32_t *in) {
     uint32_t b0 = in[0] ^ CK[0];
@@ -60,9 +55,7 @@ static void raiden_decrypt_block(uint32_t *out, const uint32_t *in) {
     CK[1] = i1;
 }
 
-
-
-void raiden_init(const uint8_t *key) {
+void raiden_init(void) {
     uint32_t k[4];
     __memcpy(k, key, sizeof(k));
     for (int i = 0; i < 16; i++) {

@@ -34,7 +34,7 @@
 
 
 
-void xtea_init(const uint8_t *key);
+void xtea_init(void);
 void xtea_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 void xtea_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 

@@ -25,7 +25,7 @@
 #define CRYPTO_BLKSIZE 8
 #define CRYPTO_NAME    "GOST R 34.12-2015 \"MAGMA\"-CBC"
 
-void gost_init(const uint8_t *key);
+void gost_init();
 void gost_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 void gost_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
 
