@@ -57,6 +57,11 @@
     #error "Bootstrap port undefined"
 #endif
 
+#if (DFU_BOOTSTRAP_PIN > 8)
+    #define BOOTSTRAP_CRx   GPIO_CRH
+#else
+    #define BOOTSTRAP_CRx   GPIO_CRL
+#endif
 
     .syntax unified
     .cpu cortex-m3
@@ -92,39 +97,32 @@ __isr_vector:
     .globl Reset_Handler
     .type Reset_Handler, %function
 Reset_Handler:
-    ldr     r1, =#DFU_BOOTKEY_ADDR
-    ldr     r2, =#DFU_BOOTKEY
-    movs    r3, #0x00
-    ldr     r0, [r1]
-    str     r3, [r1]
-    cmp     r0, r2
-    beq     .L_start_boot
-/* checking bootstrap pin */
+/* pulling down GPIOA12 (USB-DP)*/
+/* this will force re-enumeration. Very useful if no DP control pin used */
     ldr     r0, =#RCC_BASE
-    ldr     r1, =#DFU_BOOTSTRAP_GPIO
-    movs    r2, #BOOTSTRAP_RCC
+    movs    r2, #(0x04 | BOOTSTRAP_RCC)
     strb    r2, [r0, #RCC_APB2ENR]
-    movs    r2, #0x08
-    movs    r3, #0x0F
-#if (DFU_BOOTSTRAP_PIN < 8)
-    lsls    r2, #(DFU_BOOTSTRAP_PIN * 4)
-    lsls    r3, #(DFU_BOOTSTRAP_PIN * 4)
-    ldr     r4, [r1, #GPIO_CRL]
+    ldr     r1, =#GPIOA
+    ldr     r2, [r1, #GPIO_CRH]
+    ldr     r3, =#0x000F0000
+    bics    r2, r3
+    ldr     r3, =#0x00020000
+    orrs    r2, r3
+    str     r2, [r1, #GPIO_CRH]
+    ldr     r2, =#0x10000000
+    str     r2, [r1, #GPIO_BSRR]
+/* checking bootstrap pin */
+    ldr     r1, =#DFU_BOOTSTRAP_GPIO
+    ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r2, =#(0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r4, [r1, #BOOTSTRAP_CRx]
     bics    r4, r3
     orrs    r4, r2
-    str     r4, [r1, #GPIO_CRL]
-#else
-    lsls    r2, #((DFU_BOOTSTRAP_PIN - 8) * 4)
-    lsls    r3, #((DFU_BOOTSTRAP_PIN - 8) * 4)
-    ldr     r4, [r1, #GPIO_CRH]
-    bics    r4, r3
-    orrs    r4, r2
-    str     r4, [r1, #GPIO_CRH]
-#endif
+    str     r4, [r1, #BOOTSTRAP_CRx]
     movs    r2, #0x01
     lsls    r2, #(DFU_BOOTSTRAP_PIN)
     str     r2, [r1, #GPIO_BSRR]
-    movs    r4, #0x08
+    movs    r4, #0x20
 .L_scan_bootstrap:
     ldr     r2, [r1, #GPIO_IDR]
     lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
@@ -133,7 +131,7 @@ Reset_Handler:
     orrs    r2, r3
     adds    r4, r2
     beq     .L_reset_gpio
-    cmp     r4, #0x10
+    cmp     r4, #0x40
     bne     .L_scan_bootstrap
 .L_reset_gpio:
     movs    r2, #BOOTSTRAP_RCC
@@ -142,14 +140,21 @@ Reset_Handler:
     strb    r2, [r0, #RCC_APB2RSTR]
     strb    r2, [r0, #RCC_APB2ENR]
     cbz     r4, .L_start_boot
-
+/* checking DFU SW bootkey */
+    ldr     r1, =#DFU_BOOTKEY_ADDR
+    ldr     r2, =#DFU_BOOTKEY
+    movs    r3, #0x00
+    ldr     r4, [r1]
+    str     r3, [r1]
+    cmp     r4, r2
+    beq     .L_start_boot
 /* jump to user section */
     ldr     r0, =__app_start
     ldr     r1, =#SCB
     str     r0, [r1, #SCB_VTOR] //set VTOR
     ldr     r1, [r0, #0x00]     //load new MSP
     msr     MSP, r1             //set MSP
-    ldr     r3, [r0, #0x04]     //load reet vector
+    ldr     r3, [r0, #0x04]     //load reset vector
     bx      r3                  //jump to user_app
 
 /* jump to main app */
@@ -230,7 +235,7 @@ _default_handler:
     .thumb_func
     .globl program_flash
     .type program_flash, %function
-/* R0 <- addrss to flash
+/* R0 <- address to flash
  * R1 <- buffer
  * R2 <- block size (nonzero less than 0x40)
  * R0 -> DFU_STATUS

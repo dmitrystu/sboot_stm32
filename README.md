@@ -76,7 +76,7 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l476xe   | STM32L476RE, STM32L476JE, STM32L476ME, STM32L476VE |                 |
 | stm32l476xg   | STM32L476RG, STM32L476JG, STM32L476MG, STM32L476VG | tested          |
 | stm32f103x6   | STM32F103T6, STM32F103C6, STM32F103R6              |                 |
-| stm32f103x8   | STM32F103T8, STM32F103C8, STM32F103R8, stm32f103V8 | tested          |
+| stm32f103x8   | STM32F103T8, STM32F103C8, STM32F103R8, STM32f103V8 | tested          |
 
 
 #### Adjusting user firmware
