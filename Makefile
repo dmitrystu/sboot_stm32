@@ -131,6 +131,7 @@ FWTARGETS  += stm32l072v8 stm32l072xb stm32l072xc
 FWTARGETS  += stm32l073v8 stm32l073xb stm32l073xc
 FWTARGETS  += stm32l476xc stm32l476xe stm32l476xg
 FWTARGETS  += stm32f103x4 stm32f103x6 stm32f103x8 stm32f103xb
+FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
 
 stm32l100x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
@@ -360,5 +361,28 @@ stm32f103xb :
 	                           FWDEFS='STM32F1 STM32F103x6 USBD_ASM_DRIVER' \
 	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
 
+stm32f303xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
+	                           FWSTARTUP='mcu/stm32f303.S' \
+	                           FWDEFS='STM32F3 STM32F303xB USBD_ASM_DRIVER' \
+	                           FWSCRIPT='mcu/stm32f3xxxb.ld'
+
+stm32f303xc :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
+	                           FWSTARTUP='mcu/stm32f303.S' \
+	                           FWDEFS='STM32F3 STM32F303xB USBD_ASM_DRIVER' \
+	                           FWSCRIPT='mcu/stm32f3xxxc.ld'
+
+stm32f303xd :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
+	                           FWSTARTUP='mcu/stm32f303.S' \
+	                           FWDEFS='STM32F3 STM32F303xE USBD_ASM_DRIVER' \
+	                           FWSCRIPT='mcu/stm32f3xxxd.ld'
+
+stm32f303xe :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
+	                           FWSTARTUP='mcu/stm32f303.S' \
+	                           FWDEFS='STM32F3 STM32F303xE USBD_ASM_DRIVER' \
+	                           FWSCRIPT='mcu/stm32f3xxxe.ld'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
