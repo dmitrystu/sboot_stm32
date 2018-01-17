@@ -149,18 +149,17 @@ Reset_Handler:
     ldr     r3, [r0, #0x04]     //load reet vector
     bx      r3                  //jump to user_app
 
-/* jump to main app */
+/* jump to bootloader */
 .L_start_boot:
 /* do copy data */
     ldr     r1, =__etext
     ldr     r2, =__data_start__
     ldr     r3, =__data_end__
 .L_copy_data:
-    cmp     r2, r3
-    bcs     .L_clear_bss
     ldr     r0, [r1], #0x04
     str     r0, [r2], #0x04
-    b       .L_copy_data
+    cmp     r3, r2
+    bhi     .L_copy_data
 .L_clear_bss:
     movs    r0, #0x00
     ldr     r2, =__bss_start__
@@ -168,7 +167,7 @@ Reset_Handler:
 .L_clear_bss_loop:
     str     r0, [r2], #0x04
     cmp     r3, r2
-    bcs     .L_clear_bss_loop
+    bhi     .L_clear_bss_loop
 
 /* Setup clock 24Mhz HSI PLL for USB use
  * All registers means their reset values
@@ -214,8 +213,8 @@ Reset_Handler:
     strb    r1, [r3, #RCC_CFGR + 0]
 #if (DFU_SEAL_LEVEL != 0)
     ldr     r3, =#seal_flash
-    blx     r3 
-#endif  
+    blx     r3
+#endif
     bl      main
     .size Reset_Handler, .-Reset_Handler
 
@@ -445,7 +444,7 @@ seal_flash:
 .L_seal_end:
     b       Err_done
     .size seal_flash, . - seal_flash
-#endif     
+#endif
     .pool
 
     .end

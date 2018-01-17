@@ -157,18 +157,17 @@ Reset_Handler:
     ldr     r3, [r0, #0x04]     //load reset vector
     bx      r3                  //jump to user_app
 
-/* jump to main app */
+/* jump to bootloader */
 .L_start_boot:
 /* do copy data */
     ldr     r1, =__etext
     ldr     r2, =__data_start__
     ldr     r3, =__data_end__
 .L_copy_data:
-    cmp     r2, r3
-    bcs     .L_clear_bss
     ldr     r0, [r1], #0x04
     str     r0, [r2], #0x04
-    b       .L_copy_data
+    cmp     r3, r2
+    bhi     .L_copy_data
 .L_clear_bss:
     movs    r0, #0x00
     ldr     r2, =__bss_start__
@@ -176,7 +175,7 @@ Reset_Handler:
 .L_clear_bss_loop:
     str     r0, [r2], #0x04
     cmp     r3, r2
-    bcs     .L_clear_bss_loop
+    bhi     .L_clear_bss_loop
 
 /* Setup clock 48Mhz HSI PLL for USB */
 /* set flash latency 1 */
