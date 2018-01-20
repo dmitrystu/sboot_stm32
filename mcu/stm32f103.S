@@ -54,7 +54,10 @@
 #elif (DFU_BOOTSTRAP_GPIO == GPIOF)
     #define BOOTSTRAP_RCC   0x80
 #else
-    #error "Bootstrap port undefined"
+    #warning "No bootstrap pin used"
+    #define BOOTSTRAP_RCC   0x00
+    #undef DFU_BOOTSTRAP_PIN
+    #undef DFU_BOOTSTRAP_GPIO
 #endif
 
 #if (DFU_BOOTSTRAP_PIN > 8)
@@ -111,6 +114,31 @@ Reset_Handler:
     str     r2, [r1, #GPIO_CRH]
     ldr     r2, =#0x10000000
     str     r2, [r1, #GPIO_BSRR]
+
+/* checking DFU SW bootkey */
+    ldr     r1, =#DFU_BOOTKEY_ADDR
+    ldr     r2, =#DFU_BOOTKEY
+    movs    r3, #0x00
+    ldr     r4, [r1]
+    str     r3, [r1]
+    subs     r4, r2
+    beq     .L_reset_gpio
+
+#if (DFU_DBLRESET_MS > 0)
+/* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
+ * In case of RESET at this time bootloader will start from code above. */
+    str     r2, [r1]
+/* STM32F103 startup clock is 8.0MHz HSI
+ * so, we need T(mS)*8000 ticks to make a required delay */
+    ldr     r4, =#(DFU_DBLRESET_MS * 8000 / 3)
+.L_rst_delay:
+    subs    r4, #1              //+1 tick
+    bhs     .L_rst_delay        //+2 ticks, 3 ticks/cycle
+/* Clearing bootkey and continue */
+    str     r3, [r1]
+#endif
+
+#if defined(DFU_BOOTSTRAP_PIN) && defined(DFU_BOOTSTRAP_GPIO)
 /* checking bootstrap pin */
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
     ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
@@ -122,7 +150,7 @@ Reset_Handler:
     movs    r2, #0x01
     lsls    r2, #(DFU_BOOTSTRAP_PIN)
     str     r2, [r1, #GPIO_BSRR]
-    movs    r4, #0x20
+    movs    r4, #0x08
 .L_scan_bootstrap:
     ldr     r2, [r1, #GPIO_IDR]
     lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
@@ -131,23 +159,25 @@ Reset_Handler:
     orrs    r2, r3
     adds    r4, r2
     beq     .L_reset_gpio
-    cmp     r4, #0x40
+    cmp     r4, #0x10
     bne     .L_scan_bootstrap
+#endif
+
 .L_reset_gpio:
-    movs    r2, #BOOTSTRAP_RCC
+#if (DFU_DBLRESET_MS < 10)
+/* do a 20ms delay for device re-enumeration */
+    ldr     r1, =#(20 * 8000 / 3)
+.L_dp_delay:
+    subs    r1, #1              //+1 tick
+    bne     .L_dp_delay         //+2 ticks, 3 ticks/cycle
+#endif
+/* resetting gpio back */
+    movs    r2, #(0x04 | BOOTSTRAP_RCC)
     strb    r2, [r0, #RCC_APB2RSTR]
     movs    r2, #0x00
     strb    r2, [r0, #RCC_APB2RSTR]
     strb    r2, [r0, #RCC_APB2ENR]
     cbz     r4, .L_start_boot
-/* checking DFU SW bootkey */
-    ldr     r1, =#DFU_BOOTKEY_ADDR
-    ldr     r2, =#DFU_BOOTKEY
-    movs    r3, #0x00
-    ldr     r4, [r1]
-    str     r3, [r1]
-    cmp     r4, r2
-    beq     .L_start_boot
 /* jump to user section */
     ldr     r0, =__app_start
     ldr     r1, =#SCB

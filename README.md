@@ -83,8 +83,9 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 1. Adjust your linker script to set correct ROM origin and ROM length
 
 #### Activating bootloader
-+ put DFU_BOOTKEY on RAM top and make a software reset *OR*
-+ tie DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT low on startup
++ put DFU_BOOTKEY on DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset
++ tie DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT low on startup (optional)
++ make a double reset in DFU_DBLRESET_MS period (optional)
 
 #### Encryption/Decryption user firmware
 At this moment only binary files supported

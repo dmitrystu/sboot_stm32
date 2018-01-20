@@ -58,7 +58,9 @@
 #elif (DFU_BOOTSTRAP_GPIO == GPIOG)
     #define BOOTSTRAP_RCC   0x80
 #else
-    #error "Bootstrap port undefined"
+    #warning "No bootstrap pin used"
+    #undef DFU_BOOTSTRAP_PIN
+    #undef DFU_BOOTSTRAP_GPIO
 #endif
 
     .syntax unified
@@ -101,6 +103,22 @@ Reset_Handler:
     str     r3, [r1]
     cmp     r0, r2
     beq     .L_start_boot
+
+#if (DFU_DBLRESET_MS > 0)
+/* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
+ * In case of RESET at this time bootloader will start from code above. */
+    str     r2, [r1]
+/* STM32L100 startup clock is about 4.0MHz MSI
+ * so, we need T(mS)*2097 ticks to make a required delay */
+    ldr     r0, =#(DFU_DBLRESET_MS * 4000 / 3)
+.L_rst_delay:
+    subs    r0, #1              //+1 tick
+    bhs     .L_rst_delay        //+2 ticks, 3 ticks/cycle
+/* Clearing bootkey and continue */
+    str     r3, [r1]
+#endif
+
+#if defined(DFU_BOOTSTRAP_PIN) && defined(DFU_BOOTSTRAP_GPIO)    
 /* checking bootstrap pin */
     ldr     r0, =#RCC_BASE
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
@@ -135,6 +153,8 @@ Reset_Handler:
     strb    r2, [r0, #RCC_AHB2RSTR]
     strb    r2, [r0, #RCC_AHB2ENR]
     cbz     r4, .L_start_boot
+#endif
+
 /* jump to user section */
     ldr     r0, =__app_start
     ldr     r1, =#SCB
@@ -199,7 +219,7 @@ Reset_Handler:
 	str     r2, [r0, #GPIO_AFRH]
 #if (DFU_SEAL_LEVEL != 0)
     ldr     r3, =#seal_flash
-    blx     r3 
+    blx     r3
 #endif    
 /* jump to bootloader */
     bl 		main
@@ -346,7 +366,7 @@ wait_flash_ready:
     .thumb_func
     .globl seal_flash
     .type seal_flash, %function
-seal_flash:    
+seal_flash:
     push    {r4, r5, r6, lr}
     ldr     r3, =#FLASH_R_BASE
     ldrb    r1, [r3, #FLASH_OPTR]

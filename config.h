@@ -35,23 +35,35 @@
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 
+/* USB VID */
 #define DFU_VENDOR_ID       0x0483
+/* USB PID */
 #define DFU_DEVICE_ID       0xDF11
+/* USB manufacturer string */
 #define DFU_STR_MANUF       "Your company name"
+/* USB product sting */
 #define DFU_STR_PRODUCT     "Secure bootloader"
+/* USB string for DFU flash interface */
 #define DFU_STR_INTF0       "Internal flash"
+/* USB string for DFU EEPROM interface */
 #define DFU_STR_INTF1       "Internal EEPROM"
+/* USB EP0 size */
 #define DFU_EP0_SIZE        8
+/* DFU properties */
 #define DFU_POLL_TIMEOUT    20
 #define DFU_DETACH_TIMEOUT  200
 #define DFU_BLOCKSZ         0x80
+/* 32 bit DFU bootkey value */
 #define DFU_BOOTKEY         0x157F32D4
+/* DFU bootkey address. Top of the ram by default */
+#define DFU_BOOTKEY_ADDR    __stack
+/* DFU bootstrap pin settings. Comment it to disable this feature */
 #define DFU_BOOTSTRAP_GPIO  GPIOA
 #define DFU_BOOTSTRAP_PIN   1
-
+/* Double reset waiting time in mS. Set to 0 to disable this feature */
+#define DFU_DBLRESET_MS     300
+/* User application address. Sets on linkage. */
 #define DFU_USER_APP        __app_start
-#define DFU_BOOTKEY_ADDR    __stack
-
 
 /** DFU cipher selection. Block ciphers runs in CBC mode
  *  _A suffix means assembly implementation
