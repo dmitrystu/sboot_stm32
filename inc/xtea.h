@@ -26,7 +26,7 @@
 #endif
 
 #define CRYPTO_BLKSIZE 8
-#if defined(DFU_CIPHER_XTEA1)
+#if (DFU_CIPHER == DFU_CIPHER_XTEA1)
     #define CRYPTO_NAME    "XTEA-1 64/32/128-CBC"
 #else
     #define CRYPTO_NAME    "XTEA 64/32/128-CBC"

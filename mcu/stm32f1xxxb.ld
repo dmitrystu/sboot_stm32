@@ -12,11 +12,12 @@ SECTIONS
         KEEP(*(.isr_vector))
         *(.text*)
         *(.rodata*)
-        . = ALIGN(4);
-        __etext = .;
-        . = . + SIZEOF(.data);
-        __usrapp = ALIGN (0x1000);
     } > ROM
+
+    . = ALIGN(4);
+    __etext = .;
+    . = . + SIZEOF(.data);
+    __app_start = ALIGN(0x0800);
 
     .data : AT (__etext)
     {
@@ -24,7 +25,6 @@ SECTIONS
         __data_start__ = .;
         *(.data*)
         . = ALIGN(4);
-        /* All data end */
         __data_end__ = .;
     } > RAM
 
@@ -39,5 +39,4 @@ SECTIONS
     } > RAM
     PROVIDE(__romend = ORIGIN(ROM) + LENGTH(ROM));
     PROVIDE(__stack = ORIGIN(RAM) + LENGTH(RAM) - 4);
-    PROVIDE(__app_start = __usrapp);
 }

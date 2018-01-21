@@ -37,13 +37,25 @@
 #define GPIO_ODR        0x14
 #define GPIO_BSRR       0x18
 
-
 #define SCB             0xE000ED00
 #define SCB_VTOR        0x08
 #define SCB_AIRCR       0x0C
 
+#if (DFU_APP_START == _AUTO)
+    #define _APP_START  __app_start
+#else
+    #define _APP_START  DFU_APP_START
+#endif
 
-#if (DFU_BOOTSTRAP_GPIO == GPIOA)
+#if (DFU_BOOTKEY_ADDR == _AUTO) || (DFU_BOOTKEY_ADDR == _DISABLE)
+    #define _KEY_ADDR   __stack
+#else
+    #define _KEY_ADDR   DFU_BOOTKEY_ADDR
+#endif
+
+#if (DFU_BOOTSTRAP_GPIO == _DISABLE)
+    #define BOOTSTRAP_RCC   0x00
+#elif (DFU_BOOTSTRAP_GPIO == GPIOA)
     #define BOOTSTRAP_RCC   0x02
 #elif (DFU_BOOTSTRAP_GPIO == GPIOB)
     #define BOOTSTRAP_RCC   0x04
@@ -60,10 +72,11 @@
 #elif (DFU_BOOTSTRAP_GPIO == GPIOH)
     #define BOOTSTRAP_RCC   0x01
 #else
-    #warning "No bootstrap pin used"
-    #define BOOTSTRAP_RCC   0x00
-    #undef DFU_BOOTSTRAP_PIN
-    #undef DFU_BOOTSTRAP_GPIO
+    #error Incorrect DFU_BOOTSTRAP_GPIO. Check Config!!
+#endif
+
+#if ((DFU_BOOTSTRAP_PIN < 0) || (DFU_BOOTSTRAP_PIN > 15)) && (DFU_BOOTSTRAP_GPIO != _DISABLE)
+    #error Incorrect DFU_BOOTSTRAP_PIN. Check config !!
 #endif
 
 
@@ -116,16 +129,18 @@ Reset_Handler:
     ldr     r2, =#(0x1000 << 12)
     str     r2, [r1, #GPIO_BSRR]
 
+#if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
 /* checking DFU SW bootkey */
-    ldr     r1, =#DFU_BOOTKEY_ADDR
+    ldr     r1, =#_KEY_ADDR
     ldr     r2, =#DFU_BOOTKEY
     movs    r3, #0x00
     ldr     r4, [r1]
     str     r3, [r1]
     subs    r4, r2
     beq     .L_reset_gpio
+#endif
 
-#if (DFU_DBLRESET_MS > 0)
+#if (DFU_DBLRESET_MS != _DISABLE)
 /* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
  * In case of RESET at this time bootloader will start from code above. */
     str     r2, [r1]
@@ -139,7 +154,7 @@ Reset_Handler:
     str     r3, [r1]
 #endif
 
-#if defined(DFU_BOOTSTRAP_PIN) && defined(DFU_BOOTSTRAP_GPIO)
+#if (DFU_BOOTSTRAP_GPIO != _DISABLE)
 /* pulling high bootstrap pin */
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
     ldr     r2, [r1, #GPIO_MODER]
@@ -181,7 +196,7 @@ Reset_Handler:
     strb    r2, [r0, #RCC_AHBENR + 0x02]
     cbz     r4, .L_start_boot
 /* jump to user section */
-    ldr     r0, =__app_start
+    ldr     r0, =#_APP_START
     ldr     r1, =#SCB
     str     r0, [r1, #SCB_VTOR] //set VTOR
     ldr     r1, [r0, #0x00]     //load new MSP

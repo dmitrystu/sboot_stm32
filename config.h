@@ -15,26 +15,35 @@
 
 #ifndef _DFU_BOOTLOADER_H_
 #define _DFU_BOOTLOADER_H_
-#if defined(__cplusplus)
-    extern "C" {
-#endif
 
-/** Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
-#define DFU_DNLOAD_NOSYNC
+/* Internal variables. Do not touch this section */
+#define _AUTO              -1   /* set automatically */
+#define _DISABLE            0   /* disable feature */
+#define _ENABLE             1   /* enable feature */
+/** DFU cipher definitions. */
+#define DFU_CIPHER_ARC4     10  /* ARCFOUR (Rivest RC-4) stream cipher */
+#define DFU_CIPHER_CHACHA   11  /* RFC7539-CHACHA20 stream cipher */
+#define DFU_CIPHER_CHACHA_A 12  /* RFC7539-CHACHA20 stream cipher (ASM) */
+#define DFU_CIPHER_GOST     13  /* GOST R 34.12-2015 "MAGMA" block cipher CBC mode */
+#define DFU_CIPHER_RAIDEN   14  /* RAIDEN block cipher CBC mode */
+#define DFU_CIPHER_RC5      15  /* Rivest RC5-32/12/128 clock cipher in CBC mode */
+#define DFU_CIPHER_RC5_A    16  /* Rivest RC5-32/12/128 clock cipher in CBC mode (ASM) */
+#define DFU_CIPHER_SPECK    17  /* SPECK 64/128 block cipher in CBC mode */
+#define DFU_CIPHER_XTEA     18  /* XTEA block cipher in CBC mode */
+#define DFU_CIPHER_XTEA1    19  /* XTEA-1 block cipher in CBC mode */
+
+
+/* CONFIG STARTS HERE */
+/* Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
+#define DFU_DNLOAD_NOSYNC   _ENABLE
 /** Add extra DFU interface for EEPROM */
-//#define DFU_INTF_EEPROM
+#define DFU_INTF_EEPROM     _AUTO
 /** Firmware can be uploaded from device */
-#define DFU_CAN_UPLOAD
-
+#define DFU_CAN_UPLOAD      _ENABLE
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
-#define DFU_DETACH_ENABLED
-
-/** Shrinks ISR vector table to core peripherals */
-#define DFU_NO_EXTINT
-
+#define DFU_DETACH          _ENABLE
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
-
 /* USB VID */
 #define DFU_VENDOR_ID       0x0483
 /* USB PID */
@@ -43,11 +52,16 @@
 #define DFU_STR_MANUF       "Your company name"
 /* USB product sting */
 #define DFU_STR_PRODUCT     "Secure bootloader"
-/* USB string for DFU flash interface */
-#define DFU_STR_INTF0       "Internal flash"
-/* USB string for DFU EEPROM interface */
-#define DFU_STR_INTF1       "Internal EEPROM"
-/* USB EP0 size */
+/* USB string for DFU configureation string descriptor. */
+#define DFU_DSC_CONFIG      _ENABLE
+#define DFU_STR_CONFIG      "DFU"
+/* USB string for DFU flash interface string descriptor. */
+#define DFU_DSC_FLASH       _ENABLE
+#define DFU_STR_FLASH       "Internal flash"
+/* USB string for DFU EEPROM interface sreing descriptor */
+#define DFU_DSC_EEPROM      _ENABLE
+#define DFU_STR_EEPROM       "Internal EEPROM"
+/* USB EP0 size. Must be 8 for USB FS */
 #define DFU_EP0_SIZE        8
 /* DFU properties */
 #define DFU_POLL_TIMEOUT    20
@@ -55,30 +69,21 @@
 #define DFU_BLOCKSZ         0x80
 /* 32 bit DFU bootkey value */
 #define DFU_BOOTKEY         0x157F32D4
-/* DFU bootkey address. Top of the ram by default */
-#define DFU_BOOTKEY_ADDR    __stack
-/* DFU bootstrap pin settings. Comment it to disable this feature */
+/* DFU bootkey address. Top of the ram by default. _AUTO, _DISABLE or set address.
+ * May be enabled internally. */
+#define DFU_BOOTKEY_ADDR    _AUTO
+/* DFU bootstrap port/pin settings. Set GPIOx or _DISABLE */
 #define DFU_BOOTSTRAP_GPIO  GPIOA
 #define DFU_BOOTSTRAP_PIN   1
-/* Double reset waiting time in mS. Set to 0 to disable this feature */
+/* Double reset waiting time in mS. _DISABLE or time in mS */
 #define DFU_DBLRESET_MS     300
-/* User application address. Sets on linkage. */
-#define DFU_USER_APP        __app_start
-
-/** DFU cipher selection. Block ciphers runs in CBC mode
- *  _A suffix means assembly implementation
- */
-//#define DFU_CIPHER_ARC4
-//#define DFU_CIPHER_CHACHA
-//#define DFU_CIPHER_CHACHA_A
-//#define DFU_CIPHER_GOST
-//#define DFU_CIPHER_RAIDEN
-//#define DFU_CIPHER_RC5
-//#define DFU_CIPHER_RC5_A
-//#define DFU_CIPHER_SPECK
-//#define DFU_CIPHER_XTEA
-#define DFU_CIPHER_XTEA1
-
+/* User application address. _AUTO or page aligned address.
+ * for _AUTO check __app_start address in output linker map file*/
+#define DFU_APP_START       _AUTO
+/* User application size. _AUTO or required size in bytes. */
+#define DFU_APP_SIZE        _AUTO
+/* Cipher to use. set _DISABLE or choose from implemented ciphers */
+#define DFU_CIPHER          DFU_CIPHER_GOST
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
                             0x65, 0x4E, 0x6F, 0x74, 0x57, 0x61, 0x72, 0x2D
@@ -90,7 +95,4 @@
 #define DFU_AES_NONCE1      0x55667788
 #define DFU_AES_NONCE2      0x99AABBCC
 
-#if defined(__cplusplus)
-    }
-#endif
 #endif // _DFU_BOOTLOADER_H_

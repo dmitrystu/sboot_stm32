@@ -16,9 +16,36 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "stm32.h"
+#include "config.h"
 #include "usb.h"
 #include "usb_dfu.h"
-#include "config.h"
+
+/* Checking for the EEPROM */
+#if (defined(DATA_EEPROM_BASE) || defined(FLASH_EEPROM_BASE)) && (DFU_INTF_EEPROM != _DISABLE)
+    #define _EEPROM_ENABLED
+#endif
+
+#define _NEXT_IDX   (__COUNTER__ + 3)
+
+/* setting up descriptor indexex */
+#if (DFU_DSC_CONFIG == _ENABLE) && defined(DFU_STR_CONFIG)
+    #define _CONF_IDX   _NEXT_IDX
+#else
+    #define _CONF_IDX   NO_DESCRIPTOR
+#endif
+
+#if (DFU_DSC_FLASH == _ENABLE) && defined(DFU_STR_FLASH)
+    #define _FLASH_IDX  _NEXT_IDX
+#else
+    #define _FLASH_IDX  NO_DESCRIPTOR
+#endif
+
+#if (DFU_DSC_EEPROM == _ENABLE) && defined(DFU_STR_EEPROM) && defined(_EEPROM_ENABLED)
+    #define _EEPROM_IDX _NEXT_IDX
+#else
+    #define _EEPROM_IDX NO_DESCRIPTOR
+#endif
 
 #define _countof(a) (sizeof(a)/sizeof(*(a)))
 
@@ -55,7 +82,7 @@ static const struct config_desc dfu_config_desc = {
         .wTotalLength           = sizeof(struct config_desc),
         .bNumInterfaces         = 1,
         .bConfigurationValue    = 1,
-        .iConfiguration         = 3,
+        .iConfiguration         = _CONF_IDX,
         .bmAttributes           = USB_CFG_ATTR_RESERVED | USB_CFG_ATTR_SELFPOWERED,
         .bMaxPower              = USB_CFG_POWER_MA(100),
     },
@@ -68,9 +95,9 @@ static const struct config_desc dfu_config_desc = {
         .bInterfaceClass        = USB_CLASS_DFU,
         .bInterfaceSubClass     = USB_DFU_SUBCLASS_DFU,
         .bInterfaceProtocol     = USB_DFU_PROTO_DFU,
-        .iInterface             = 4,
+        .iInterface             = _FLASH_IDX,
     },
-#if defined(DFU_INTF_EEPROM)
+#if defined(_EEPROM_ENABLED)
     .eeprom = {
         .bLength                = sizeof(struct usb_interface_descriptor),
         .bDescriptorType        = USB_DTYPE_INTERFACE,
@@ -80,16 +107,16 @@ static const struct config_desc dfu_config_desc = {
         .bInterfaceClass        = USB_CLASS_DFU,
         .bInterfaceSubClass     = USB_DFU_SUBCLASS_DFU,
         .bInterfaceProtocol     = USB_DFU_PROTO_DFU,
-        .iInterface             = 5,
+        .iInterface             = _EEPROM_IDX,
     },
 #endif
     .dfufunc = {
         .bLength                = sizeof(struct usb_dfu_func_desc),
         .bDescriptorType        = USB_DTYPE_DFU_FUNCTIONAL,
-#if defined(DFU_CAN_UPLOAD)
-        .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_CAN_UPLOAD | /*USB_DFU_ATTR_WILL_DETACH |*/ USB_DFU_ATTR_MANIF_TOL,
+#if (DFU_CAN_UPLOAD == _ENABLE)
+        .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_CAN_UPLOAD | USB_DFU_ATTR_MANIF_TOL,
 #else
-        .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_WILL_DETACH | USB_DFU_ATTR_MANIF_TOL,
+        .bmAttributes           = USB_DFU_ATTR_CAN_DNLOAD | USB_DFU_ATTR_MANIF_TOL,
 #endif
         .wDetachTimeout         = DFU_DETACH_TIMEOUT,
         .wTransferSize          = DFU_BLOCKSZ,
@@ -100,18 +127,26 @@ static const struct config_desc dfu_config_desc = {
 static const struct usb_string_descriptor dfu_lang_sdesc    = USB_ARRAY_DESC(USB_LANGID_ENG_US);
 static const struct usb_string_descriptor dfu_manuf_sdesc   = USB_STRING_DESC(DFU_STR_MANUF);
 static const struct usb_string_descriptor dfu_product_sdesc = USB_STRING_DESC(DFU_STR_PRODUCT);
-static const struct usb_string_descriptor dfu_config_sdesc  = USB_STRING_DESC("DFU mode");
-static const struct usb_string_descriptor dfu_flash_sdesc   = USB_STRING_DESC(DFU_STR_INTF0);
-#if defined(DFU_INTF_EEPROM)
-static const struct usb_string_descriptor dfu_eeprom_sdesc  = USB_STRING_DESC(DFU_STR_INTF1);
+#if (_CONF_IDX != NO_DESCRIPTOR)
+static const struct usb_string_descriptor dfu_config_sdesc  = USB_STRING_DESC(DFU_STR_CONFIG);
+#endif
+#if (_FLASH_IDX != NO_DESCRIPTOR)
+static const struct usb_string_descriptor dfu_flash_sdesc   = USB_STRING_DESC(DFU_STR_FLASH);
+#endif
+#if (_EEPROM_IDX != NO_DESCRIPTOR)
+static const struct usb_string_descriptor dfu_eeprom_sdesc  = USB_STRING_DESC(DFU_STR_EEPROM);
 #endif
 static const struct usb_string_descriptor * const dtable[] = {
     &dfu_lang_sdesc,
     &dfu_manuf_sdesc,
     &dfu_product_sdesc,
+#if (_CONF_IDX != NO_DESCRIPTOR)
     &dfu_config_sdesc,
+#endif
+#if (_FLASH_IDX != NO_DESCRIPTOR)
     &dfu_flash_sdesc,
-#if defined(DFU_INTF_EEPROM)
+#endif
+#if (_EEPROM_IDX != NO_DESCRIPTOR)
     &dfu_eeprom_sdesc,
 #endif
 };

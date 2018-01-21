@@ -42,7 +42,21 @@
 #define SCB             0xE000ED00
 #define SCB_VTOR        0x08
 
-#if (DFU_BOOTSTRAP_GPIO == GPIOA)
+#if (DFU_APP_START == _AUTO)
+    #define _APP_START  __app_start
+#else
+    #define _APP_START  DFU_APP_START
+#endif
+
+#if (DFU_BOOTKEY_ADDR == _AUTO) || (DFU_BOOTKEY_ADDR == _DISABLE)
+    #define _KEY_ADDR   __stack
+#else
+    #define _KEY_ADDR   DFU_BOOTKEY_ADDR
+#endif
+
+#if (DFU_BOOTSTRAP_GPIO == _DISABLE)
+    #define BOOTSTRAP_RCC   0x00
+#elif (DFU_BOOTSTRAP_GPIO == GPIOA)
     #define BOOTSTRAP_RCC   0x01
 #elif (DFU_BOOTSTRAP_GPIO == GPIOB)
     #define BOOTSTRAP_RCC   0x02
@@ -59,9 +73,11 @@
 #elif (DFU_BOOTSTRAP_GPIO == GPIOG)
     #define BOOTSTRAP_RCC   0x80
 #else
-    #warning "No bootstrap pin used"
-    #undef DFU_BOOTSTRAP_PIN
-    #undef DFU_BOOTSTRAP_GPIO
+    #error Incorrect DFU_BOOTSTRAP_GPIO. Check Config!!
+#endif
+
+#if ((DFU_BOOTSTRAP_PIN < 0) || (DFU_BOOTSTRAP_PIN > 15)) && (DFU_BOOTSTRAP_GPIO != _DISABLE)
+    #error Incorrect DFU_BOOTSTRAP_PIN. Check config !!
 #endif
 
 #if ((DFU_BLOCKSZ % (FLASH_PAGESZ / 2)) != 0)
@@ -104,15 +120,17 @@ __isr_vector:
     .globl   Reset_Handler
     .type    Reset_Handler, %function
 Reset_Handler:
-    ldr     r1, =#DFU_BOOTKEY_ADDR
+#if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
+    ldr     r1, =#_KEY_ADDR
     ldr     r2, =#DFU_BOOTKEY
     movs    r3, #0x00
     ldr     r0, [r1, #0x00]
     str     r3, [r1, #0x00]
     cmp     r0, r2
     beq     .L_start_boot
+#endif
 
-#if (DFU_DBLRESET_MS > 0)
+#if (DFU_DBLRESET_MS != _DISABLE)
 /* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
  * In case of RESET at this time bootloader will start from code above. */
     str     r2, [r1]
@@ -126,7 +144,7 @@ Reset_Handler:
     str     r3, [r1]
 #endif
 
-#if defined(DFU_BOOTSTRAP_PIN) && defined(DFU_BOOTSTRAP_GPIO)
+#if (DFU_BOOTSTRAP_GPIO != _DISABLE)
 /* checking bootstrap pin */
     ldr     r0, =#RCC_BASE
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
@@ -165,7 +183,7 @@ Reset_Handler:
 #endif
 
 /* jump to user section */
-    ldr     r0, =__app_start
+    ldr     r0, =#_APP_START
     ldr     r1, =#SCB
     str     r0, [r1, #SCB_VTOR] //set VTOR
     ldr     r1, [r0, #0x00]
@@ -237,8 +255,8 @@ Reset_Handler:
     strb    r1, [r3, #RCC_CFGR + 0]
 #if (DFU_SEAL_LEVEL != 0)
     ldr     r3, =#seal_flash
-    blx     r3 
-#endif  
+    blx     r3
+#endif
 /* jump to bootloader */
     bl       main
 
@@ -471,7 +489,7 @@ seal_flash:
 .L_seal_end:
     b       Err_done
     .size seal_flash, . - seal_flash
-#endif     
+#endif
     .pool
 
     .end
