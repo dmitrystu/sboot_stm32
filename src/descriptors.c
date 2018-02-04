@@ -52,7 +52,7 @@
 struct config_desc {
     struct usb_config_descriptor    config;
     struct usb_interface_descriptor flash;
-#if defined(DFU_INTF_EEPROM)
+#if defined(_EEPROM_ENABLED)
     struct usb_interface_descriptor eeprom;
 #endif
     struct usb_dfu_func_desc        dfufunc;
