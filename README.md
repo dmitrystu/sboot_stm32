@@ -22,6 +22,7 @@
   + STM32L1xx
   + STM32L476xx (OTG FS in device mode)
   + STM32F103
+  + STM32F105, STM32F107 (OTG FS in device mode)
 
 #### Usage:
 
@@ -77,7 +78,8 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l476xg   | STM32L476RG, STM32L476JG, STM32L476MG, STM32L476VG | tested          |
 | stm32f103x6   | STM32F103T6, STM32F103C6, STM32F103R6              |                 |
 | stm32f103x8   | STM32F103T8, STM32F103C8, STM32F103R8, STM32f103V8 | tested          |
-
+| stm32f105xb   | STM32F105RB, STM32F105VB                           | tested          |
+| stm32f107xb   | STM32F107RB, STM32F107VB                           | tested          |
 
 #### Adjusting user firmware
 1. Adjust your linker script to set correct ROM origin and ROM length

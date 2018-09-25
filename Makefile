@@ -133,6 +133,7 @@ FWTARGETS  += stm32l476xc stm32l476xe stm32l476xg
 FWTARGETS  += stm32f103x4 stm32f103x6 stm32f103x8 stm32f103xb
 FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
 FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi
+FWTARGETS  += stm32f105xb stm32f107xb
 
 stm32l100x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
@@ -403,5 +404,17 @@ stm32f429xi :
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
 	                           FWDEFS='STM32F4 STM32F429xx USBD_SOF_DISABLE' \
 	                           FWSCRIPT='mcu/stm32f4xxxi.ld'
+
+stm32f105xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
+	                           FWSTARTUP='mcu/stm32f105.S' \
+	                           FWDEFS='STM32F1 STM32F105xC USBD_VBUS_DETECT USBD_SOF_DISABLED' \
+	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
+
+stm32f107xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
+	                           FWSTARTUP='mcu/stm32f105.S' \
+	                           FWDEFS='STM32F1 STM32F107xC HSE_25MHZ USBD_VBUS_DETECT USBD_SOF_DISABLED' \
+	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
