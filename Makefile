@@ -36,7 +36,7 @@ vpath %.c $(SRCPATH)
 vpath %.S $(SRCPATH)
 
 #includes
-CMSISINC    = $(CMSISDEV)/ST $(CMSIS)/CMSIS/Include
+CMSISINC    = $(CMSISDEV)/ST $(CMSIS)/CMSIS/Include $(CMSIS)/CMSIS/Core/Include
 FWINCS      = $(CMSISINC) inc $(addsuffix /inc, $(MODULES)) .
 SWINCS      = inc .
 
