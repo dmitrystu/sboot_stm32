@@ -2,7 +2,7 @@ OUTDIR     ?= build
 FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
 FWTOOLS    ?= arm-none-eabi-
-CMSIS      ?= ../CMSIS
+CMSIS      ?= $(abspath ../CMSIS)
 CMSISDEV   ?= $(CMSIS)/Device
 
 ifeq ($(OS),Windows_NT)
@@ -390,31 +390,31 @@ stm32f303xe :
 stm32f429xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
-	                           FWDEFS='STM32F4 STM32F429xx USBD_SOF_DISABLE' \
+	                           FWDEFS='STM32F4 STM32F429xx' \
 	                           FWSCRIPT='mcu/stm32f4xxxg.ld'
 
 stm32f429xg :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
-	                           FWDEFS='STM32F4 STM32F429xx USBD_SOF_DISABLE' \
+	                           FWDEFS='STM32F4 STM32F429xx' \
 	                           FWSCRIPT='mcu/stm32f4xxxg.ld'
 
 stm32f429xi :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
-	                           FWDEFS='STM32F4 STM32F429xx USBD_SOF_DISABLE' \
+	                           FWDEFS='STM32F4 STM32F429xx' \
 	                           FWSCRIPT='mcu/stm32f4xxxi.ld'
 
 stm32f105xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f105.S' \
-	                           FWDEFS='STM32F1 STM32F105xC USBD_VBUS_DETECT USBD_SOF_DISABLED' \
+	                           FWDEFS='STM32F1 STM32F105xC USBD_VBUS_DETECT' \
 	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
 
 stm32f107xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f105.S' \
-	                           FWDEFS='STM32F1 STM32F107xC HSE_25MHZ USBD_VBUS_DETECT USBD_SOF_DISABLED' \
+	                           FWDEFS='STM32F1 STM32F107xC HSE_25MHZ USBD_VBUS_DETECT' \
 	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
