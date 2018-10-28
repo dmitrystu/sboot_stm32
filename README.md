@@ -82,7 +82,17 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32f107xb   | STM32F107RB, STM32F107VB                           | tested          |
 
 #### Adjusting user firmware
-1. Adjust your linker script to set correct ROM origin and ROM length
++ check bootloader's linker map for the ````__app_start```` address. This is the new ROM origin for the user firmware (isr vectors).
++ Adjust your linker script to set new ROM origin and ROM length
+
+#### Utilizing usbd core and usbd driver from bootloader in the user firmware
++ check bootloader's linker map for the ````usbd_poll```` entry point and usbd driver (````usbd_devfs````, ````usbd_otgfs````, e.t.c. depends used MCU)
++ add address for usbd_poll entry point to your linker script. For example ````usbd_poll   = 0x080006C4;````
++ add address for usbd_driver structure to your linker script. For example ````usbd_drv    = 0x080006D0;````
++ add ````extern struct usbd_driver usbd_drv;```` driver declaration to your code
++ include at least "usbd_core.h" and "usb_std.h" to your code
+
+Now you can use usbd core and driver from bootloader in your application. Don't forget to set GPIO and RCC for USB according to MCU requirements.
 
 #### Activating bootloader
 + put DFU_BOOTKEY on DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset
