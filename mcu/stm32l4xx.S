@@ -20,6 +20,7 @@
 
 #define PWR_BASE        0x40007000
 #define PWR_CR1         0x00
+#define PWR_CR2         0x04
 #define PWR_SR2         0x14
 
 #define GPIOA           0x48000000
@@ -79,37 +80,37 @@
 #endif
 
     .syntax unified
-	.cpu cortex-m4
-	.thumb
+    .cpu cortex-m4
+    .thumb
 
     .section .isr_vector
     .align 2
     .globl __isr_vector
 __isr_vector:
-	.long	__stack
-	.long	Reset_Handler
-	.long	NMI_Handler
-	.long	HardFault_Handler
-	.long	MemManage_Handler
-	.long	BusFault_Handler
-	.long	UsageFault_Handler
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	SVC_Handler
-	.long	DebugMon_Handler
-	.long	0
-	.long	PendSV_Handler
-	.long	SysTick_Handler
+    .long   __stack
+    .long   Reset_Handler
+    .long   NMI_Handler
+    .long   HardFault_Handler
+    .long   MemManage_Handler
+    .long   BusFault_Handler
+    .long   UsageFault_Handler
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   SVC_Handler
+    .long   DebugMon_Handler
+    .long   0
+    .long   PendSV_Handler
+    .long   SysTick_Handler
 /* Peripheral interrupts are not used */
     .size    __isr_vector, . - __isr_vector
 
 
-    .section	.text
-	.thumb_func
-	.globl  Reset_Handler
-	.type	Reset_Handler, %function
+    .section    .text
+    .thumb_func
+    .globl  Reset_Handler
+    .type   Reset_Handler, %function
 Reset_Handler:
 #if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
     ldr     r1, =#_KEY_ADDR
@@ -202,47 +203,50 @@ Reset_Handler:
     cmp     r1, r2
     bcc     .L_bss_loop
 /* Enabling PWR interface */
-	ldr		r3, =#RCC_BASE
-	movs	r1, #0x01
-	lsls 	r1, #28		/* PWREN */
-	str 	r1, [r3, #RCC_APB1ENR1]
-	ldr 	r0, =#PWR_BASE
+    ldr     r3, =#RCC_BASE
+    mov     r1, #(1 << 28)  /* PWREN */
+    str     r1, [r3, #RCC_APB1ENR1]
+    ldr     r0, =#PWR_BASE
 /* Setting power Range 1 */
-	lsrs 	r1, #19 	/* Range 1 */
-	str     r1, [r0, #PWR_CR1]
+    lsrs    r1, #19     /* Range 1 */
+    str     r1, [r0, #PWR_CR1]
 .L_wait_pw_set:
-	ldr		r1, [r0, #PWR_SR2]
-	lsrs	r1, #11		/* VOSF -> CF */
-	bcs 	.L_wait_pw_set
+    ldr     r1, [r0, #PWR_SR2]
+    lsrs    r1, #11     /* VOSF -> CF */
+    bcs     .L_wait_pw_set
+#if defined(STM32L433xx)
+/* Disabling Vusb isolation for L433 */
+    mov     r1, #(1 << 10)  /* USV */
+    str     r1, [r0, #PWR_CR2]
+#endif
 /* Adjusting flash latency */
-	ldr		r0, =#FLASH_R_BASE
-	movs	r1, #2
-	str 	r1, [r0, #FLASH_ACR]
+    ldr     r0, =#FLASH_R_BASE
+    movs    r1, #2
+    str     r1, [r0, #FLASH_ACR]
 /* Set 48Mhz MSI clock */
-	movs	r1, #0xB9
-	strb    r1, [r3, #RCC_CR]
+    movs    r1, #0xB9
+    strb    r1, [r3, #RCC_CR]
 /* Set MSI clock as USB clock */
-	movs	r1, #0x0C
-	strb 	r1, [r3, #RCC_CCIPR + 3]
+    movs    r1, #0x0C
+    strb    r1, [r3, #RCC_CCIPR + 3]
 /* Enabling USB pins GPIOA11 GPIO12 AF10*/
-	mov 	r1, #0x01
-	strb 	r1, [r3, #RCC_AHB2ENR]
-	ldr 	r0, =#GPIOA
-	ldr 	r1, [r0, #GPIO_MODER]
-	movs	r2, #0xAA
-	bfi     r1, r2, #22, #4
-	str     r1, [r0, #GPIO_MODER]
-	lsls    r2, #12
-	str     r2, [r0, #GPIO_AFRH]
+    mov     r1, #0x01
+    strb    r1, [r3, #RCC_AHB2ENR]
+    ldr     r0, =#GPIOA
+    ldr     r1, [r0, #GPIO_MODER]
+    movs    r2, #0xAA
+    bfi     r1, r2, #22, #4
+    str     r1, [r0, #GPIO_MODER]
+    lsls    r2, #12
+    str     r2, [r0, #GPIO_AFRH]
 #if (DFU_SEAL_LEVEL != 0)
     ldr     r3, =#seal_flash
     blx     r3
 #endif
 /* jump to bootloader */
-    bl 		main
+    bl      main
 
-	.size Reset_Handler, . - Reset_Handler
-
+    .size Reset_Handler, . - Reset_Handler
 
 _default_handler:
     b .

@@ -134,6 +134,7 @@ FWTARGETS  += stm32f103x4 stm32f103x6 stm32f103x8 stm32f103xb
 FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
 FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi
 FWTARGETS  += stm32f105xb stm32f107xb
+FWTARGETS  += stm32l433xb stm32l433xc
 
 stm32l100x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
@@ -416,5 +417,17 @@ stm32f107xb :
 	                           FWSTARTUP='mcu/stm32f105.S' \
 	                           FWDEFS='STM32F1 STM32F107xC HSE_25MHZ USBD_VBUS_DETECT' \
 	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
+
+stm32l433xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32l4xx.S' \
+	                           FWDEFS='STM32L4 STM32L433xx USBD_ASM_DRIVER' \
+	                           FWSCRIPT='mcu/stm32l433xb.ld'
+
+stm32l433xc :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32l4xx.S' \
+	                           FWDEFS='STM32L4 STM32L433xx USBD_ASM_DRIVER' \
+	                           FWSCRIPT='mcu/stm32l433xc.ld'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
