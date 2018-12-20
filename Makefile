@@ -17,11 +17,11 @@ else
 	SWFLAGS ?=
 endif
 
-#default CPU target
+#default CPU target is STM32L052x8
 FWCPU	   ?= -mcpu=cortex-m0plus -mfloat-abi=soft
 FWDEFS     ?= STM32L0 STM32L052xx
 FWSTARTUP  ?= mcu/stm32l0xx.S
-FWSCRIPT   ?= mcu/stm32l0xxx8.ld
+LDPARAMS   ?= ROMLEN=64K RAMLEN=8K
 
 #sources
 CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c src/speck.c src/xtea.c
@@ -50,13 +50,13 @@ MLIBS       = $(addprefix $(FWODIR)/lib, $(addsuffix .a, $(MODULES)))
 MDEFS       = USBD_SOF_DISABLED
 
 #compiler flags
-FWCFLAGS    = -mthumb -Os -Wall -std=gnu99
+FWCFLAGS    = -mthumb -Os -Wall -std=gnu99 -fdata-sections -ffunction-sections
 FWXFLAGS    = -flto
 
 #linker flags
 FWLDFLAGS   = -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,-Map=$(OUTDIR)/$(FWNAME).map
 SWLDFLAGS   = -libstd
-
+LDSCRIPT    = $(FWODIR)/script.ld
 
 
 all: bootloader crypter
@@ -78,15 +78,16 @@ $(OUTDIR)/$(FWNAME).bin: $(OUTDIR)/$(FWNAME).elf
 	@echo creating $@
 	@$(FWTOOLS)objcopy -O binary $< $@
 
-.SECONDARY $(OUTDIR)/$(FWNAME).elf: $(FWOBJ) $(MLIBS)
+.SECONDARY $(OUTDIR)/$(FWNAME).elf: $(FWOBJ) $(MLIBS) $(LDSCRIPT)
 	@echo building bootloader
-	@$(FWTOOLS)gcc $(FWCPU) $(FWCFLAGS) $(FWLDFLAGS) -Wl,--script=$(FWSCRIPT) $(FWOBJ) $(addprefix -l, $(MODULES)) -L$(FWODIR) -o $@
+	@$(FWTOOLS)gcc $(FWCPU) $(FWCFLAGS) $(FWLDFLAGS) -Wl,--script=$(LDSCRIPT) $(FWOBJ) $(addprefix -l, $(MODULES)) -L$(FWODIR) -o $@
 
+$(LDSCRIPT):
+	$(MAKE) -f ldscript.mk $(LDPARAMS) OUTFILE=$(LDSCRIPT)
 
 $(FWODIR)/lib%.a: %
 	@echo building module $<
 	@$(MAKE) module -C $< MODULE=$(abspath $@) DEFINES='$(FWDEFS) $(MDEFS)' CFLAGS='$(FWXFLAGS) $(FWCPU)' CMSIS='$(CMSIS)'
-
 
 $(SWOBJ): | $(SWODIR)
 
@@ -114,6 +115,7 @@ $(FWODIR)/%.o: %.S
 fwclean: | $(FWODIR)
 	@$(RM) $(call FixPath, $(FWODIR)/*.*)
 	@$(RM) $(call FixPath, $(OUTDIR)/$(FWNAME)*)
+	@$(RM) $(call FixPath, $(LDSCRIPT))
 
 swclean: | $(SWODIR)
 	@$(RM) $(call FixPath, $(SWODIR)/*.*)
@@ -140,294 +142,294 @@ stm32l100x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L100xBA USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l100x6a.ld'
+	                           LDPARAMS='ROMLEN=32K RAMLEN=4K'
 
 stm32l100x8a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L100xBA USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l100x8a.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=8K'
 
 stm32l100xba :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L100xBA USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l100xba.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=16K'
 
 stm32l100xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L100xC USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l100xc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=16K'
 
 stm32l151x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L151xBA' \
-	                           FWSCRIPT='mcu/stm32l1xxx6a.ld'
+	                           LDPARAMS='ROMLEN=32K RAMLEN=16K'
 
 stm32l151x8a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
-	                           FWDEFS='STM32L1 STM32L151xBA' \
-	                           FWSCRIPT='mcu/stm32l1xxx8a.ld'
+	                           FWDEFS='STM32L1 STM32L151xBA'\
+	                           LDPARAMS='ROMLEN=64K RAMLEN=32K'
 
 stm32l151xba :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L151xBA' \
-	                           FWSCRIPT='mcu/stm32l1xxxba.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=32K'
 
 stm32l151xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L151xC' \
-	                           FWSCRIPT='mcu/stm32l1xxxc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=32K'
 
 stm32l151xd :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L151xD' \
-	                           FWSCRIPT='mcu/stm32l1xxxd.ld'
+	                           LDPARAMS='ROMLEN=384K RAMLEN=48K'
 
 stm32l151xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L151xE' \
-	                           FWSCRIPT='mcu/stm32l1xxxe.ld'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=80K'
 
 stm32l152x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L152xBA' \
-	                           FWSCRIPT='mcu/stm32l1xxx6a.ld'
+	                           LDPARAMS='ROMLEN=32K RAMLEN=16K'
 
 stm32l152x8a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L152xBA' \
-	                           FWSCRIPT='mcu/stm32l1xxx8a.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=32K'
 
 stm32l152xba :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L152xBA' \
-	                           FWSCRIPT='mcu/stm32l1xxxba.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=32K'
 
 stm32l152xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L152xC' \
-	                           FWSCRIPT='mcu/stm32l1xxxc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=32K'
 
 stm32l152xd :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L152xD' \
-	                           FWSCRIPT='mcu/stm32l1xxxd.ld'
+	                           LDPARAMS='ROMLEN=384K RAMLEN=48K'
 
 stm32l152xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L152xE' \
-	                           FWSCRIPT='mcu/stm32l1xxxe.ld'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=80K'
 
 stm32l162xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L162xC' \
-	                           FWSCRIPT='mcu/stm32l1xxxc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=32K'
 
 stm32l162xd :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L162xD' \
-	                           FWSCRIPT='mcu/stm32l1xxxd.ld'
+	                           LDPARAMS='ROMLEN=384K RAMLEN=48K'
 
 stm32l162xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32l1xx.S' \
 	                           FWDEFS='STM32L1 STM32L162xE' \
-	                           FWSCRIPT='mcu/stm32l1xxxe.ld'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=80K'
 
 stm32l052x6 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L052xx USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l0xxx6.ld'
+	                           LDPARAMS='ROMLEN=32K RAMLEN=8K'
 
 stm32l052x8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L052xx USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l0xxx8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=8K'
 
 stm32l053x6 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L053xx' \
-	                           FWSCRIPT='mcu/stm32l0xxx6.ld'
+	                           LDPARAMS='ROMLEN=32K RAMLEN=8K'
 
 stm32l053x8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L053xx' \
-	                           FWSCRIPT='mcu/stm32l0xxx8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=8K'
 
 stm32l062x8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L062xx' \
-	                           FWSCRIPT='mcu/stm32l0xxx8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=8K'
 
 stm32l063x8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L063xx' \
-	                           FWSCRIPT='mcu/stm32l0xxx8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=8K'
 
 stm32l072v8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L072xx' \
-	                           FWSCRIPT='mcu/stm32l0xxv8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=20K'
 
 stm32l072xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L072xx' \
-	                           FWSCRIPT='mcu/stm32l0xxxb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=20K'
 
 stm32l072xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L072xx' \
-	                           FWSCRIPT='mcu/stm32l0xxxc.ld'
+	                           LDPARAMS='ROMLEN=192K RAMLEN=20K'
 
 stm32l073v8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L073xx' \
-	                           FWSCRIPT='mcu/stm32l0xxv8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=20K'
 
 stm32l073xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L073xx' \
-	                           FWSCRIPT='mcu/stm32l0xxxb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=20K'
 
 stm32l073xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0plus' \
 	                           FWSTARTUP='mcu/stm32l0xx.S' \
 	                           FWDEFS='STM32L0 STM32L073xx' \
-	                           FWSCRIPT='mcu/stm32l0xxxc.ld'
+	                           LDPARAMS='ROMLEN=192K RAMLEN=20K'
 
 stm32l476xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32l4xx.S' \
 	                           FWDEFS='STM32L4 STM32L476xx' \
-	                           FWSCRIPT='mcu/stm32l4xxxc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=96K'
 
 stm32l476xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32l4xx.S' \
 	                           FWDEFS='STM32L4 STM32L476xx' \
-	                           FWSCRIPT='mcu/stm32l4xxxe.ld'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=96K'
 
 stm32l476xg :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32l4xx.S' \
 	                           FWDEFS='STM32L4 STM32L476xx' \
-	                           FWSCRIPT='mcu/stm32l4xxxg.ld'
+	                           LDPARAMS='ROMLEN=1024K RAMLEN=96K'
 
 stm32f103x4 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f103.S' \
 	                           FWDEFS='STM32F1 STM32F103x6 USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f1xxx4.ld'
+	                           LDPARAMS='ROMLEN=16K RAMLEN=10K'
 
 stm32f103x6 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f103.S' \
-	                           FWDEFS='STM32F1 STM32F103x6 USBD_ASM_DRIVER'\
-	                           FWSCRIPT='mcu/stm32f1xxx6.ld'
+	                           FWDEFS='STM32F1 STM32F103x6 USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=32K RAMLEN=10K'
 
 stm32f103x8 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f103.S' \
 	                           FWDEFS='STM32F1 STM32F103x6 USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f1xxx8.ld'
+	                           LDPARAMS='ROMLEN=64K RAMLEN=20K'
 
 stm32f103xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f103.S' \
 	                           FWDEFS='STM32F1 STM32F103x6 USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=20K'
 
 stm32f303xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f303.S' \
 	                           FWDEFS='STM32F3 STM32F303xB USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f3xxxb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=40K'
 
 stm32f303xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f303.S' \
 	                           FWDEFS='STM32F3 STM32F303xB USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f3xxxc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=40K'
 
 stm32f303xd :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f303.S' \
 	                           FWDEFS='STM32F3 STM32F303xE USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f3xxxd.ld'
+	                           LDPARAMS='ROMLEN=384K RAMLEN=64K'
 
 stm32f303xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f303.S' \
 	                           FWDEFS='STM32F3 STM32F303xE USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32f3xxxe.ld'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=64K'
 
 stm32f429xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
 	                           FWDEFS='STM32F4 STM32F429xx' \
-	                           FWSCRIPT='mcu/stm32f4xxxg.ld'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=192K APPALIGN=0x4000'
 
 stm32f429xg :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
 	                           FWDEFS='STM32F4 STM32F429xx' \
-	                           FWSCRIPT='mcu/stm32f4xxxg.ld'
+	                           LDPARAMS='ROMLEN=1024K RAMLEN=192K APPALIGN=0x4000'
 
 stm32f429xi :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32f4xx.S' \
 	                           FWDEFS='STM32F4 STM32F429xx' \
-	                           FWSCRIPT='mcu/stm32f4xxxi.ld'
+	                           LDPARAMS='ROMLEN=2048K RAMLEN=192K APPALIGN=0x4000'
 
 stm32f105xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f105.S' \
 	                           FWDEFS='STM32F1 STM32F105xC USBD_VBUS_DETECT' \
-	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=20K'
 
 stm32f107xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
 	                           FWSTARTUP='mcu/stm32f105.S' \
 	                           FWDEFS='STM32F1 STM32F107xC HSE_25MHZ USBD_VBUS_DETECT' \
-	                           FWSCRIPT='mcu/stm32f1xxxb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=20K'
 
 stm32l433xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32l4xx.S' \
 	                           FWDEFS='STM32L4 STM32L433xx USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l433xb.ld'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=48K'
 
 stm32l433xc :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32l4xx.S' \
 	                           FWDEFS='STM32L4 STM32L433xx USBD_ASM_DRIVER' \
-	                           FWSCRIPT='mcu/stm32l433xc.ld'
+	                           LDPARAMS='ROMLEN=256K RAMLEN=48K'
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
