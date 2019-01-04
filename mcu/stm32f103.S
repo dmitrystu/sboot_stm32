@@ -175,13 +175,11 @@ Reset_Handler:
 #endif
 
 .L_reset_gpio:
-#if (DFU_DBLRESET_MS < 10)
 /* do a 20ms delay for device re-enumeration */
     ldr     r1, =#(20 * 8000 / 3)
 .L_dp_delay:
     subs    r1, #1              //+1 tick
     bne     .L_dp_delay         //+2 ticks, 3 ticks/cycle
-#endif
 /* resetting gpio back */
     movs    r2, #(0x04 | BOOTSTRAP_RCC)
     strb    r2, [r0, #RCC_APB2RSTR]
