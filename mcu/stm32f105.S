@@ -111,20 +111,6 @@ __isr_vector:
     .globl Reset_Handler
     .type Reset_Handler, %function
 Reset_Handler:
-/* pulling down GPIOA12 (USB-DP)*/
-/* this will force re-enumeration. Very useful if no DP control pin used */
-    ldr     r0, =#RCC_BASE
-    movs    r2, #(0x04 | BOOTSTRAP_RCC)
-    strb    r2, [r0, #RCC_APB2ENR]
-    ldr     r1, =#GPIOA
-    ldr     r2, [r1, #GPIO_CRH]
-    ldr     r3, =#0x000F0000
-    bics    r2, r3
-    ldr     r3, =#0x00020000
-    orrs    r2, r3
-    str     r2, [r1, #GPIO_CRH]
-    ldr     r2, =#0x10000000
-    str     r2, [r1, #GPIO_BSRR]
 #if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
 /* checking DFU SW bootkey */
     ldr     r1, =#_KEY_ADDR
@@ -133,7 +119,7 @@ Reset_Handler:
     ldr     r4, [r1]
     str     r3, [r1]
     subs     r4, r2
-    beq     .L_reset_gpio
+    beq     .L_start_boot
 #endif
 
 #if (DFU_DBLRESET_MS != _DISABLE)
@@ -151,6 +137,9 @@ Reset_Handler:
 #endif
 
 #if (DFU_BOOTSTRAP_GPIO != _DISABLE)
+    ldr     r0, =#RCC_BASE
+    movs    r2, #BOOTSTRAP_RCC
+    strb    r2, [r0, #RCC_APB2ENR]
 /* checking bootstrap pin */
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
     ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
@@ -176,13 +165,6 @@ Reset_Handler:
 #endif
 
 .L_reset_gpio:
-#if (DFU_DBLRESET_MS < 10)
-/* do a 20ms delay for device re-enumeration */
-    ldr     r1, =#(20 * 8000 / 3)
-.L_dp_delay:
-    subs    r1, #1              //+1 tick
-    bne     .L_dp_delay         //+2 ticks, 3 ticks/cycle
-#endif
 /* resetting gpio back */
     movs    r2, #(0x04 | BOOTSTRAP_RCC)
     strb    r2, [r0, #RCC_APB2RSTR]
@@ -190,6 +172,7 @@ Reset_Handler:
     strb    r2, [r0, #RCC_APB2RSTR]
     strb    r2, [r0, #RCC_APB2ENR]
     cbz     r4, .L_start_boot
+.L_jump_to_app:
 /* jump to user section */
     ldr     r0, =#_APP_START
     ldr     r1, =#SCB
