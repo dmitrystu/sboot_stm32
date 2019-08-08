@@ -99,7 +99,7 @@ Now you can use usbd core and driver from bootloader in your application. Don't 
 
 #### Activating bootloader
 + put DFU_BOOTKEY on DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset
-+ tie DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT low on startup (optional)
++ by DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT on startup (optional)
 + make a double reset in DFU_DBLRESET_MS period (optional)
 
 #### Encryption/Decryption user firmware
