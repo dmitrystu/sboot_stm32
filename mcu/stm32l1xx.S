@@ -177,7 +177,11 @@ Reset_Handler:
     movs    r2, #0x00
     strb    r2, [r0, #RCC_AHBRSTR]
     strb    r2, [r0, #RCC_AHBENR]
+#if ( (!defined(DFU_BOOTSTRAP_LEVEL)) || ( defined(DFU_BOOTSTRAP_LEVEL) && (DFU_BOOTSTRAP_LEVEL==_LOW)) )
     cbz     r4, .L_start_boot
+#else
+    cbnz    r4, .L_start_boot
+#endif
 #endif
 
 /* jump to user section */

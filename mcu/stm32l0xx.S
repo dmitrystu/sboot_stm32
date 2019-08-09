@@ -183,7 +183,11 @@ Reset_Handler:
     str     r2, [r0, #RCC_IOPRSTR]
     str     r2, [r0, #RCC_IOPENR]
     tst     r4, r4
+#if ( (!defined(DFU_BOOTSTRAP_LEVEL)) || ( defined(DFU_BOOTSTRAP_LEVEL) && (DFU_BOOTSTRAP_LEVEL==_LOW)) )
     beq     .L_start_boot
+#else
+    bne     .L_start_boot
+#endif
 #endif
 
 /* jump to user section */

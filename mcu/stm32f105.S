@@ -182,7 +182,12 @@ Reset_Handler:
     movs    r2, #0x00
     strb    r2, [r0, #RCC_APB2RSTR]
     strb    r2, [r0, #RCC_APB2ENR]
+#if ( (!defined(DFU_BOOTSTRAP_LEVEL)) || ( defined(DFU_BOOTSTRAP_LEVEL) && (DFU_BOOTSTRAP_LEVEL==_LOW)) )
     cbz     r4, .L_start_boot
+#else
+    cbnz    r4, .L_start_boot
+#endif
+
 .L_jump_to_app:
 /* jump to user section */
     ldr     r0, =#_APP_START
