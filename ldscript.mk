@@ -1,4 +1,4 @@
-# This file is the part of the STM32 secure bootloader
+﻿# This file is the part of the STM32 secure bootloader
 #
 # Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
 #
@@ -61,6 +61,7 @@ __bss_start__ = .;
 . = ALIGN(4);
 __bss_end__ = .;
 } > RAM
+PROVIDE(__romstart = ORIGIN(ROM));
 PROVIDE(__romend = ORIGIN(ROM) + LENGTH(ROM));
 PROVIDE(__stack = ORIGIN(RAM) + LENGTH(RAM) - 4);
 }
