@@ -154,7 +154,11 @@ Reset_Handler:
     str     r3, [r1, #GPIO_MODER]
     ldr     r3, [r1, #GPIO_PUPDR]
     bics    r3, r2
-    movs    r2, #0x01
+#if ( (!defined(DFU_BOOTSTRAP_PULL)) || ( defined(DFU_BOOTSTRAP_PULL) && (DFU_BOOTSTRAP_PULL==_UP)) )
+    movs    r2, #_UP
+#else
+    movs    r2, #DFU_BOOTSTRAP_PULL
+#endif
     lsls    r2, #(DFU_BOOTSTRAP_PIN * 2)
     orrs    r3, r2
     str     r3, [r1, #GPIO_PUPDR]

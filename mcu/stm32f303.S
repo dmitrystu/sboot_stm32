@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "config.h"
 #define FLASH_R_BASE    0x40022000
 #define FLASH_ACR       0x00
 #define FLASH_KEYR      0x04
@@ -155,7 +155,7 @@ Reset_Handler:
 #endif
 
 #if (DFU_BOOTSTRAP_GPIO != _DISABLE)
-/* pulling high bootstrap pin */
+/* Set pull up/down/none for bootstrap pin */
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
     ldr     r2, [r1, #GPIO_MODER]
     ldr     r3, =#(0x03 << (DFU_BOOTSTRAP_PIN * 2))
@@ -163,7 +163,12 @@ Reset_Handler:
     str     r2, [r1, #GPIO_MODER]
     ldr     r2, [r1, #GPIO_PUPDR]
     bics    r2, r3
-    ldr     r3, =#(0x01 << (DFU_BOOTSTRAP_PIN * 2))
+#if ( (!defined(DFU_BOOTSTRAP_PULL)) || ( defined(DFU_BOOTSTRAP_PULL) && (DFU_BOOTSTRAP_PULL==_UP)) )
+    movs    r3, #_UP
+#else
+    movs    r3, #DFU_BOOTSTRAP_PULL
+#endif
+    lsls    r3, #(DFU_BOOTSTRAP_PIN * 2)
     orrs    r2, r3
     str     r2, [r1, #GPIO_PUPDR]
 /* checking bootstrap pin */

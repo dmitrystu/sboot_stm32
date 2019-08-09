@@ -20,6 +20,11 @@
 #define _AUTO              -1   /* set automatically */
 #define _DISABLE            0   /* disable feature */
 #define _ENABLE             1   /* enable feature */
+#define _HIGH               0   /* high pin level */
+#define _LOW                1   /* low pin level */
+#define _NONE               0   /* No Pull up/down */
+#define _DOWN               1   /* Pull up */
+#define _UP                 2   /* Pull down */
 /** DFU cipher definitions. */
 #define DFU_CIPHER_ARC4     10  /* ARCFOUR (Rivest RC-4) stream cipher */
 #define DFU_CIPHER_CHACHA   11  /* RFC7539-CHACHA20 stream cipher */
@@ -75,6 +80,8 @@
 /* DFU bootstrap port/pin settings. Set GPIOx or _DISABLE */
 #define DFU_BOOTSTRAP_GPIO  GPIOA
 #define DFU_BOOTSTRAP_PIN   1
+#define DFU_BOOTSTRAP_PULL  _UP
+#define DFU_BOOTSTRAP_LEVEL _LOW
 /* Double reset waiting time in mS. _DISABLE or time in mS */
 #define DFU_DBLRESET_MS     300
 /* User application address. _AUTO or page aligned address.

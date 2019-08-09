@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "config.h"
 #define FLASH_R_BASE    0x40022000
 #define FLASH_ACR       0x00
 #define FLASH_KEYR      0x04
@@ -33,6 +33,7 @@
 #define GPIO_CRH        0x04
 #define GPIO_IDR        0x08
 #define GPIO_BSRR       0x10
+#define GPIO_BRR        0x14
 
 #define SCB             0xE000ED00
 #define SCB_VTOR        0x08
@@ -153,14 +154,23 @@ Reset_Handler:
 /* checking bootstrap pin */
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
     ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+
+#if !defined(DFU_BOOTSTRAP_PULL) || ( (defined(DFU_BOOTSTRAP_PULL) && (DFU_BOOTSTRAP_PULL != _NONE)) )
     ldr     r2, =#(0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+#else
+    ldr     r2, =#(0x04 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+#endif
     ldr     r4, [r1, #BOOTSTRAP_CRx]
     bics    r4, r3
     orrs    r4, r2
     str     r4, [r1, #BOOTSTRAP_CRx]
     movs    r2, #0x01
     lsls    r2, #(DFU_BOOTSTRAP_PIN)
+#if !defined(DFU_BOOTSTRAP_PULL) || ( (defined(DFU_BOOTSTRAP_PULL) && (DFU_BOOTSTRAP_PULL == _UP)) )
     str     r2, [r1, #GPIO_BSRR]
+#else
+    str     r2, [r1, #GPIO_BRR]
+#endif
     movs    r4, #0x08
 .L_scan_bootstrap:
     ldr     r2, [r1, #GPIO_IDR]
