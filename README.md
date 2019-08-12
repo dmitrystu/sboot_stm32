@@ -12,6 +12,7 @@
   + RAIDEN block cipher in CBC mode
   + SPECK 64/128 block cipher in CBC mode
   + XTEA (classic and XTEA-1) block cipher in CBC mode
+  + BLOWFISH block cipher in CBC mode
 + Different interfaces for flash and eeprom programming
 + Autoseal using RDP level 1 or 2 (prevents reading decrypted FW trough debug interface).
   Be careful when you set RDP to level 2. This operation is irreversible and disables
@@ -98,7 +99,7 @@ Now you can use usbd core and driver from bootloader in your application. Don't 
 
 #### Activating bootloader
 + put DFU_BOOTKEY on DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset
-+ tie DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT low on startup (optional)
++ by DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT on startup (optional)
 + make a double reset in DFU_DBLRESET_MS period (optional)
 
 #### Encryption/Decryption user firmware

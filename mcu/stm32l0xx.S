@@ -226,7 +226,13 @@ Reset_Handler:
     str     r3, [r1, #GPIO_MODER]
     ldr     r3, [r1, #GPIO_PUPDR]
     bics    r3, r2
-    movs    r2, #0x01
+#if (DFU_BOOTSTRAP_PULL == _DISABLE)
+    movs    r2, #0x00
+#elif ((DFU_BOOTSTRAP_PULL == _LOW) || ((DFU_BOOTSTRAP_PULL == _AUTO) && (DFU_BOOTSTRAP_LEVEL == _HIGH)))
+    movs    r2, #0x02       //pulldown
+#else
+    movs    r2, #0x01       //pullup
+#endif
     lsls    r2, #(DFU_BOOTSTRAP_PIN * 2)
     orrs    r3, r2
     str     r3, [r1, #GPIO_PUPDR]
@@ -237,7 +243,11 @@ Reset_Handler:
     sbcs    r3, r3
     movs    r2, #0x01
     orrs    r2, r3
+#elif (DFU_BOOTSTRAP_LEVEL == _HIGH)
+    subs    r4, r2
+#else
     adds    r4, r2
+#endif
     beq     .L_reset_gpio
     cmp     r4, #0x10
     bne     .L_scan_bootstrap

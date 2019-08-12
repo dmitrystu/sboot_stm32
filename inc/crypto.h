@@ -82,6 +82,18 @@
     #define aes_encrypt(out, in, b) chacha_crypt(out, in, b)
     #define aes_decrypt(out, in, b) chacha_crypt(out, in, b)
 
+#elif (DFU_CIPHER == DFU_CIPHER_BLOWFISH)
+    #include "blowfish.h"
+    #define aes_init(key) blowfish_init()
+    #define aes_encrypt(out, in, b) blowfish_encrypt(out, in, b)
+    #define aes_decrypt(out, in, b) blowfish_decrypt(out, in, b)
+
+#elif (DFU_CIPHER == DFU_CIPHER_RTEA)
+    #include "rtea.h"
+    #define aes_init(key) rtea_init()
+    #define aes_encrypt(out, in, b) rtea_encrypt(out, in, b)
+    #define aes_decrypt(out, in, b) rtea_decrypt(out, in, b)
+
 #else
     #undef DFU_USE_CIPHER
     #define CRYPTO_BLKSIZE 1
