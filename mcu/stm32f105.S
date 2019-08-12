@@ -143,13 +143,20 @@ Reset_Handler:
 /* checking bootstrap pin */
     ldr     r1, =#DFU_BOOTSTRAP_GPIO
     ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+#if (DFU_BOOTSTRAP_PULL == _DISABLE)
+    ldr     r2, =#(0x00 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+#else
     ldr     r2, =#(0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+#endif
     ldr     r4, [r1, #BOOTSTRAP_CRx]
     bics    r4, r3
     orrs    r4, r2
     str     r4, [r1, #BOOTSTRAP_CRx]
-    movs    r2, #0x01
-    lsls    r2, #(DFU_BOOTSTRAP_PIN)
+#if ((DFU_BOOTSTRAP_PULL == _LOW) || ((DFU_BOOTSTRAP_PULL == _AUTO) && (DFU_BOOTSTRAP_LEVEL == _HIGH)))
+    ldr     r2, =#(0x01 << (DFU_BOOTSTRAP_PIN * 2)) //pulldown
+#else
+    ldr     r2, =#(0x01 << DFU_BOOTSTRAP_PIN)   //pullup
+#endif
     str     r2, [r1, #GPIO_BSRR]
     movs    r4, #0x08
 .L_scan_bootstrap:
@@ -158,7 +165,11 @@ Reset_Handler:
     sbcs    r3, r3
     movs    r2, #0x01
     orrs    r2, r3
+#if (DFU_BOOTSTRAP_LEVEL == _HIGH)
+    subs    r4, r2
+#else
     adds    r4, r2
+#endif
     beq     .L_reset_gpio
     cmp     r4, #0x10
     bne     .L_scan_bootstrap

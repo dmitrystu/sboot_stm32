@@ -126,8 +126,8 @@ Reset_Handler:
 /* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
  * In case of RESET at this time bootloader will start from code above. */
     str     r2, [r1]
-/* STM32L100 startup clock is about 4.0MHz MSI
- * so, we need T(mS)*2097 ticks to make a required delay */
+/* STM32L4 startup clock is about 4.0MHz MSI
+ * so, we need T(mS)*4000 ticks to make a required delay */
     ldr     r0, =#(DFU_DBLRESET_MS * 4000 / 3)
 .L_rst_delay:
     subs    r0, #1              //+1 tick
@@ -149,7 +149,13 @@ Reset_Handler:
     str     r3, [r1, #GPIO_MODER]
     ldr     r3, [r1, #GPIO_PUPDR]
     bics    r3, r2
-    movs    r2, #0x01
+#if (DFU_BOOTSTRAP_PULL == _DISABLE)
+    movs    r2, #0x00
+#elif ((DFU_BOOTSTRAP_PULL == _LOW) || ((DFU_BOOTSTRAP_PULL == _AUTO) && (DFU_BOOTSTRAP_LEVEL == _HIGH)))
+    movs    r2, #0x02       //pulldown
+#else
+    movs    r2, #0x01       //pullup
+#endif
     lsls    r2, #(DFU_BOOTSTRAP_PIN * 2)
     orrs    r3, r2
     str     r3, [r1, #GPIO_PUPDR]
@@ -160,7 +166,11 @@ Reset_Handler:
     sbcs    r3, r3
     movs    r2, #0x01
     orrs    r2, r3
+#if (DFU_BOOTSTRAP_LEVEL == _HIGH)
+    subs    r4, r2
+#else
     adds    r4, r2
+#endif
     beq     .L_reset_gpio
     cmp     r4, #0x10
     bne     .L_scan_bootstrap
