@@ -20,6 +20,8 @@
 #define _AUTO              -1   /* set automatically */
 #define _DISABLE            0   /* disable feature */
 #define _ENABLE             1   /* enable feature */
+#define _FAST               0   /* Fast checksun */
+#define _SMALL              1   /* Small checksum */
 /** DFU cipher definitions. */
 #define DFU_CIPHER_ARC4     10  /* ARCFOUR (Rivest RC-4) stream cipher */
 #define DFU_CIPHER_CHACHA   11  /* RFC7539-CHACHA20 stream cipher */
@@ -43,11 +45,9 @@
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
 /** Whether application image is verified by CRC32 */
-#define DFU_VERIFY_CHECKSUM _ENABLE
-/** Checks the checksum address in the firmware binary for a magic number, sanity check that offset is correct */
-#define DFU_ENCRYPT_CHECK   _ENABLE
-/* Offset of CRC32 checksum in application image */
-#define DFU_CHECKSUM_OFFSET  0x800      /* Offset of checksum in firmware image - firmware start address */
+#define DFU_VERIFY_CHECKSUM _DISABLE
+/* Which checksum routine to use */
+#define DFU_CHECKSUM_TYPE    _SLOW
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */

@@ -106,7 +106,8 @@ __isr_vector:
 /* Peripheral interrupts are not used */
     .size    __isr_vector, . - __isr_vector
 
-#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+#if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
+#if ( defined(DFU_CHECKSUM_TYPE) && (DFU_CHECKSUM_TYPE==_FAST) )
     .section    .text
 crc32table:
     .word 0x00000000,0x77073096,0xEE0E612C,0x990951BA
@@ -173,6 +174,7 @@ crc32table:
     .word 0xBAD03605,0xCDD70693,0x54DE5729,0x23D967BF
     .word 0xB3667A2E,0xC4614AB8,0x5D681B02,0x2A6F2B94
     .word 0xB40BBE37,0xC30C8EA1,0x5A05DF1B,0x2D02EF8D
+#endif
 #endif
 
     .section    .text
@@ -241,62 +243,17 @@ Reset_Handler:
     cbz     r4, .L_start_boot
 #endif
 
-#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+#if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
 
-    ldr     r5, =#_APP_START
-    add     r5, #(DFU_CHECKSUM_OFFSET)
-    ldr     r1, [r5]
-    
     mov     r0, #0xFFFFFFFF
     ldr     r1, =#_APP_START
-    mov     r2, #DFU_CHECKSUM_OFFSET
+    ldr     r2, =__romend
+    sub     r2, r2, r1
+    sub     r2, #8
     bl      .L_crc32
 
-    add     r1, r5, #8
-    ldr     r2, [r5]
-    sub     r2, #(DFU_CHECKSUM_OFFSET+8)
-    bl      .L_crc32
-
-    eor     r0, #0xFFFFFFFF
-
-    ldr     r1, [r5, #4]
-
-    cmp     r1, r0
-
-    beq     .L_checksum_valid
+    bne     .L_checksum_valid
     b       .L_start_boot
-
-.L_crc32:
-/* R0 <- crc
- * R1 <- buffer
- * R2 <- buffer size
- * R0 -> crc
- */
-
-    ldr     r4, =__romstart
-    cmp     r1, r4
-    blt     .L_checksum_end
-
-    ldr     r4, =__romend
-    cmp     r1, r4
-    bgt     .L_checksum_end
-
-    ldrb    r4, [r1]
-
-    eor     r0, r0, r4
-    and     r4, r0, #0x000000FF
-
-    ldr     r3, =crc32table
-    ldr     r3, [r3, r4, LSL#2]
-
-    lsr     r0, #8
-    eor     r0, r3
-
-    add     r1, r1, #1
-    subs     r2, r2, #1
-    bne     .L_crc32
-.L_checksum_end:
-    bx      lr
 
 .L_checksum_valid:
 
@@ -375,6 +332,102 @@ Reset_Handler:
 /* jump to bootloader */
     bl      main
 
+   .thumb_func
+
+#if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
+#if ( defined(DFU_CHECKSUM_TYPE) && (DFU_CHECKSUM_TYPE==_FAST) )
+.L_crc32:
+/* R0 <- crc
+ * R1 <- buffer
+ * R2 <- buffer size
+ * R0 -> crc
+ */
+
+    push    {r1-r6, lr}
+
+.L_checksum_loop:
+    ldrb    r4, [r1]
+
+    eor     r0, r0, r4
+    and     r4, r0, #0x000000FF
+
+    ldr     r3, =crc32table
+    ldr     r3, [r3, r4, LSL#2]
+
+    lsr     r0, #8
+    eor     r0, r3
+
+    add     r1, r1, #1
+
+    eor     r4, r0, #0xFFFFFFFF
+    ldr     r5, [r1]
+    cmp     r5, r4
+    bne     .L_checksum_continue
+    ldr     r5, [r1, #4]
+    cmp     r5, r0
+    bne     .L_checksum_continue
+
+    movs    r0, #1
+    pop     {r1-r6, pc}
+
+.L_checksum_continue:
+    subs     r2, r2, #1
+    bne     .L_checksum_loop
+.L_checksum_end:
+    movs    r0, #0
+    pop     {r1-r6, pc}
+#else
+.L_crc32:
+/* R0 <- crc
+ * R1 <- buffer
+ * R2 <- buffer size
+ * R0 -> 0 = not verified,1 = verified
+ */
+    push    {r1-r6, lr}
+
+    ldr     r6, =.L_checksum_poly
+    ldr     r6, [r6]
+
+.L_checksum_loop:
+    ldrb    r3, [r1]
+    eor     r0, r0, r3
+
+    mov     r4, 8
+.L_bit_loop:
+    and     r5, r0, #1
+    neg     r5, r5
+    mov     r3, r0, LSR#1
+    and     r5, r6
+    eor     r0, r3, r5
+
+    subs    r4, #1
+    bne     .L_bit_loop
+
+    add     r1, r1, #1
+
+    eor     r4, r0, #0xFFFFFFFF
+    ldr     r5, [r1]
+    cmp     r5, r4
+    bne     .L_checksum_continue
+    ldr     r5, [r1, #4]
+    cmp     r5, r0
+    bne     .L_checksum_continue
+
+    movs    r0, #1
+    pop     {r1-r6, pc}
+
+.L_checksum_continue:
+    subs    r2, r2, #1
+    bne     .L_checksum_loop
+.L_checksum_end:
+    movs    r0, #0
+    pop     {r1-r6, pc}
+
+.L_checksum_poly:
+    .word   0xEDB88320
+#endif
+#endif
+
     .size Reset_Handler, . - Reset_Handler
 
 _default_handler:
@@ -398,8 +451,6 @@ _default_handler:
     def_irq_handler    DebugMon_Handler
     def_irq_handler    PendSV_Handler
     def_irq_handler    SysTick_Handler
-
-
 
 /* using RAM for this functions */
     .section .data

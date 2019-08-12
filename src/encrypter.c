@@ -118,36 +118,30 @@ static int file_crypt(char *stro, char *stri, int dir) {
     length = ftell(fi);
     fseek(fi, 0, SEEK_SET);
 
-    inputbuffer = (uint32_t *) malloc(length);
+    printf("olength %d\r\n", length);
+
+    inputbuffer = (uint32_t *) malloc(length+(sizeof(uint32_t)*2));
 
     fread(inputbuffer, 1, length, fi);
+
+    printf("alength %d\r\n", length+(sizeof(uint32_t)*2));
 
     fclose(fi);
 
 #if DFU_VERIFY_CHECKSUM != _DISABLE
     if (dir == 1) {
+        uint32_t *checksum_block = (uint32_t *) ((char *)inputbuffer+length);
 
-#if DFU_ENCRYPT_CHECK != _DISABLE
-        if ( (inputbuffer[DFU_CHECKSUM_OFFSET/4] != 0x01020304) &&
-             (inputbuffer[(DFU_CHECKSUM_OFFSET/4)+1] != 0x0A0B0C0D) ) {
-            printf("Image does not contain checksum magic numbers.\n");
-            return(3);
-        }
-#endif
-        crc = crc32(crc, inputbuffer, DFU_CHECKSUM_OFFSET);
+        crc = crc32(crc, inputbuffer, length);
 
-        printf("first checksum %.8x\r\n", crc);
+        checksum_block[1] = crc;
 
-        crc = crc32(crc, &inputbuffer[(DFU_CHECKSUM_OFFSET/4)+2], length-(DFU_CHECKSUM_OFFSET+8));
-
-        printf("ch %.8x\r\n", DFU_CHECKSUM_OFFSET+8);
         crc ^= 0xFFFFFFFF;
 
-        printf("second checksum %.8x %.8x %d\r\n", crc, (uint32_t) (&inputbuffer[(DFU_CHECKSUM_OFFSET/4)+2])-(uint32_t)(inputbuffer), length-(DFU_CHECKSUM_OFFSET+8));
+        checksum_block[0] = crc;
 
+        length += sizeof(uint32_t)*2;
 
-        inputbuffer[(DFU_CHECKSUM_OFFSET/4)] = length;
-        inputbuffer[(DFU_CHECKSUM_OFFSET/4)+1] = crc;
     }
 #endif
 
@@ -169,6 +163,8 @@ static int file_crypt(char *stro, char *stri, int dir) {
 
         inbytes = ((inbytes + (CRYPTO_BLKSIZE - 1)) / CRYPTO_BLKSIZE) * CRYPTO_BLKSIZE;
 
+        printf("in %d\r\n", inbytes);
+
 #if defined(DFU_USE_CIPHER)
 
         if (dir == 1) {
@@ -179,6 +175,8 @@ static int file_crypt(char *stro, char *stri, int dir) {
 #endif
         bytes += inbytes;
         size_t outbytes = fwrite(buff, 1, inbytes, fo);
+
+        printf("%d\r\n", outbytes);
 
     }
 
