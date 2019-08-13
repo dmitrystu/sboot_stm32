@@ -22,8 +22,6 @@
 #define _ENABLE             1   /* enable feature */
 #define _LOW                2
 #define _HIGH               3
-#define _FAST               0   /* Fast checksun */
-#define _SMALL              1   /* Small checksum */
 /** DFU cipher definitions. */
 #define DFU_CIPHER_ARC4     10  /* ARCFOUR (Rivest RC-4) stream cipher */
 #define DFU_CIPHER_CHACHA   11  /* RFC7539-CHACHA20 stream cipher */
@@ -37,6 +35,9 @@
 #define DFU_CIPHER_XTEA1    19  /* XTEA-1 block cipher in CBC mode */
 #define DFU_CIPHER_BLOWFISH 20  /* Blowfish block cipher in CBC mode */
 #define DFU_CIPHER_RTEA     21  /* Ruptor's TEA or Repaired TEA in CBC mode */
+/** Checksum definitions. */
+#define CRC32FAST           1   /* Lookup table based crc32 algorithm, consumes 1Kb of flash for the table */
+#define CRC32SMALL          2   /* Permutation based crc32 algorithm, no lookup table required but slower */
 
 /* CONFIG STARTS HERE */
 /* Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
@@ -47,10 +48,8 @@
 #define DFU_CAN_UPLOAD      _ENABLE
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
-/** Whether application image is verified by CRC32 */
-#define DFU_VERIFY_CHECKSUM _DISABLE
-/* Which checksum routine to use */
-#define DFU_CHECKSUM_TYPE    _SLOW
+/** Whether application image is verified by a checksum algorithm */
+#define DFU_VERIFY_CHECKSUM  _DISABLE
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */
