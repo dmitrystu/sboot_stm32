@@ -29,7 +29,7 @@
     .thumb
 
 #if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
-#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32FAST) )
+#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32FAST) )
     .section    .text
 
 crc32table:
@@ -97,19 +97,23 @@ crc32table:
     .word 0xBAD03605,0xCDD70693,0x54DE5729,0x23D967BF
     .word 0xB3667A2E,0xC4614AB8,0x5D681B02,0x2A6F2B94
     .word 0xB40BBE37,0xC30C8EA1,0x5A05DF1B,0x2D02EF8D
-#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32FAST) ) */
+#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32FAST) ) */
 
    .thumb_func
-   .globl .L_validate_checksum
+   .globl .validate_checksum
+   .type validate_checksum, %function
 
 #if defined(__ARM_ARCH_7EM__)
-#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32FAST) )
-.L_validate_checksum:
-/* R1 <- buffer
- * R2 <- buffer size
+#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32FAST) )
+.validate_checksum:
+/* R0 <- buffer
+ * R1 <- buffer size
  * R0 -> 1 = validated, 0 = invalid
  */
     push    {r1-r6, lr}
+
+    sub     r2, r1, #8
+    mov     r1, r0
 
     mov     r0, #0xFFFFFFFF
 
@@ -144,21 +148,23 @@ crc32table:
 .L_checksum_end:
     movs    r0, #0
     pop     {r1-r6, pc}
-#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32FAST) ) */
+#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32FAST) ) */
 
-#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32SMALL) )
+#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32SMALL) )
 
-.L_validate_checksum:
-/* R1 <- buffer
- * R2 <- buffer size
+.validate_checksum:
+/* R0 <- buffer
+ * R1 <- buffer size
  * R0 -> 1 = validated, 0 = invalid
  */
     push    {r1-r6, lr}
 
+    sub     r2, r1, #8
+    mov     r1, r0
+
     mov     r0, #0xFFFFFFFF
 
-    ldr     r6, =.L_checksum_poly
-    ldr     r6, [r6]
+    ldr     r6, =0xEDB88320
 
 .L_checksum_loop:
     ldrb    r3, [r1]
@@ -195,20 +201,21 @@ crc32table:
     movs    r0, #0
     pop     {r1-r6, pc}
 
-.L_checksum_poly:
-    .word   0xEDB88320
-#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32SMALL) ) */
+#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32SMALL) ) */
 #endif /* defined(__ARM_ARCH_7EM__) */
 
 #if defined(__ARM_ARCH_6M__)
 #if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
-#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32FAST) )
-.L_validate_checksum:
-/* R1 <- buffer
- * R2 <- buffer size
+#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32FAST) )
+.validate_checksum:
+/* R0 <- buffer
+ * R1 <- buffer size
  * R0 -> 1 = validated, 0 = invalid
  */
     push    {r1-r6, lr}
+
+    subs    r2, r1, #8
+    movs    r1, r0
 
     movs    r0, #0
     subs    r0, #1
@@ -249,21 +256,23 @@ crc32table:
 .L_checksum_end:
     movs    r0, #0
     pop     {r1-r6, pc}
-#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_CHECKSUM_TYPE==CRC32FAST) ) */
+#endif /* ( defined(DFU_VERIFY_CHECKSUM) && (DFU_CHECKSUM_TYPE == CRC32FAST) ) */
 
-#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32SMALL) )
-.L_validate_checksum:
-/* R1 <- buffer
- * R2 <- buffer size
+#if ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32SMALL) )
+.validate_checksum:
+/* R0 <- buffer
+ * R1 <- buffer size
  * R0 -> 1 = validated, 0 = invalid
  */
     push    {r1-r6, lr}
 
+    subs    r2, r1, #8
+    movs    r1, r0
+
     movs    r0, #0
     subs    r0, #1
 
-    ldr     r6, =.L_checksum_poly
-    ldr     r6, [r6]
+    ldr     r6, =0xEDB88320
 
 .L_checksum_loop:
     ldrb    r3, [r1]
@@ -304,9 +313,7 @@ crc32table:
     movs    r0, #0
     pop     {r1-r6, pc}
 
-.L_checksum_poly:
-    .word   0xEDB88320
-#endif /*( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM==CRC32SMALL) ) */
+#endif /*( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == CRC32SMALL) ) */
 #endif /* ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) ) */
 #endif /* defined(__ARM_ARCH_6EM__) */
 

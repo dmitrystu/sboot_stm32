@@ -184,11 +184,9 @@ Reset_Handler:
 
 #if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
 
-    ldr     r1, =#_APP_START
-    ldr     r2, =__romend
-    sub     r2, r2, r1
-    sub     r2, #8
-    bl      .L_validate_checksum
+    ldr     r0, =#_APP_START
+    ldr     r1, =__romsize
+    bl      .validate_checksum
 
     bne     .L_checksum_valid
     b       .L_start_boot
