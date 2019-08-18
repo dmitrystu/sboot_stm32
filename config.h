@@ -49,7 +49,7 @@
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
 /** Whether application image is verified by a checksum algorithm */
-#define DFU_VERIFY_CHECKSUM  _DISABLE
+#define DFU_VERIFY_CHECKSUM  CRC32SMALL
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */

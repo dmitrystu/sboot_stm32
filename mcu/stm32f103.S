@@ -199,19 +199,12 @@ Reset_Handler:
     strb    r2, [r0, #RCC_APB2ENR]
     cbz     r4, .L_start_boot
 
-#if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
-
-    ldr     r1, =#_APP_START
-    ldr     r2, =__romend
-    sub     r2, r2, r1
-    sub     r2, #8
-    bl      .L_validate_checksum
-
-    bne     .L_checksum_valid
-    b       .L_start_boot
-
-.L_checksum_valid:
-
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r2, =#(__romend - 8)
+    subs    r2, r0
+    bl      validate_checksum
+    cbz     r0, .L_start_boot
 #endif
 
 /* jump to user section */

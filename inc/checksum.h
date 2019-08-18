@@ -1,5 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
+ * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  * Copyright 2019 by Tsien (UK) Ltd.
  *
  * Author: Adrian Carpenter <tech[at]tsien[dot]com>
@@ -18,23 +19,14 @@
 
 #ifndef _CHECKSUM_H_
 #define _CHECKSUM_H_
-
-#include "config.h"
-
-#if (!defined(DFU_VERIFY_CHECKSUM) || ( defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM == _DISABLE)) )
-#define checksum_length() 0
-#else
-
 #if defined(__cplusplus)
     extern "C" {
 #endif
 
-    uint32_t checksum_length(void);
-    uint32_t checksum_create(void *data, uint32_t length);
+uint32_t calculate_checksum(const void *data, uint32_t len);
+uint32_t validate_checksum(const void *data, uint32_t len);
 
 #if defined(__cplusplus)
     }
 #endif
-
-#endif
-#endif
+#endif // _CHECKSUM_H_

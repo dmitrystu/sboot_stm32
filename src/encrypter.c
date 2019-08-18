@@ -17,106 +17,135 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "getopt.h"
 #include "config.h"
 #include "crypto.h"
 #include "checksum.h"
 
-static const char *shelp = "Usage: encrypter [option] infile outfile\n" \
-                           "\t -e Encrypt file\n" \
-                           "\t -d Decrypt file\n";
 
-static const char *sferr = "Error: unable to open file %s\n";
-
-static int help(void) {
-    printf(shelp);
-    return -1;
+static void exithelp(void) {
+    printf("Usage: fwcrypt [options] infile outfile\n"
+           "\t -e Encrypt (default)\n"
+           "\t -d Decrypt\n"
+           "\t -c With checksum signature\n"
+    );
+    exit(0);
 }
 
-static int file_crypt(char *stro, char *stri, int dir) {
-    uint32_t buff[0x100];
-    uint32_t bytes = 0;
-    uint32_t length;
-    uint32_t *inputbuffer;
-    char *datapointer;
 
-    FILE *fi = fopen(stri, "rb");
+int main(int argc, char **argv)
+{
+    int dir = 1;
+    int crc = 0;
+    int c;
+
+    opterr = 0;
+
+    while ((c = getopt(argc, argv, "edch")) != -1)
+        switch (c)
+        {
+        case 'e':
+            dir = 1;
+            break;
+        case 'd':
+            dir = 0;
+            break;
+        case 'c':
+            crc = 1;
+            break;
+        case 'h':
+        case '?':
+            exithelp();
+            break;
+        default:
+            exit(-1);
+        }
+
+    if ((argc - optind) != 2) exithelp();
+
+    FILE *fi = fopen(argv[optind], "rb");
     if (fi == NULL) {
-        printf(sferr, stri);
-        return 1;
+        printf("Failed to open file: %s\n", argv[optind]);
+        exit(1);
     }
-    FILE *fo = fopen(stro, "wb");
+
+    optind++;
+
+    FILE *fo = fopen(argv[optind], "wb");
     if (fo == NULL) {
         fclose(fi);
-        printf(sferr, stro);
-        return 2;
+        printf("Failed to open file: %s\n", argv[optind]);
+        exit(2);
     }
 
     fseek(fi, 0, SEEK_END);
-    length = ftell(fi);
+    uint32_t length = ftell(fi);
     fseek(fi, 0, SEEK_SET);
 
-    inputbuffer = (uint32_t *) malloc(checksum_length()+length+(sizeof(uint32_t)*2));
+    uint32_t *buf = malloc(length + 20);
+    if (buf == NULL) {
+        printf("Failed to allocate buffer. length %d\n", length);
+    }
 
-    fread(inputbuffer, 1, length, fi);
-
+    fread(buf, 1, length, fi);
     fclose(fi);
 
-#if (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE))
-    if (dir == 1) {
-        length = checksum_create(inputbuffer, length);
-    }
-#endif
-
-    datapointer = (char *) inputbuffer;
-
     aes_init();
-    while (length!=0) {
-        size_t inbytes;
+    if (dir) {
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+        if (crc) {
+            uint32_t cs = calculate_checksum(buf, length);
+            printf("Firmware lendth: %d, checksum: %08X\n"
+                   "Addind signatute.\n",
+                    length, cs);
 
-        if (length>sizeof(buff))
-            inbytes = sizeof(buff);
-        else
-            inbytes = length;
+            memcpy(&((uint8_t*)buf)[length + 0], &cs, 4);
+            cs = ~cs;
+            memcpy(&((uint8_t*)buf)[length + 4], &cs, 4);
 
-        memcpy(buff, datapointer, inbytes);
-
-        datapointer += inbytes;
-        length -= inbytes;
-
-        inbytes = ((inbytes + (CRYPTO_BLKSIZE - 1)) / CRYPTO_BLKSIZE) * CRYPTO_BLKSIZE;
-
-#if defined(DFU_USE_CIPHER)
-
-        if (dir == 1) {
-            aes_encrypt(buff, buff, (int)inbytes);
-        } else {
-            aes_decrypt(buff, buff, (int)inbytes);
+            printf("Validating firmware signature. ");
+            uint32_t checked_length = validate_checksum(buf, length);
+            if (checked_length != length) {
+                printf("FAIL. Collision found at offset %d\n", checked_length);
+                exit(-3);
+            } else {
+                printf("OK.\n");
+            }
+            length = length + 8;
         }
 #endif
-        bytes += inbytes;
 
-        fwrite(buff, 1, inbytes, fo);
-    }
+#if(DFU_CIPHER != _DISABLE)
+        if (length % CRYPTO_BLKSIZE) {
+            length += (CRYPTO_BLKSIZE - (length % CRYPTO_BLKSIZE));
+        }
+        printf("Encrypting %u bytes using " CRYPTO_NAME " cipher.\n", length);
+        aes_encrypt(buf, buf, length);
+#endif
 
-    free(inputbuffer);
-
-    fclose(fo);
-
-    printf("Processed %u bytes use " CRYPTO_NAME "\n", bytes);
-    return 0;
-}
-
-
-
-
-
-int main (int argc, char *argv[]) {
-    if (argc != 4) return help();
-    if (!strcmp(argv[1], "-e")) {
-        return file_crypt(argv[3], argv[2], 1);
-    } else if (!strcmp(argv[1], "-d")) {
-        return file_crypt(argv[3], argv[2], 0);
     } else {
-        return help();
+
+#if(DFU_CIPHER != _DISABLE)
+        printf("Decrypting %u bytes using " CRYPTO_NAME " cipher.\n", length);
+        aes_decrypt(buf, buf, length);
+#endif
+
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+        if (crc) {
+            uint32_t checked_length = validate_checksum(buf, length);
+            if (checked_length == 0) {
+                printf("No valid signature found.\n");
+            } else {
+                printf("Valid signature found at offset %d\n", checked_length);
+                length = checked_length;
+            }
+        }
+#endif
+
     }
+
+    fwrite(buf, 1, length, fo);
+    fclose(fo);
+    free(buf);
+    return 0;
 }
