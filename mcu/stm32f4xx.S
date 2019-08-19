@@ -187,20 +187,12 @@ Reset_Handler:
     cbz     r4, .L_start_boot
 #endif
 
-#if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
-
-    mov     r0, #0xFFFFFFFF
-    ldr     r1, =#_APP_START
-    ldr     r2, =__romend
-    sub     r2, r2, r1
-    sub     r2, #8
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =__romend
+    sub     r1, r0
     bl      .L_validate_checksum
-
-    bne     .L_checksum_valid
-    b       .L_start_boot
-
-.L_checksum_valid:
-
+    cbz     r0, .L_start_boot
 #endif
 
 /* jump to user section */

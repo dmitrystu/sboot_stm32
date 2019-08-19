@@ -201,9 +201,9 @@ Reset_Handler:
 
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
     ldr     r0, =#_APP_START
-    ldr     r2, =#(__romend - 8)
-    subs    r2, r0
-    bl      validate_checksum
+    ldr     r1, =__romend
+    sub     r1, r0
+    bl      .L_validate_checksum
     cbz     r0, .L_start_boot
 #endif
 

@@ -23,7 +23,15 @@
     extern "C" {
 #endif
 
-uint32_t calculate_checksum(const void *data, uint32_t len);
+#include "config.h"
+
+#if (DFU_VERIFY_CHECKSUM == CRC32SMALL) || (DFU_VERIFY_CHECKSUM == CRC32FAST)
+    typedef uint32_t checksum_t;
+#else //FALLBACK
+    typedef uint32_t checksum_t;
+#endif
+
+checksum_t calculate_checksum(const void *data, uint32_t len);
 uint32_t validate_checksum(const void *data, uint32_t len);
 
 #if defined(__cplusplus)

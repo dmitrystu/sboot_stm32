@@ -24,7 +24,7 @@
 
 #if (DFU_VERIFY_CHECKSUM == CRC32SMALL)
 #define CHECKSUM_INIT 0xFFFFFFFF;
-static uint32_t update_checksum(uint32_t checksum, uint8_t data) {
+static checksum_t update_checksum(checksum_t checksum, uint8_t data) {
     const uint32_t poly = 0xEDB88320;
     checksum ^= data;
     for (int i =0; i < 8; i++) {
@@ -38,7 +38,7 @@ static uint32_t update_checksum(uint32_t checksum, uint8_t data) {
 }
 #elif (DFU_VERIFY_CHECKSUM == CRC32FAST)
 #define CHECKSUM_INIT 0xFFFFFFFF;
-static uint32_t update_checksum(uint32_t checksum, uint8_t data)
+static checksum_t update_checksum(checksum_t checksum, uint8_t data)
 {
     const uint32_t table[256] = {
         0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
@@ -79,12 +79,11 @@ static uint32_t update_checksum(uint32_t checksum, uint8_t data)
 }
 
 #else
-
-
+    #define update_checksum(cs, buf)  (cs)
 #endif
 
-uint32_t calculate_checksum(const void *data, uint32_t len) {
-    uint32_t cs = CHECKSUM_INIT;
+checksum_t calculate_checksum(const void *data, uint32_t len) {
+    checksum_t cs = CHECKSUM_INIT;
     const uint8_t *buf = data;
     while (len--) {
         cs = update_checksum(cs, *buf);
@@ -94,18 +93,18 @@ uint32_t calculate_checksum(const void *data, uint32_t len) {
 }
 
 uint32_t validate_checksum(const void *data, uint32_t len)  {
-    uint32_t cs = CHECKSUM_INIT;
+    checksum_t cs = CHECKSUM_INIT;
     uint32_t d;
     const uint8_t *buf = data;
-    do {
-        d = *(__attribute__((packed)) uint32_t*)buf;
+    while((2 * sizeof(checksum_t)) <= len--) {
+        d = *(__attribute__((packed)) checksum_t*)buf;
         if (d == cs) {
-            d = *(__attribute__((packed)) uint32_t*)(buf + 4);
+            d = *(__attribute__((packed)) checksum_t*)(buf + 4);
             if ( ~d == cs) return (uint32_t)(buf - (uint8_t*)data);
         }
         cs = update_checksum(cs, (uint8_t)(d & 0x0FF));
         buf++;
-    } while(len--);
+    };
     return 0;
 }
 

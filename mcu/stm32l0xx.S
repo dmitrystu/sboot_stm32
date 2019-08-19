@@ -191,19 +191,13 @@ Reset_Handler:
     tst     r4, r4
     beq     .L_start_boot
 
-#if ( (defined(DFU_VERIFY_CHECKSUM) && (DFU_VERIFY_CHECKSUM != _DISABLE) ) )
-
-    ldr     r1, =#_APP_START
-    ldr     r2, =__romend
-    subs    r2, r1
-    subs    r2, r2, #8
-    bl      .L_crc32
-
-    bne     .L_checksum_valid
-    b       .L_start_boot
-
-.L_checksum_valid:
-
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =#__romend
+    subs    r1, r0
+    bl      validate_checksum
+    tst     r0, r0
+    beq     .L_start_boot
 #endif
 
 /* jump to user section */

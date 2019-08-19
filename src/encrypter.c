@@ -73,7 +73,8 @@ int main(int argc, char **argv)
     uint32_t length = ftell(fi);
     fseek(fi, 0, SEEK_SET);
 
-    uint32_t *buf = malloc(length + 20);
+    uint32_t *buf = malloc(length + 2 * sizeof(checksum_t) + CRYPTO_BLKSIZE);
+
     if (buf == NULL) {
         printf("Failed to allocate buffer. length %d\n", length);
         exit(3);
@@ -86,24 +87,26 @@ int main(int argc, char **argv)
     if (dir) {
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
         if (crc) {
-            uint32_t cs = calculate_checksum(buf, length);
-            printf("Firmware length: %d, checksum: %08X\n"
+            checksum_t cs = calculate_checksum(buf, length);
+            printf("Firmware length: %d, checksum: %0X\n"
                    "Addind signature.\n",
                     length, cs);
 
-            memcpy(&((uint8_t*)buf)[length + 0], &cs, 4);
+            memcpy(&((uint8_t*)buf)[length + 0], &cs, sizeof(cs));
             cs = ~cs;
-            memcpy(&((uint8_t*)buf)[length + 4], &cs, 4);
+            memcpy(&((uint8_t*)buf)[length + sizeof(cs)], &cs, sizeof(cs));
+
+            length += 2 * sizeof(cs);
 
             printf("Validating firmware signature. ");
             uint32_t checked_length = validate_checksum(buf, length);
-            if (checked_length != length) {
+
+            if ((checked_length + 2 * sizeof(cs)) != length ) {
                 printf("FAIL. Collision found at offset %d\n", checked_length);
                 exit(-3);
             } else {
                 printf("OK.\n");
             }
-            length = length + 8;
         }
 #endif
 
