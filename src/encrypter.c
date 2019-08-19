@@ -27,7 +27,7 @@ static void exithelp(void) {
     printf("Usage: fwcrypt [options] infile outfile\n"
            "\t -e Encrypt (default)\n"
            "\t -d Decrypt\n"
-           "\t -c With checksum signature\n"
+           "\t -c Without checksum signature\n"
     );
     exit(0);
 }
@@ -36,7 +36,7 @@ static void exithelp(void) {
 int main(int argc, char **argv)
 {
     int dir = 1;
-    int crc = 0;
+    int crc = 1;
     int c;
 
     opterr = 0;
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
             dir = 0;
             break;
         case 'c':
-            crc = 1;
+            crc = 0;
             break;
         case 'h':
         case '?':
@@ -85,6 +85,7 @@ int main(int argc, char **argv)
     uint32_t *buf = malloc(length + 20);
     if (buf == NULL) {
         printf("Failed to allocate buffer. length %d\n", length);
+        exit(3);
     }
 
     fread(buf, 1, length, fi);
@@ -95,8 +96,8 @@ int main(int argc, char **argv)
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
         if (crc) {
             uint32_t cs = calculate_checksum(buf, length);
-            printf("Firmware lendth: %d, checksum: %08X\n"
-                   "Addind signatute.\n",
+            printf("Firmware length: %d, checksum: %08X\n"
+                   "Addind signature.\n",
                     length, cs);
 
             memcpy(&((uint8_t*)buf)[length + 0], &cs, 4);
