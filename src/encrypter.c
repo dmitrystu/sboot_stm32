@@ -69,15 +69,6 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    optind++;
-
-    FILE *fo = fopen(argv[optind], "wb");
-    if (fo == NULL) {
-        fclose(fi);
-        printf("Failed to open file: %s\n", argv[optind]);
-        exit(2);
-    }
-
     fseek(fi, 0, SEEK_END);
     uint32_t length = ftell(fi);
     fseek(fi, 0, SEEK_SET);
@@ -143,6 +134,15 @@ int main(int argc, char **argv)
         }
 #endif
 
+    }
+
+    optind++;
+
+    FILE *fo = fopen(argv[optind], "wb");
+    if (fo == NULL)
+    {
+        printf("Failed to open file: %s\n", argv[optind]);
+        exit(2);
     }
 
     fwrite(buf, 1, length, fo);
