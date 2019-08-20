@@ -80,6 +80,7 @@ static checksum_t update_checksum(checksum_t checksum, uint8_t data)
 
 #else
     #define update_checksum(cs, buf)  (cs)
+    #define CHECKSUM_INIT 0
 #endif
 
 checksum_t calculate_checksum(const void *data, uint32_t len) {
