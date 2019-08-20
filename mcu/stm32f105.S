@@ -188,7 +188,7 @@ Reset_Handler:
     ldr     r0, =#_APP_START
     ldr     r1, =__romend
     sub     r1, r0
-    bl      .L_validate_checksum
+    bl      validate_checksum
     cbz     r0, .L_start_boot
 #endif
 
