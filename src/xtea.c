@@ -20,6 +20,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "misc.h"
 #include "config.h"
 #include "xtea.h"
@@ -67,7 +68,7 @@ static void xtea_decrypt_block(uint32_t *out, const uint32_t *in) {
 }
 
 void xtea_init(void) {
-    __memcpy(K, key, sizeof(K));
+    memcpy(K, key, sizeof(K));
     CK[0] = DFU_AES_NONCE0;
     CK[1] = DFU_AES_NONCE1;
 }

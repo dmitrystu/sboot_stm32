@@ -18,7 +18,7 @@
  */
 
 #include <stdint.h>
-#include "misc.h"
+#include <string.h>
 #include "config.h"
 #include "raiden.h"
 
@@ -57,7 +57,7 @@ static void raiden_decrypt_block(uint32_t *out, const uint32_t *in) {
 
 void raiden_init(void) {
     uint32_t k[4];
-    __memcpy(k, key, sizeof(k));
+    memcpy(k, key, sizeof(k));
     for (int i = 0; i < 16; i++) {
         uint32_t sk = ((k[0]+k[1])+((k[2]+k[3])^(k[0]<<(k[2] & 0x1F))));
         k[i & 0x03] = sk;

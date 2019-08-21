@@ -18,6 +18,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "misc.h"
 #include "config.h"
 #include "rc5.h"
@@ -63,7 +64,7 @@ static void rc5_decode_block (uint32_t *out, const uint32_t *in) {
 
 void rc5_init (void) {
     uint32_t L[4];
-    __memcpy(L, key, 16);
+    memcpy(L, key, 16);
     rc5_keys[0] = Pw;
     for (int i = 1; i < t; i++){
         rc5_keys[i] = rc5_keys[i-1] + Qw;

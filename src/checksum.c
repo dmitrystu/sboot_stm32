@@ -19,6 +19,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include "config.h"
 #include "checksum.h"
 
@@ -83,6 +84,9 @@ static checksum_t update_checksum(checksum_t checksum, uint8_t data)
     #define CHECKSUM_INIT 0
 #endif
 
+
+
+
 checksum_t calculate_checksum(const void *data, uint32_t len) {
     checksum_t cs = CHECKSUM_INIT;
     const uint8_t *buf = data;
@@ -95,17 +99,16 @@ checksum_t calculate_checksum(const void *data, uint32_t len) {
 
 uint32_t validate_checksum(const void *data, uint32_t len)  {
     checksum_t cs = CHECKSUM_INIT;
-    uint32_t d;
     const uint8_t *buf = data;
     while((2 * sizeof(checksum_t)) <= len--) {
-        d = *(__attribute__((packed)) checksum_t*)buf;
-        if (d == cs) {
-            d = *(__attribute__((packed)) checksum_t*)(buf + 4);
-            if ( ~d == cs) return (uint32_t)(buf - (uint8_t*)data);
+        checksum_t tcs;
+        memcpy(&tcs, buf, sizeof(checksum_t));
+        if (cs == tcs) {
+            memcpy(&tcs, buf + sizeof(checksum_t), sizeof(checksum_t));
+                if (~cs == tcs) return (uint32_t)(buf - (uint8_t*)data);
         }
-        cs = update_checksum(cs, (uint8_t)(d & 0x0FF));
-        buf++;
-    };
+        cs = update_checksum(cs, *buf++);
+    }
     return 0;
 }
 

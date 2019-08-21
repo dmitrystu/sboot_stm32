@@ -18,6 +18,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "misc.h"
 #include "config.h"
 #include "speck.h"
@@ -63,7 +64,7 @@ static void speck_decrypt_block(uint32_t *out, const uint32_t *in) {
 
 void speck_init(void) {
     uint32_t K[4];
-    __memcpy(K, key, 16);
+    memcpy(K, key, 16);
     for (int i = 0, j = 0 ; i < ROUNDS; i++) {
         roundkey[i] = K[0];
         if (++j > 3) j = 1;

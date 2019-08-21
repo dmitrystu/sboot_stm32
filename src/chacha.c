@@ -18,6 +18,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "misc.h"
 #include "config.h"
 #include "chacha.h"
@@ -58,7 +59,7 @@ static void Qround (uint32_t *s, uint32_t abcd) {
 }
 
 static void chacha_block() {
-    __memcpy(state, inits, sizeof(state));
+    memcpy(state, inits, sizeof(state));
     for (int i = 0; i < 10; i++) {
         QR(state, 0, 4,  8, 12);
         QR(state, 1, 5,  9, 13);
@@ -72,7 +73,7 @@ static void chacha_block() {
 }
 
 void chacha_init(void) {
-    __memcpy(inits, _key, sizeof(inits));
+    memcpy(inits, _key, sizeof(inits));
 }
 
 void chacha_crypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
