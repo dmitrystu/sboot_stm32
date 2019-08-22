@@ -24,24 +24,26 @@
 #include "checksum.h"
 
 #if (DFU_VERIFY_CHECKSUM == CRC32SMALL)
-#define CHECKSUM_INIT 0xFFFFFFFF;
-static checksum_t update_checksum(checksum_t checksum, uint8_t data) {
+#define CS_DOUBLENEG
+static void init_checksum(checksum_t *checksum) {
+    *checksum = 0xFFFFFFFF;
+}
+
+static void update_checksum(checksum_t *checksum, uint8_t data) {
     const uint32_t poly = 0xEDB88320;
-    checksum ^= data;
+    *checksum ^= data;
     for (int i =0; i < 8; i++) {
-        if (checksum & 0x01) {
-            checksum = (checksum >> 1) ^ poly;
+        if (*checksum & 0x01) {
+            *checksum = (*checksum >> 1) ^ poly;
         } else {
-            checksum = (checksum >> 1);
+            *checksum = (*checksum >> 1);
         }
     }
-    return checksum;
 }
 #elif (DFU_VERIFY_CHECKSUM == CRC32FAST)
-#define CHECKSUM_INIT 0xFFFFFFFF;
-static checksum_t update_checksum(checksum_t checksum, uint8_t data)
-{
-    const uint32_t table[256] = {
+#define CS_DOUBLENEG
+
+static const uint32_t table[256] = {
         0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
         0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
         0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
@@ -75,40 +77,61 @@ static checksum_t update_checksum(checksum_t checksum, uint8_t data)
         0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF,
         0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
     };
-    data ^= checksum & 0xFF;
-    return (checksum >> 8) ^ table[data];
+
+static void init_checksum(checksum_t *checksum) {
+    *checksum = 0xFFFFFFFF;
+}
+
+static void update_checksum(checksum_t *checksum, uint8_t data) {
+    data ^= *checksum & 0xFF;
+    *checksum = (*checksum >> 8) ^ table[data];
 }
 
 #else
-    #define update_checksum(cs, buf)  (cs)
-    #define CHECKSUM_INIT 0
+    #define update_checksum(cs, buf)
+    #define init_checksum(cs)
 #endif
 
 
-
-
-checksum_t calculate_checksum(const void *data, uint32_t len) {
-    checksum_t cs = CHECKSUM_INIT;
-    const uint8_t *buf = data;
+size_t append_checksum(void *data, uint32_t len) {
+    checksum_t cs;
+    uint8_t *buf = data;
+    init_checksum(&cs);
     while (len--) {
-        cs = update_checksum(cs, *buf);
+        update_checksum(&cs, *buf);
         buf++;
     }
-    return cs;
+    memcpy(buf, &cs, sizeof(cs));
+#if defined(CS_DOUBLENEG)
+    cs = ~cs;
+    memcpy(buf + sizeof(cs), &cs, sizeof(cs));
+    return 2 * sizeof(checksum_t);
+#else
+    return sizeof(checksum_t);
+#endif
 }
 
-uint32_t validate_checksum(const void *data, uint32_t len)  {
-    checksum_t cs = CHECKSUM_INIT;
+size_t validate_checksum(const void *data, uint32_t len)  {
+    checksum_t cs;
     const uint8_t *buf = data;
+    init_checksum(&cs);
+
+#if defined(CS_DOUBLENEG)
     while((2 * sizeof(checksum_t)) <= len--) {
         checksum_t tcs;
         memcpy(&tcs, buf, sizeof(checksum_t));
         if (cs == tcs) {
             memcpy(&tcs, buf + sizeof(checksum_t), sizeof(checksum_t));
-                if (~cs == tcs) return (uint32_t)(buf - (uint8_t*)data);
+                if (~cs == tcs) return (size_t)(buf - (uint8_t*)data);
         }
-        cs = update_checksum(cs, *buf++);
+        update_checksum(&cs, *buf++);
     }
+#else
+    while(sizeof(checksum_t) <= len--) {
+        if (0 == memcmp(buf, &cs, sizeof(cs)) (size_t)(buf - (uint8_t *)data);
+        update_checksum(&cs, *buf++);
+    }
+#endif
     return 0;
 }
 

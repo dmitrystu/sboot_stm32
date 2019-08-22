@@ -31,8 +31,8 @@
     typedef uint32_t checksum_t;
 #endif
 
-checksum_t calculate_checksum(const void *data, uint32_t len);
-uint32_t validate_checksum(const void *data, uint32_t len);
+size_t append_checksum(void *data, uint32_t len);
+size_t validate_checksum(const void *data, uint32_t len);
 
 #if defined(__cplusplus)
     }

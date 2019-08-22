@@ -24,24 +24,44 @@
 
 
 static void exithelp(void) {
-    printf("Usage: fwcrypt [options] infile outfile\n"
+    printf("Usage: fwcrypt [options] -i infile -o outfile\n"
            "\t -e Encrypt (default)\n"
            "\t -d Decrypt\n"
+           "\t -n No output (dry run)\n"
            "\t -c Without checksum signature\n"
+
     );
     exit(0);
 }
+
+static char *strsign(const void *data, size_t len) {
+    static char s[ 2 * sizeof(checksum_t) + 1];
+    char *t = s;
+    static const char *digits = "0123456789ABCDEF";
+    const uint8_t *buf = data;
+    while(len--) {
+        *t++ = digits[*buf >> 4];
+        *t++ = digits[*buf & 0x0F];
+        buf++;
+    }
+    *t = '\0';
+    return s;
+}
+
 
 
 int main(int argc, char **argv)
 {
     int dir = 1;
     int crc = 1;
+    int dry = 0;
+    char *infile = NULL;
+    char *outfile = NULL;
     int c;
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "edch")) != -1)
+    while ((c = getopt(argc, argv, "edchni:o:")) != -1)
         switch (c)
         {
         case 'e':
@@ -53,6 +73,15 @@ int main(int argc, char **argv)
         case 'c':
             crc = 0;
             break;
+        case 'n':
+            dry = 1;
+            break;
+        case 'i':
+            infile = optarg;
+            break;
+        case 'o':
+            outfile = optarg;
+            break;
         case 'h':
         case '?':
             exithelp();
@@ -61,9 +90,11 @@ int main(int argc, char **argv)
             exit(-1);
         }
 
-    if ((argc - optind) != 2) exithelp();
+    if (infile == NULL) {
+        exithelp();
+    }
 
-    FILE *fi = fopen(argv[optind], "rb");
+    FILE *fi = fopen(infile, "rb");
     if (fi == NULL) {
         printf("Failed to open file: %s\n", argv[optind]);
         exit(1);
@@ -74,6 +105,7 @@ int main(int argc, char **argv)
     fseek(fi, 0, SEEK_SET);
 
     uint32_t *buf = malloc(length + 2 * sizeof(checksum_t) + CRYPTO_BLKSIZE);
+    uint8_t  *buf8 = (uint8_t*)buf;
 
     if (buf == NULL) {
         printf("Failed to allocate buffer. length %d\n", length);
@@ -87,22 +119,18 @@ int main(int argc, char **argv)
     if (dir) {
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
         if (crc) {
-            checksum_t cs = calculate_checksum(buf, length);
-            printf("Firmware length: %d, checksum: %0X\n"
-                   "Addind signature.\n",
-                    length, cs);
+            size_t cslen = append_checksum(buf, length);
 
-            memcpy(&((uint8_t*)buf)[length + 0], &cs, sizeof(cs));
-            cs = ~cs;
-            memcpy(&((uint8_t*)buf)[length + sizeof(cs)], &cs, sizeof(cs));
+            printf("Firmware length: %d bytes, signature: %s\n",
+                length, strsign(&buf8[length], cslen));
 
-            length += 2 * sizeof(cs);
+            length += cslen;
 
             printf("Validating firmware signature. ");
-            uint32_t checked_length = validate_checksum(buf, length);
+            size_t checked_length = validate_checksum(buf, length);
 
-            if ((checked_length + 2 * sizeof(cs)) != length ) {
-                printf("FAIL. Collision found at offset %d\n", checked_length);
+            if ((checked_length + cslen) != length ) {
+                printf("FAIL. Collision found at offset %zd\n", checked_length);
                 exit(-3);
             } else {
                 printf("OK.\n");
@@ -138,18 +166,18 @@ int main(int argc, char **argv)
 #endif
 
     }
+    if (dry || outfile == NULL) {
+        printf("Writing %d bytes. Dry run.\n", length);
+    } else {
+        FILE *fo = fopen(outfile, "wb");
+        if (fo == NULL) {
+            printf("Failed to open file: %s\n", argv[optind]);
+            exit(2);
+        }
 
-    optind++;
-
-    FILE *fo = fopen(argv[optind], "wb");
-    if (fo == NULL)
-    {
-        printf("Failed to open file: %s\n", argv[optind]);
-        exit(2);
+        fwrite(buf, 1, length, fo);
+        fclose(fo);
     }
-
-    fwrite(buf, 1, length, fo);
-    fclose(fo);
     free(buf);
     return 0;
 }
