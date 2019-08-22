@@ -38,6 +38,8 @@
 /** Checksum definitions. */
 #define CRC32FAST           1   /* Lookup table based crc32 algorithm, consumes 1Kb of flash for the table */
 #define CRC32SMALL          2   /* Permutation based crc32 algorithm, no lookup table required but slower */
+#define FNV1A32             3   /* Fowler–Noll–Vo 32 bit Hash */
+#define FNV1A64             4   /* Fowler–Noll–Vo 64 bit Hash */
 
 /* CONFIG STARTS HERE */
 /* Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
@@ -49,7 +51,7 @@
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
 /** Whether application image is verified by a checksum algorithm */
-#define DFU_VERIFY_CHECKSUM  CRC32SMALL
+#define DFU_VERIFY_CHECKSUM FNV1A64
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */
@@ -82,7 +84,7 @@
 #define DFU_BOOTKEY_ADDR    _AUTO
 /* DFU bootstrap port/pin settings. Set GPIOx or _DISABLE */
 #define DFU_BOOTSTRAP_GPIO  GPIOA
-#define DFU_BOOTSTRAP_PIN   1
+#define DFU_BOOTSTRAP_PIN   0
 /* Active bootstrap pin logic level. _HIGH, _LOW */
 #define DFU_BOOTSTRAP_LEVEL _LOW
 /* Pullup or pulldown settings for the bootstrap pin _AUTO, _DISABLE, _HIGH, _LOW */
@@ -95,7 +97,7 @@
 /* User application size. _AUTO or required size in bytes. */
 #define DFU_APP_SIZE        _AUTO
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
-#define DFU_CIPHER          DFU_CIPHER_BLOWFISH
+#define DFU_CIPHER          DFU_CIPHER_RC5
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
                             0x65, 0x4E, 0x6F, 0x74, 0x57, 0x61, 0x72, 0x2D

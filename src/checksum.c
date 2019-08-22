@@ -87,11 +87,30 @@ static void update_checksum(checksum_t *checksum, uint8_t data) {
     *checksum = (*checksum >> 8) ^ table[data];
 }
 
-#else
-    #define update_checksum(cs, buf)
-    #define init_checksum(cs)
-#endif
+#elif (DFU_VERIFY_CHECKSUM == FNV1A32)
+#define CS_DOUBLENEG
 
+static void init_checksum(checksum_t *checksum) {
+    *checksum = 0x811c9dc5;
+}
+
+static void update_checksum(checksum_t *checksum, uint8_t data) {
+    *checksum = (*checksum ^ data) * 16777619;
+}
+
+#elif (DFU_VERIFY_CHECKSUM == FNV1A64)
+
+static void init_checksum(checksum_t *checksum){
+    *checksum = 0xcbf29ce484222325;
+}
+
+static void update_checksum(checksum_t *checksum, uint8_t data) {
+    *checksum = (*checksum ^ data) * 1099511628211ULL;
+}
+#else
+#define update_checksum(cs, buf)
+#define init_checksum(cs)
+#endif
 
 size_t append_checksum(void *data, uint32_t len) {
     checksum_t cs;
@@ -128,7 +147,9 @@ size_t validate_checksum(const void *data, uint32_t len)  {
     }
 #else
     while(sizeof(checksum_t) <= len--) {
-        if (0 == memcmp(buf, &cs, sizeof(cs)) (size_t)(buf - (uint8_t *)data);
+        if (0 == memcmp(buf, &cs, sizeof(cs))) {
+            return (size_t)(buf - (uint8_t *)data);
+        }
         update_checksum(&cs, *buf++);
     }
 #endif

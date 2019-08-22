@@ -25,8 +25,8 @@
 
 #include "config.h"
 
-#if (DFU_VERIFY_CHECKSUM == CRC32SMALL) || (DFU_VERIFY_CHECKSUM == CRC32FAST)
-    typedef uint32_t checksum_t;
+#if (DFU_VERIFY_CHECKSUM == FNV1A64)
+    typedef uint64_t checksum_t;
 #else //FALLBACK
     typedef uint32_t checksum_t;
 #endif
