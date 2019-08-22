@@ -40,6 +40,8 @@
 #define CRC32SMALL          2   /* Permutation based crc32 algorithm, no lookup table required but slower */
 #define FNV1A32             3   /* Fowler–Noll–Vo 32 bit Hash */
 #define FNV1A64             4   /* Fowler–Noll–Vo 64 bit Hash */
+#define CRC64ECMA           5
+#define CRC64ECMAF          6
 
 /* CONFIG STARTS HERE */
 /* Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
@@ -51,7 +53,7 @@
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
 /** Whether application image is verified by a checksum algorithm */
-#define DFU_VERIFY_CHECKSUM FNV1A64
+#define DFU_VERIFY_CHECKSUM CRC64ECMA
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */

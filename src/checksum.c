@@ -107,6 +107,50 @@ static void init_checksum(checksum_t *checksum){
 static void update_checksum(checksum_t *checksum, uint8_t data) {
     *checksum = (*checksum ^ data) * 1099511628211ULL;
 }
+
+#elif (DFU_VERIFY_CHECKSUM == CRC64ECMA)
+
+static void init_checksum(checksum_t *checksum) {
+    *checksum = 0xFFFFFFFFFFFFFFFF;
+}
+
+static void update_checksum(checksum_t *checksum, uint8_t data) {
+    const uint64_t poly = 0xC96C5795D7870F42;
+    *checksum ^= data;
+    for (int i = 0; i < 8; i++) {
+        if (*checksum & 0x01) {
+            *checksum = (*checksum >> 1) ^ poly;
+        } else {
+            *checksum = (*checksum >> 1);
+        }
+    }
+}
+
+#elif (DFU_VERIFY_CHECKSUM == CRC64ECMAF)
+
+static uint64_t table[0x100];
+
+static void init_checksum(checksum_t *checksum) {
+    const  uint64_t poly = 0xC96C5795D7870F42;
+    for (int j = 0; j < 256; j++) {
+        uint64_t cs = j;
+        for (int i = 0; i < 8; i++) {
+            if (cs & 0x01) {
+                cs = (cs >> 1) ^ poly;
+            } else {
+                cs = (cs >> 1);
+            }
+        }
+        table[j] = cs;
+    }
+    *checksum = 0xFFFFFFFFFFFFFFFF;
+}
+
+static void update_checksum(checksum_t *checksum, uint8_t data) {
+    data ^= *checksum;
+    *checksum = (*checksum >> 8) ^ table[data];
+}
+
 #else
 #define update_checksum(cs, buf)
 #define init_checksum(cs)
@@ -147,9 +191,13 @@ size_t validate_checksum(const void *data, uint32_t len)  {
     }
 #else
     while(sizeof(checksum_t) <= len--) {
-        if (0 == memcmp(buf, &cs, sizeof(cs))) {
-            return (size_t)(buf - (uint8_t *)data);
-        }
+        checksum_t tcs;
+        memcpy(&tcs, buf, sizeof(checksum_t));
+        if (cs == tcs) return (size_t)(buf - (uint8_t*)data);
+
+//        if (0 == memcmp(buf, &cs, sizeof(cs))) {
+//            return (size_t)(buf - (uint8_t *)data);
+//        }
         update_checksum(&cs, *buf++);
     }
 #endif
