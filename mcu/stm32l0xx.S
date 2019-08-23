@@ -174,7 +174,7 @@ Reset_Handler:
     sbcs    r3, r3
     movs    r2, #0x01
     orrs    r2, r3
-#elif (DFU_BOOTSTRAP_LEVEL == _HIGH)
+#if (DFU_BOOTSTRAP_LEVEL == _HIGH)
     subs    r4, r2
 #else
     adds    r4, r2
@@ -190,6 +190,7 @@ Reset_Handler:
     str     r2, [r0, #RCC_IOPENR]
     tst     r4, r4
     beq     .L_start_boot
+#endif
 
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
     ldr     r0, =#_APP_START
