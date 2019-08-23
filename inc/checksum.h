@@ -25,13 +25,7 @@
 
 #include "config.h"
 
-#if (DFU_VERIFY_CHECKSUM == FNV1A64) || (DFU_VERIFY_CHECKSUM == CRC64ECMA) || \
-    (DFU_VERIFY_CHECKSUM == CRC64ECMAF)
-    typedef uint64_t checksum_t;
-#else //FALLBACK
-    typedef uint32_t checksum_t;
-#endif
-
+const char *checksum_name;
 size_t append_checksum(void *data, uint32_t len);
 size_t validate_checksum(const void *data, uint32_t len);
 

@@ -35,7 +35,7 @@ static void exithelp(void) {
 }
 
 static char *strsign(const void *data, size_t len) {
-    static char s[ 2 * sizeof(checksum_t) + 1];
+    static char s[0x100];
     char *t = s;
     static const char *digits = "0123456789ABCDEF";
     const uint8_t *buf = data;
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     uint32_t length = ftell(fi);
     fseek(fi, 0, SEEK_SET);
 
-    uint32_t *buf = malloc(length + 2 * sizeof(checksum_t) + CRYPTO_BLKSIZE);
+    uint32_t *buf = malloc(length + 0x1000);
     uint8_t  *buf8 = (uint8_t*)buf;
 
     if (buf == NULL) {
@@ -121,8 +121,8 @@ int main(int argc, char **argv)
         if (crc) {
             size_t cslen = append_checksum(buf, length);
 
-            printf("Firmware length: %d bytes, signature: %s\n",
-                length, strsign(&buf8[length], cslen));
+            printf("Firmware length: %d bytes, signature: (%s) %s\n",
+                   length, checksum_name, strsign(&buf8[length], cslen));
 
             length += cslen;
 
