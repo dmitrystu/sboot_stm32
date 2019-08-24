@@ -174,7 +174,7 @@ Reset_Handler:
     sbcs    r3, r3
     movs    r2, #0x01
     orrs    r2, r3
-#elif (DFU_BOOTSTRAP_LEVEL == _HIGH)
+#if (DFU_BOOTSTRAP_LEVEL == _HIGH)
     subs    r4, r2
 #else
     adds    r4, r2
