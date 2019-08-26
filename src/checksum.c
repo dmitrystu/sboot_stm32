@@ -112,8 +112,8 @@ static void update_checksum(checksum_t *checksum, uint8_t data) {
 
 #else
 typedef uint32_t checksum_t;
-#define update_checksum(cs, buf)
-#define init_checksum(cs)
+static void update_checksum(checksum_t *cs, uint8_t data) { }
+static void init_checksum(checksum_t *cs) { *cs = 0; }
 #endif
 
 size_t append_checksum(void *data, uint32_t len) {
