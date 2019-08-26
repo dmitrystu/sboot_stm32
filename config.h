@@ -53,7 +53,7 @@
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
 /** Whether application image is verified by a checksum algorithm */
-#define DFU_VERIFY_CHECKSUM CRC64SMALL
+#define DFU_VERIFY_CHECKSUM _DISABLE
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */
@@ -86,7 +86,7 @@
 #define DFU_BOOTKEY_ADDR    _AUTO
 /* DFU bootstrap port/pin settings. Set GPIOx or _DISABLE */
 #define DFU_BOOTSTRAP_GPIO  GPIOA
-#define DFU_BOOTSTRAP_PIN   0
+#define DFU_BOOTSTRAP_PIN   1
 /* Active bootstrap pin logic level. _HIGH, _LOW */
 #define DFU_BOOTSTRAP_LEVEL _LOW
 /* Pullup or pulldown settings for the bootstrap pin _AUTO, _DISABLE, _HIGH, _LOW */
@@ -99,7 +99,7 @@
 /* User application size. _AUTO or required size in bytes. */
 #define DFU_APP_SIZE        _AUTO
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
-#define DFU_CIPHER          DFU_CIPHER_RC5_A
+#define DFU_CIPHER          DFU_CIPHER_BLOWFISH
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
                             0x65, 0x4E, 0x6F, 0x74, 0x57, 0x61, 0x72, 0x2D
