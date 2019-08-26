@@ -129,18 +129,21 @@ size_t append_checksum(void *data, uint32_t len) {
 }
 
 size_t validate_checksum(const void *data, uint32_t len)  {
-    checksum_t cs;
+    checksum_t cs, tcs;
     const uint8_t *buf = data;
     init_checksum(&cs);
-    while(sizeof(checksum_t) <= len--) {
-        checksum_t tcs;
-        memcpy(&tcs, buf, sizeof(checksum_t));
-        if (cs == tcs) return (size_t)(buf - (uint8_t*)data);
-
+    memcpy(&tcs, buf, sizeof(checksum_t));
+    while(1) {
+        if (cs == tcs) return (size_t)(buf - (uint8_t *)data);
+        if (sizeof(checksum_t) >= len--) break;
+        update_checksum(&cs, (uint8_t)(tcs & 0xFF));
+        tcs = (tcs & ~0xFF) | buf[sizeof(checksum_t)];
+        tcs = (tcs >> 8) | (tcs << (8 * sizeof(checksum_t) - 8));
+        buf++;
 //        if (!memcmp((void*)buf, &cs, sizeof(checksum_t))) {
 //            return (size_t)(buf - (uint8_t *)data);
 //        }
-        update_checksum(&cs, *buf++);
+//        update_checksum(&cs, *buf++);
     }
     return 0;
 }
