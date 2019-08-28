@@ -214,8 +214,6 @@ Reset_Handler:
     cbz     r0, .L_start_boot
 #endif
 
-#endif
-
 /* jump to user section */
     ldr     r0, =#_APP_START
     ldr     r1, =#SCB
