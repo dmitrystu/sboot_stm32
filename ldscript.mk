@@ -61,7 +61,6 @@ __bss_start__ = .;
 . = ALIGN(4);
 __bss_end__ = .;
 } > RAM
-PROVIDE(__romstart = ORIGIN(ROM));
 PROVIDE(__romend = ORIGIN(ROM) + LENGTH(ROM));
 PROVIDE(__stack = ORIGIN(RAM) + LENGTH(RAM) - 4);
 }

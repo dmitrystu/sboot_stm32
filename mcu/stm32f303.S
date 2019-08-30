@@ -267,7 +267,6 @@ Reset_Handler:
     blx     r3
 #endif
     bl      main
-
     .size Reset_Handler, .-Reset_Handler
 
 
