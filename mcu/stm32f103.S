@@ -198,6 +198,15 @@ Reset_Handler:
     strb    r2, [r0, #RCC_APB2RSTR]
     strb    r2, [r0, #RCC_APB2ENR]
     cbz     r4, .L_start_boot
+
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =__romend
+    sub     r1, r0
+    bl      validate_checksum
+    cbz     r0, .L_start_boot
+#endif
+
 /* jump to user section */
     ldr     r0, =#_APP_START
     ldr     r1, =#SCB

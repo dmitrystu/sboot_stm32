@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "config.h"
 #define FLASH_R_BASE    0x40022000
 #define FLASH_ACR       0x00
 #define FLASH_PECR      0x04
@@ -189,6 +189,15 @@ Reset_Handler:
     str     r2, [r0, #RCC_IOPRSTR]
     str     r2, [r0, #RCC_IOPENR]
     tst     r4, r4
+    beq     .L_start_boot
+#endif
+
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =#__romend
+    subs    r1, r0
+    bl      validate_checksum
+    tst     r0, r0
     beq     .L_start_boot
 #endif
 

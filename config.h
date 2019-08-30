@@ -1,4 +1,4 @@
-/* This file is the part of the STM32 secure bootloader
+﻿/* This file is the part of the STM32 secure bootloader
  *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
@@ -35,6 +35,13 @@
 #define DFU_CIPHER_XTEA1    19  /* XTEA-1 block cipher in CBC mode */
 #define DFU_CIPHER_BLOWFISH 20  /* Blowfish block cipher in CBC mode */
 #define DFU_CIPHER_RTEA     21  /* Ruptor's TEA or Repaired TEA in CBC mode */
+/** Checksum definitions. */
+#define CRC32FAST           1   /* Lookup table based crc32 algorithm, consumes 1Kb of RAM for the table */
+#define CRC32SMALL          2   /* Permutation based crc32 algorithm, no lookup table required but slower */
+#define FNV1A32             3   /* Fowler–Noll–Vo 32 bit Hash */
+#define FNV1A64             4   /* Fowler–Noll–Vo 64 bit Hash */
+#define CRC64FAST           5   /* Lookup table based crc64 algorithm, consumes 2Kb of RAM for the table */
+#define CRC64SMALL          6   /* Permutation based crc32 algorithm, no lookup table required but extremly slow */
 
 /* CONFIG STARTS HERE */
 /* Skip unwanted dfuDNLOAD_SYNC phase. Slightly improve speed, but don't meets DFU1.1 state diagram */
@@ -45,6 +52,8 @@
 #define DFU_CAN_UPLOAD      _ENABLE
 /** Handle DFU_DETACH request in DFU mode. System reset will be issued. */
 #define DFU_DETACH          _ENABLE
+/** Whether application image is verified by a checksum algorithm */
+#define DFU_VERIFY_CHECKSUM _DISABLE
 /** Memory Readout Protection level **/
 #define DFU_SEAL_LEVEL      0
 /* USB VID */

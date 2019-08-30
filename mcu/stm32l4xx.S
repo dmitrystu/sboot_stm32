@@ -106,7 +106,6 @@ __isr_vector:
 /* Peripheral interrupts are not used */
     .size    __isr_vector, . - __isr_vector
 
-
     .section    .text
     .thumb_func
     .globl  Reset_Handler
@@ -181,6 +180,14 @@ Reset_Handler:
     strb    r2, [r0, #RCC_AHB2RSTR]
     strb    r2, [r0, #RCC_AHB2ENR]
     cbz     r4, .L_start_boot
+#endif
+
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =__romend
+    sub     r1, r0
+    bl      validate_checksum
+    cbz     r0, .L_start_boot
 #endif
 
 /* jump to user section */
@@ -279,8 +286,6 @@ _default_handler:
     def_irq_handler    DebugMon_Handler
     def_irq_handler    PendSV_Handler
     def_irq_handler    SysTick_Handler
-
-
 
 /* using RAM for this functions */
     .section .data
@@ -391,7 +396,6 @@ wait_flash_ready:
     lsrs    r4, #17         //EOP->CF
     bx      lr
     .size wait_flash_ready, . - wait_flash_ready
-
 
 #if (DFU_SEAL_LEVEL != 0)
     .thumb_func

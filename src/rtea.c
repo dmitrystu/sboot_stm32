@@ -16,7 +16,7 @@
  */
 
 #include <stdint.h>
-#include "misc.h"
+#include <string.h>
 #include "config.h"
 #include "rtea.h"
 
@@ -52,7 +52,7 @@ static void rtea_decrypt_block(uint32_t *out, const uint32_t *in) {
 }
 
 void rtea_init(void) {
-    __memcpy(K, key, sizeof(K));
+    memcpy(K, key, sizeof(K));
     CK[0] = DFU_AES_NONCE0;
     CK[1] = DFU_AES_NONCE1;
 }

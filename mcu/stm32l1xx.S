@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "config.h"
 #define FLASH_R_BASE    0x40023C00
 #define FLASH_ACR       0x00
 #define FLASH_PECR      0x04
@@ -184,6 +184,14 @@ Reset_Handler:
     strb    r2, [r0, #RCC_AHBRSTR]
     strb    r2, [r0, #RCC_AHBENR]
     cbz     r4, .L_start_boot
+#endif
+
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =__romend
+    sub     r1, r0
+    bl      validate_checksum
+    cbz     r0, .L_start_boot
 #endif
 
 /* jump to user section */

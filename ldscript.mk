@@ -1,4 +1,4 @@
-# This file is the part of the STM32 secure bootloader
+﻿# This file is the part of the STM32 secure bootloader
 #
 # Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
 #

@@ -111,7 +111,6 @@ __isr_vector:
 /* Peripheral interrupts are not used */
     .size    __isr_vector, . - __isr_vector
 
-
     .section    .text
     .thumb_func
     .globl  Reset_Handler
@@ -186,6 +185,14 @@ Reset_Handler:
     strb    r2, [r0, #RCC_AHB1RSTR]
     strb    r2, [r0, #RCC_AHB1ENR]
     cbz     r4, .L_start_boot
+#endif
+
+#if (DFU_VERIFY_CHECKSUM != _DISABLE)
+    ldr     r0, =#_APP_START
+    ldr     r1, =__romend
+    sub     r1, r0
+    bl      validate_checksum
+    cbz     r0, .L_start_boot
 #endif
 
 /* jump to user section */
