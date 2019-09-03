@@ -138,6 +138,7 @@ FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
 FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi
 FWTARGETS  += stm32f105xb stm32f107xb
 FWTARGETS  += stm32l433xb stm32l433xc
+FWTARGETS  += stm32f070x6 stm32f070xb
 
 stm32l100x6a :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m3' \
@@ -432,5 +433,17 @@ stm32l433xc :
 	                           FWSTARTUP='mcu/stm32l4xx.S' \
 	                           FWDEFS='STM32L4 STM32L433xx USBD_ASM_DRIVER' \
 	                           LDPARAMS='ROMLEN=256K RAMLEN=48K'
+stm32f070x6 :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0' \
+	                           FWSTARTUP='mcu/stm32f0xx.S' \
+	                           FWDEFS='STM32F0 STM32F070x6 USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=32K RAMLEN=6K'
+
+stm32f070xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m0' \
+	                           FWSTARTUP='mcu/stm32f0xx.S' \
+	                           FWDEFS='STM32F0 STM32F070xB USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=128K RAMLEN=16K'
+
 
 .PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
