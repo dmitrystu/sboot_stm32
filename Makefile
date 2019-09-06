@@ -6,6 +6,8 @@ FWTOOLS    ?= $(TOOLSET)
 CMSIS      ?= $(abspath ../CMSIS)
 CMSISDEV   ?= $(CMSIS)/Device
 
+STPROG_CLI ?= ~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI
+
 ifeq ($(OS),Windows_NT)
 	RM = del /Q
 	FixPath = $(subst /,\, $1)
@@ -62,6 +64,9 @@ LDSCRIPT    = $(FWODIR)/script.ld
 
 
 all: bootloader crypter
+
+program_stcube: $(OUTDIR)/$(FWNAME).hex
+	$(STPROG_CLI) -c port=SWD reset=HWrst -d $< -hardRst
 
 program: $(OUTDIR)/$(FWNAME).hex
 	st-flash --reset --format ihex write $(OUTDIR)/$(FWNAME).hex
@@ -447,4 +452,4 @@ stm32f070xb :
 	                           LDPARAMS='ROMLEN=128K RAMLEN=16K'
 
 
-.PHONY: clean bootloader crypter all program rebuild fwclean $(FWTARGETS)
+.PHONY: clean bootloader crypter all program program_stcube rebuild fwclean $(FWTARGETS)
