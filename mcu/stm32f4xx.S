@@ -15,7 +15,7 @@
 #define RCC_CR          0x00
 #define RCC_PLLCFGR     0x04
 #define RCC_CFGR        0x08
-#define RCC_AHB1RSTR    0x20
+#define RCC_AHB1RSTR    0x10
 #define RCC_AHB1ENR     0x30
 
 
@@ -179,8 +179,8 @@ Reset_Handler:
     cmp     r4, #0x10
     bne     .L_scan_bootstrap
 .L_reset_gpio:
-    movs    r2, #BOOTSTRAP_RCC
-    strb    r2, [r0, #RCC_AHB1RSTR]
+    ldr     r2, =#BOOTSTRAP_RCC
+    strh    r2, [r0, #RCC_AHB1RSTR + 0x00]
     movs    r2, #0x00
     strb    r2, [r0, #RCC_AHB1RSTR]
     strb    r2, [r0, #RCC_AHB1ENR]
