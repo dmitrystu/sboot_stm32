@@ -1,7 +1,8 @@
+TOOLSET    ?= arm-none-eabi-
 OUTDIR     ?= build
 FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
-FWTOOLS    ?= arm-none-eabi-
+FWTOOLS    ?= $(TOOLSET)
 CMSIS      ?= $(abspath ../CMSIS)
 CMSISDEV   ?= $(CMSIS)/Device
 
