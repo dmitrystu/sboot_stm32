@@ -105,7 +105,7 @@ static usbd_respond dfu_err_badreq(void) {
 
 static usbd_respond dfu_upload(usbd_device *dev, int32_t blksize) {
     switch (dfu_data.bState) {
-#if defined(DFU_CAN_UPLOAD)
+#if (DFU_CAN_UPLOAD == _ENABLE)
     case USB_DFU_STATE_DFU_IDLE:
     case USB_DFU_STATE_DFU_UPLOADIDLE:
         if (dfu_data.remained <= 0) {
