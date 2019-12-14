@@ -35,6 +35,14 @@
 #define DFU_CIPHER_XTEA1    19  /* XTEA-1 block cipher in CBC mode */
 #define DFU_CIPHER_BLOWFISH 20  /* Blowfish block cipher in CBC mode */
 #define DFU_CIPHER_RTEA     21  /* Ruptor's TEA or Repaired TEA in CBC mode */
+
+#define DFU_CIPHER_CBC      0
+#define DFU_CIPHER_PCBC     1
+#define DFU_CIPHER_CFB      2
+#define DFU_CIPHER_OFB      3
+#define DFU_CIPHER_CTR      4
+#define DFU_CIPHER_ECB      5
+
 /** Checksum definitions. */
 #define CRC32FAST           1   /* Lookup table based crc32 algorithm, consumes 1Kb of RAM for the table */
 #define CRC32SMALL          2   /* Permutation based crc32 algorithm, no lookup table required but slower */
@@ -100,6 +108,7 @@
 #define DFU_APP_SIZE        _AUTO
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
 #define DFU_CIPHER          DFU_CIPHER_BLOWFISH
+#define DFU_CIPHER_MODE     DFU_CIPHER_CBC
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
                             0x65, 0x4E, 0x6F, 0x74, 0x57, 0x61, 0x72, 0x2D

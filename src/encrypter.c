@@ -139,17 +139,17 @@ int main(int argc, char **argv)
 #endif
 
 #if(DFU_CIPHER != _DISABLE)
-        if (length % CRYPTO_BLKSIZE) {
-            length += (CRYPTO_BLKSIZE - (length % CRYPTO_BLKSIZE));
+        if (length % aes_blksize) {
+            length += (aes_blksize - (length % aes_blksize));
         }
-        printf("Encrypting %u bytes using " CRYPTO_NAME " cipher.\n", length);
+        printf("Encrypting %u bytes using %s cipher.\n", length, aes_name);
         aes_encrypt(buf, buf, length);
 #endif
 
     } else {
 
 #if(DFU_CIPHER != _DISABLE)
-        printf("Decrypting %u bytes using " CRYPTO_NAME " cipher.\n", length);
+        printf("Decrypting %u bytes using %s cipher.\n", length, aes_name);
         aes_decrypt(buf, buf, length);
 #endif
 

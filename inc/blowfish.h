@@ -20,11 +20,11 @@
 #endif
 
 #define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "BLOWFISH 64/16/256-CBC"
+#define CRYPTO_NAME    "BLOWFISH 64/16/256"
 
-void blowfish_init(void);
-void blowfish_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void blowfish_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+void blowfish_init(const void *key);
+void blowfish_encrypt(uint32_t *out, const uint32_t *in);
+void blowfish_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }
