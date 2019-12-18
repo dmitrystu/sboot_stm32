@@ -84,7 +84,9 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l433xb   | STM32L433CB, STM32L433RB                           |                 |
 | stm32l433xc   | STM32L433CC, STM32L433RC, STM32L433VC              | tested          |
 | stm32f070x6   | STM32F070C6                                        |                 |
-| stm32f070xB   | STM32F070CB                                        | tested          |
+| stm32f070xb   | STM32F070CB                                        | tested          |
+| stm32g431xb   | STM32G431xB, STM32G441xB                           | tested G431RB   |
+| stm32g474xb   | STM32G471xB, STM32G473xB, STM32G474xB, STM32G483xB | tested G474RB   |
 
 #### Adjusting user firmware
 + check bootloader's linker map for the ````__app_start```` address. This is the new ROM origin for the user firmware (isr vectors).
