@@ -5,7 +5,6 @@
 #if (DFU_CIPHER == DFU_CIPHER_RC5_A) && defined(__thumb__)
     #include "rc5_a.h"
     #define CIPHER_KEY DFU_AES_KEY_A
-    #define CIPHER_BLKSIZE 8
     #define init(key) _rc5_init(key)
     #define encrypt(out, in, b) _rc5_encrypt(out, in, b)
     #define decrypt(out, in, b) _rc5_decrypt(out, in, b)
@@ -49,7 +48,10 @@
 
 #elif (DFU_CIPHER == DFU_CIPHER_ARC4)
     #include "arc4.h"
-    #define init(key) arc4_init(key)
+    #undef  DFU_CIPHER_MODE
+    #define DFU_CIPHER_MODE -1
+    #define CRYPTO_KEY DFU_AES_KEY_A
+    #define init(key, nonce) arc4_init(key)
     #define encrypt(out, in) arc4_crypt(out, in)
     #define decrypt(out, in) arc4_crypt(out, in)
 
@@ -67,7 +69,8 @@
 
 #elif (DFU_CIPHER == DFU_CIPHER_BLOWFISH)
     #include "blowfish.h"
-    #define init(key) blowfish_init(key)
+    #define CRYPTO_KEY DFU_AES_KEY_A, DFU_AES_KEY_B
+    #define init(key, nonce) blowfish_init(key)
     #define encrypt(out, in) blowfish_encrypt(out, in)
     #define decrypt(out, in) blowfish_decrypt(out, in)
 
@@ -87,16 +90,26 @@
 #endif
 
 
+static const uint8_t key[] = {CRYPTO_KEY};
 
+#if (DFU_CIPHER_MODE == DFU_CIPHER_ECB) || (DFU_CIPHER_MODE == -1)
+
+#define init_iv(dest, src, size)
+
+#else
 static uint32_t IV[CRYPTO_BLKSIZE / 4];
-static const uint8_t key[] = {DFU_AES_KEY_A, DFU_AES_KEY_B};
-static const uint32_t ck[2] = {DFU_AES_NONCE0, DFU_AES_NONCE1};
+static const uint32_t nonce[2] = {DFU_AES_NONCE0, DFU_AES_NONCE1};
 
 static void memxor(void *dst, const void *src, uint32_t sz) {
     while(sz--) {
         *(uint8_t*)dst++ ^= *(uint8_t*)src++;
     }
 }
+
+#define init_iv(dest, src, size) memcpy((dst), (src), (size))
+
+#endif
+
 
 #if (DFU_CIPHER_MODE == DFU_CIPHER_CBC)
 char* aes_name = CRYPTO_NAME "-CBC";
@@ -202,20 +215,27 @@ static void decrypt_block(void *out, const void *in) {
     memcpy(out, TB, CRYPTO_BLKSIZE);
 }
 
+#elif (DFU_CIPHER_MODE == -1)
+char* aes_name = CRYPTO_NAME "-STREAM";
+
+static void encrypt_block(void *out, const void *in) {
+    encrypt(out, in);
+}
+
+static void decrypt_block(void *out, const void *in) {
+    decrypt(out, in);
+}
+
 #else
-
-
-
+    #error Unsupported CIPHER MODE
 #endif
-
 
 
 uint32_t aes_blksize = CRYPTO_BLKSIZE;
 
-
 void aes_init(void) {
-    memcpy(IV, ck, CRYPTO_BLKSIZE);
-    init(key);
+    init_iv(IV, nonce, CRYPTO_BLKSIZE);
+    init(key, nonce);
 }
 
 void aes_encrypt(void *out, const void *in, int32_t sz) {

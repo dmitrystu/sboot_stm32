@@ -35,7 +35,7 @@
 #define DFU_CIPHER_XTEA1    19  /* XTEA-1 block cipher in CBC mode */
 #define DFU_CIPHER_BLOWFISH 20  /* Blowfish block cipher in CBC mode */
 #define DFU_CIPHER_RTEA     21  /* Ruptor's TEA or Repaired TEA in CBC mode */
-
+/** Modes for using with block cipher */
 #define DFU_CIPHER_CBC      0
 #define DFU_CIPHER_PCBC     1
 #define DFU_CIPHER_CFB      2
@@ -107,7 +107,7 @@
 /* User application size. _AUTO or required size in bytes. */
 #define DFU_APP_SIZE        _AUTO
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
-#define DFU_CIPHER          DFU_CIPHER_BLOWFISH
+#define DFU_CIPHER          DFU_CIPHER_ARC4
 #define DFU_CIPHER_MODE     DFU_CIPHER_CBC
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
