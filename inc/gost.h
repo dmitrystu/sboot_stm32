@@ -2,7 +2,7 @@
  *
  * GOST R 34.12-2015 "MAGMA" CBC block cipher implementation based on
  * official GOST R 34.12-2015 national standard of the Russian Federation
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,10 +25,9 @@
 #define CRYPTO_BLKSIZE 8
 #define CRYPTO_NAME    "GOST R 34.12-2015 \"MAGMA\"-CBC"
 
-void gost_init();
-void gost_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void gost_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-
+void gost_init(const void* key);
+void gost_encrypt(uint32_t *out, const uint32_t *in);
+void gost_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }

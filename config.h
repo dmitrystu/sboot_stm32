@@ -107,8 +107,8 @@
 /* User application size. _AUTO or required size in bytes. */
 #define DFU_APP_SIZE        _AUTO
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
-#define DFU_CIPHER          DFU_CIPHER_SPECK
-#define DFU_CIPHER_MODE     DFU_CIPHER_CFB
+#define DFU_CIPHER          DFU_CIPHER_GOST
+#define DFU_CIPHER_MODE     DFU_CIPHER_CBC
 /** DFU secure key. */
 #define DFU_AES_KEY_A       0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
                             0x65, 0x4E, 0x6F, 0x74, 0x57, 0x61, 0x72, 0x2D

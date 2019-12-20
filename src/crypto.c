@@ -32,7 +32,9 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 
 #elif (DFU_CIPHER == DFU_CIPHER_GOST)
     #include "gost.h"
-    #define init(key) gost_init(key)
+    #define CRYPTO_KEY DFU_AES_KEY_A, DFU_AES_KEY_B
+    #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
+    #define init(key, nonce) gost_init(key)
     #define encrypt(out, in) gost_encrypt(out, in)
     #define decrypt(out, in) gost_decrypt(out, in)
 
