@@ -3,7 +3,7 @@
  * RC5-32/12/128-CBC block cipher implementation based on
  * Ronald L. Rivest "The RC5 Encryption Algorithm"
  * http://people.csail.mit.edu/rivest/Rivest-rc5rev.pdf
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include "config.h"
+
+//#include "config.h"
 
 #define R       12
 #define T       2 * (R + 1)
@@ -41,7 +41,6 @@ _rc5_init:
     mov     r2, sp
 /* copy key to L */
     movs    r1, #0x10
-    adr     r0, _rc5_key
 .L_copy_key:
     subs    r1, #0x01
     ldrb    r3, [r0, r1]
@@ -100,11 +99,6 @@ _rc5_init:
     subs    r1, #0x01
     bne     .L_mix_keys
     add     sp, #0x14
-    ldr     r0,=_rc5_iv
-    ldr     r1,=#DFU_AES_NONCE0
-    str     r1, [r0, #0x00]
-    ldr     r1,=#DFU_AES_NONCE1
-    str     r1, [r0, #0x04]
     pop     {r4, r5, r6, r7, pc}
     .size _rc5_init, . - _rc5_init
 
@@ -112,7 +106,7 @@ _rc5_init:
 
 /* R0 <- destination pointer
  * R1 <- source pointer
- * R2 <- num blocks
+ * R2 <- unused
  * R3 = A
  * R4 = B
  * R5 = S[]
@@ -124,16 +118,8 @@ _rc5_init:
     .thumb_func
 _rc5_encrypt:
     push    {r4, r5, r6, r7, lr}
-    b       .L_enc_chk_next
-.L_enc_blockloop:
     ldr     r3, [r1]            //A
-    ldr     r4, [r1, #0x04]     //B    
-/* applying CBC vector to input */
-    ldr     r5, =_rc5_iv
-    ldr     r7, [r5, #0x00]
-    eors    r3, r7
-    ldr     r7, [r5, #0x04]
-    eors    r4, r7
+    ldr     r4, [r1, #0x04]     //B
 /* start RC5 block */
     ldr     r5, =_rc5_keyset
     ldr     r7, [r5]
@@ -159,16 +145,6 @@ _rc5_encrypt:
 /* store encrypted */
     str     r3, [r0]
     str     r4, [r0, #0x04]
-/* store CBC vector */    
-    ldr     r5, =_rc5_iv
-    str     r3, [r5, #0x00]
-    str     r4, [r5, #0x04]
-    adds    r0, #0x08
-    adds    r1, #0x08
-    subs    r2, #0x08
-.L_enc_chk_next:
-    cmp     r2, #0x00
-    bgt     .L_enc_blockloop
     pop     {r4, r5, r6, r7, pc}
     .size _rc5_encrypt, . - _rc5_encrypt
 
@@ -178,8 +154,6 @@ _rc5_encrypt:
     .thumb_func
 _rc5_decrypt:
     push    {r4, r5, r6, r7, lr}
-    b       .L_dec_chk_next
-.L_dec_blockloop:
     ldr     r5, =_rc5_keyset
     ldr     r3, [r1]            //A
     ldr     r4, [r1, #0x04]     //B
@@ -201,30 +175,10 @@ _rc5_decrypt:
     subs    r4, r7
     ldr     r7, [r5, #0x00]
     subs    r3, r7
-/* applying and storing CBC vector */ 
-    ldr     r5, =_rc5_iv
-    ldr     r6, [r1, #0x00]
-    ldr     r7, [r5, #0x00]
-    str     r6, [r5, #0x00]
-    eors    r3, r7
     str     r3, [r0, #0x00]
-    ldr     r6, [r1, #0x04]
-    ldr     r7, [r5, #0x04]
-    str     r6, [r5, #0x04]
-    eors    r4, r7
     str     r4, [r0, #0x04]
-    adds    r0, #0x08
-    adds    r1, #0x08
-    subs    r2, #0x08
-.L_dec_chk_next:
-    cmp     r2, #0x00
-    bgt     .L_dec_blockloop
     pop     {r4, r5, r6, r7, pc}
     .size _rc5_decrypt, . - _rc5_decrypt
-
-_rc5_key:
-    .byte   DFU_AES_KEY_A
-
 
     .pool
 
@@ -232,7 +186,5 @@ _rc5_key:
     .align 3
 _rc5_keyset:
     .space  (T * 4)
-_rc5_iv:
-    .space  8
 
     .end

@@ -9,10 +9,11 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 
 #if (DFU_CIPHER == DFU_CIPHER_RC5_A) && defined(__thumb__)
     #include "rc5_a.h"
-    #define CIPHER_KEY DFU_AES_KEY_A
-    #define init(key) _rc5_init(key)
-    #define encrypt(out, in, b) _rc5_encrypt(out, in, b)
-    #define decrypt(out, in, b) _rc5_decrypt(out, in, b)
+    #define CRYPTO_KEY DFU_AES_KEY_A
+    #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
+    #define init(key, nonce) _rc5_init(key)
+    #define encrypt(out, in) _rc5_encrypt(out, in)
+    #define decrypt(out, in) _rc5_decrypt(out, in)
 
 #elif (DFU_CIPHER == DFU_CIPHER_RC5) || (DFU_CIPHER == DFU_CIPHER_RC5_A)
     #include "rc5.h"
@@ -75,6 +76,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
     #define decrypt(out, in) arc4_crypt(out, in)
 
 #elif (DFU_CIPHER == DFU_CIPHER_CHACHA_A) && defined(__thumb__)
+    #error Cipher DISABLED
     #include "chacha_a.h"
     #define init(key) _chacha_init(key)
     #define encrypt(out, in) _chacha_crypt(out, in)

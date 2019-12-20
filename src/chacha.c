@@ -33,7 +33,7 @@ static const uint8_t prefix[] = {
 
 static uint32_t inits[16];
 static uint32_t state[16];
-static uint32_t bytecount;
+static uint8_t  bytecount;
 
 static void Qround (uint32_t *s, uint32_t abcd) {
 
