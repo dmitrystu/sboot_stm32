@@ -9,10 +9,10 @@
     #define encrypt(out, in, b) _rc5_encrypt(out, in, b)
     #define decrypt(out, in, b) _rc5_decrypt(out, in, b)
 
-
 #elif (DFU_CIPHER == DFU_CIPHER_RC5) || (DFU_CIPHER == DFU_CIPHER_RC5_A)
     #include "rc5.h"
-    #define init(key) rc5_init(key)
+    #define CRYPTO_KEY DFU_AES_KEY_A
+    #define init(key, nonce) rc5_init(key)
     #define encrypt(out, in) rc5_encrypt(out, in)
     #define decrypt(out, in) rc5_decrypt(out, in)
 
@@ -106,7 +106,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) {
     }
 }
 
-#define init_iv(dest, src, size) memcpy((dst), (src), (size))
+#define init_iv(dst, src, size) memcpy((dst), (src), (size))
 
 #endif
 

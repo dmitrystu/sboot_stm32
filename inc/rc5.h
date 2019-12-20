@@ -3,7 +3,7 @@
  * RC5-32/12/128-CBC block cipher implementation based on
  * Ronald L. Rivest "The RC5 Encryption Algorithm"
  * http://people.csail.mit.edu/rivest/Rivest-rc5rev.pdf
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,11 +24,11 @@
 #endif
 
 #define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RC5-32/12/128-CBC"
+#define CRYPTO_NAME    "RC5-32/12/128"
 
-void rc5_init(void);
-void rc5_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void rc5_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+void rc5_init(const void* key);
+void rc5_encrypt(uint32_t *out, const uint32_t *in);
+void rc5_decrypt(uint32_t *out, const uint32_t *in);
 
 
 #if defined(__cplusplus)
