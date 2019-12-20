@@ -2,9 +2,10 @@
 #include <string.h>
 #include "config.h"
 
-static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unused));
+static const uint8_t key[] __attribute__((unused));
 static const uint32_t nonce[] __attribute__((unused));
 static uint32_t IV[] __attribute__((unused));
+static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unused));
 
 #if (DFU_CIPHER == DFU_CIPHER_RC5_A) && defined(__thumb__)
     #include "rc5_a.h"
@@ -92,16 +93,24 @@ static uint32_t IV[] __attribute__((unused));
     #define decrypt(out, in) rtea_decrypt(out, in)
 
 #else
-    #undef DFU_USE_CIPHER
+    #undef  DFU_CIPHER_MODE
+    #define DFU_CIPHER_MODE -1
     #define CRYPTO_BLKSIZE 1
     #define CRYPTO_NAME "No encryption"
-    #define aes_init(...)
-    #define aes_encrypt(...)
-    #define aes_decrypt(...)
+    #define CRYPTO_KEY
+    #define CRYPTO_NONCE
+    #define init(...)
+
+    static void encrypt(void *out, const void* in) {
+        *(uint8_t*)out = *(uint8_t*)in;
+    }
+
+    #define decrypt(out, in) encrypt(out, in);
+
 #endif
 
 #if (DFU_CIPHER_MODE == DFU_CIPHER_ECB) || (DFU_CIPHER_MODE == -1)
-#define init_iv(dest, src, size)
+#define init_iv(...)
 #else
 #define init_iv(dst, src, size) memcpy((dst), (src), (size))
 #endif
