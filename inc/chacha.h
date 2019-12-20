@@ -27,8 +27,8 @@
 #define CRYPTO_NAME    "RFC7539-CHACHA20"
 
 
-void chacha_init(void);
-void chacha_crypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+void chacha_init(const void* key, const void* nonce);
+void chacha_crypt(void *out, const void *in);
 
 #if defined(__cplusplus)
     }
