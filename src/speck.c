@@ -25,10 +25,7 @@
 
 #define ROUNDS  27
 
-static const uint8_t key[] = {DFU_AES_KEY_A, DFU_AES_KEY_B};
-
 static uint32_t roundkey[ROUNDS];
-static uint32_t CK[2];
 
 inline static void speck_round(uint32_t *a, uint32_t *b, const uint32_t key) {
     *a = key ^ (__ror32(*a, 8) + *b);
@@ -40,54 +37,32 @@ inline static void speck_back(uint32_t *a, uint32_t *b, const uint32_t key) {
     *a = __rol32((key ^ *a) - *b, 8);
 }
 
-
-static void speck_encrypt_block(uint32_t *out, const uint32_t *in) {
-    uint32_t A = in[0] ^ CK[0];
-    uint32_t B = in[1] ^ CK[1];
+void speck_encrypt(uint32_t *out, const uint32_t *in) {
+    uint32_t A = in[0];
+    uint32_t B = in[1];
     for (int i = 0; i < ROUNDS; i++) {
         speck_round(&B, &A, roundkey[i]);
     }
-    CK[0] = out[0] = A;
-    CK[1] = out[1] = B;
+    out[0] = A;
+    out[1] = B;
 }
 
-static void speck_decrypt_block(uint32_t *out, const uint32_t *in) {
+void speck_decrypt(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0];
     uint32_t B = in[1];
     for (int i = ROUNDS-1; i >= 0; i--) {
         speck_back(&B, &A, roundkey[i]);
     }
-    A ^= CK[0]; CK[0] = in[0]; out[0] = A;
-    B ^= CK[1]; CK[1] = in[1]; out[1] = B;
+    out[0] = A;
+    out[1] = B;
 }
 
-
-void speck_init(void) {
+void speck_init(const void* key) {
     uint32_t K[4];
     memcpy(K, key, 16);
     for (int i = 0, j = 0 ; i < ROUNDS; i++) {
         roundkey[i] = K[0];
         if (++j > 3) j = 1;
         speck_round(&K[j], &K[0], i);
-    }
-    CK[0] = DFU_AES_NONCE0;
-    CK[1] = DFU_AES_NONCE1;
-}
-
-void speck_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while (bytes > 0) {
-        speck_encrypt_block(out, in);
-        out += 2;
-        in += 2;
-        bytes -=8;
-    }
-}
-
-void speck_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while (bytes > 0) {
-        speck_decrypt_block(out, in);
-        out += 2;
-        in += 2;
-        bytes -= 0x08;
     }
 }

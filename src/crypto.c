@@ -38,7 +38,11 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 
 #elif (DFU_CIPHER == DFU_CIPHER_SPECK)
     #include "speck.h"
-    #define init(key) speck_init(key)
+    #define CRYPTO_BLKSIZE 8
+    #define CRYPTO_NAME "SPECK 64/128"
+    #define CRYPTO_KEY DFU_AES_KEY_A
+    #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
+    #define init(key, nonce) speck_init(key)
     #define encrypt(out, in) speck_encrypt(out, in)
     #define decrypt(out, in) speck_decrypt(out, in)
 
