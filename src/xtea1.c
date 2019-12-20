@@ -27,12 +27,12 @@
 #define rounds  32
 #define delta   0x9E3779B9
 
-#define RA(x, s, k) (((x << 4) ^ (x >> 5)) +  x) ^ (s + k[s & 0x03])
-#define RB(x, s, k) (((x << 4) ^ (x >> 5)) +  x) ^ (s + k[(s >> 11) & 0x03])
+#define RA(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol32(k[s & 0x03], x)
+#define RB(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol32(k[(s >> 11) & 0x03], x)
 
 static uint32_t K[4];
 
-void xtea_encrypt(uint32_t *out, const uint32_t *in) {
+void xtea1_encrypt(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0];
     uint32_t B = in[1];
     uint32_t S = 0;
@@ -45,7 +45,7 @@ void xtea_encrypt(uint32_t *out, const uint32_t *in) {
     out[1] = B;
 }
 
-void xtea_decrypt(uint32_t *out, const uint32_t *in) {
+void xtea1_decrypt(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0];
     uint32_t B = in[1];
     uint32_t S = rounds * delta;
@@ -58,6 +58,6 @@ void xtea_decrypt(uint32_t *out, const uint32_t *in) {
     out[1] = B;
 }
 
-void xtea_init(const void* key) {
+void xtea1_init(const void* key) {
     memcpy(K, key, sizeof(K));
 }

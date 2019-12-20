@@ -26,18 +26,11 @@
 #endif
 
 #define CRYPTO_BLKSIZE 8
-#if (DFU_CIPHER == DFU_CIPHER_XTEA1)
-    #define CRYPTO_NAME    "XTEA-1 64/32/128-CBC"
-#else
-    #define CRYPTO_NAME    "XTEA 64/32/128-CBC"
-#endif
+#define CRYPTO_NAME    "XTEA 64/32/128-CBC"
 
-
-
-void xtea_init(void);
-void xtea_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void xtea_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-
+void xtea_init(const void* key);
+void xtea_encrypt(uint32_t *out, const uint32_t *in);
+void xtea_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }

@@ -42,15 +42,19 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 
 #elif (DFU_CIPHER == DFU_CIPHER_XTEA)
     #include "xtea.h"
-    #define init(key) xtea_init(key)
+    #define CRYPTO_KEY DFU_AES_KEY_A
+    #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
+    #define init(key, nonce) xtea_init(key)
     #define encrypt(out, in) xtea_encrypt(out, in)
     #define decrypt(out, in) xtea_decrypt(out, in)
 
 #elif (DFU_CIPHER == DFU_CIPHER_XTEA1)
-    #include "xtea.h"
-    #define init(key) xtea_init(key)
-    #define encrypt(out, in) xtea_encrypt(out, in)
-    #define decrypt(out, in) xtea_decrypt(out, in)
+    #include "xtea1.h"
+    #define CRYPTO_KEY DFU_AES_KEY_A
+    #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
+    #define init(key, nonce) xtea1_init(key)
+    #define encrypt(out, in) xtea1_encrypt(out, in)
+    #define decrypt(out, in) xtea1_decrypt(out, in)
 
 #elif (DFU_CIPHER == DFU_CIPHER_ARC4)
     #include "arc4.h"

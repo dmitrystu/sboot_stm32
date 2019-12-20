@@ -19,45 +19,20 @@
  * limitations under the License.
  */
 
-#include <stdint.h>
-#include <string.h>
-#include "misc.h"
-#include "xtea.h"
+#ifndef _XTEA1_H_
+#define _XTEA1_H_
+#if defined(__cplusplus)
+    extern "C" {
+#endif
 
-#define rounds  32
-#define delta   0x9E3779B9
+#define CRYPTO_BLKSIZE 8
+#define CRYPTO_NAME    "XTEA-1 64/32/128-CBC"
 
-#define RA(x, s, k) (((x << 4) ^ (x >> 5)) +  x) ^ (s + k[s & 0x03])
-#define RB(x, s, k) (((x << 4) ^ (x >> 5)) +  x) ^ (s + k[(s >> 11) & 0x03])
+void xtea1_init(const void* key);
+void xtea1_encrypt(uint32_t *out, const uint32_t *in);
+void xtea1_decrypt(uint32_t *out, const uint32_t *in);
 
-static uint32_t K[4];
-
-void xtea_encrypt(uint32_t *out, const uint32_t *in) {
-    uint32_t A = in[0];
-    uint32_t B = in[1];
-    uint32_t S = 0;
-    for (int i = 0; i < rounds; i++) {
-       A += RA(B, S, K);
-       S += delta;
-       B += RB(A, S, K);
+#if defined(__cplusplus)
     }
-    out[0] = A;
-    out[1] = B;
-}
-
-void xtea_decrypt(uint32_t *out, const uint32_t *in) {
-    uint32_t A = in[0];
-    uint32_t B = in[1];
-    uint32_t S = rounds * delta;
-    for (int i = 0; i < rounds;  i++) {
-       B -= RB(A, S, K);
-       S -= delta;
-       A -= RA(B, S, K);
-    }
-    out[0] = A;
-    out[1] = B;
-}
-
-void xtea_init(const void* key) {
-    memcpy(K, key, sizeof(K));
-}
+#endif
+#endif // _XTEA1_H_
