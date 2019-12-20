@@ -17,28 +17,25 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "config.h"
 #include "rtea.h"
 
 #define rounds  64
 
-static const uint8_t key[]  = {DFU_AES_KEY_A, DFU_AES_KEY_B};
 static uint32_t K[8];
-static uint32_t CK[2];
 
-static void rtea_encrypt_block(uint32_t *out, const uint32_t *in) {
-    uint32_t A = in[0] ^ CK[0];
-    uint32_t B = in[1] ^ CK[1];
+void rtea_encrypt(uint32_t *out, const uint32_t *in) {
+    uint32_t A = in[0];
+    uint32_t B = in[1];
     for (int32_t i = 0; i < rounds; i++) {
         B += A + ((A << 6) ^ (A >> 8)) + K[i & 0x07] + i;
         i++;
         A += B + ((B << 6) ^ (B >> 8)) + K[i & 0x07] + i;
     }
-    out[0] = CK[0] = A;
-    out[1] = CK[1] = B;
+    out[0] = A;
+    out[1] = B;
 }
 
-static void rtea_decrypt_block(uint32_t *out, const uint32_t *in) {
+void rtea_decrypt(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0];
     uint32_t B = in[1];
     for (int32_t i = (rounds - 1); i >= 0; i--) {
@@ -47,30 +44,10 @@ static void rtea_decrypt_block(uint32_t *out, const uint32_t *in) {
         B -= A + ((A << 6) ^ (A >> 8)) + K[i & 0x07] + i;
     }
 
-    A ^= CK[0]; CK[0] = in[0]; out[0] = A;
-    B ^= CK[1]; CK[1] = in[1]; out[1] = B;
+    out[0] = A;
+    out[1] = B;
 }
 
-void rtea_init(void) {
+void rtea_init(const void* key) {
     memcpy(K, key, sizeof(K));
-    CK[0] = DFU_AES_NONCE0;
-    CK[1] = DFU_AES_NONCE1;
-}
-
-void rtea_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while(bytes > 0) {
-        rtea_encrypt_block(out, in);
-        in += 2;
-        out += 2;
-        bytes -= 0x08;
-    }
-}
-
-void rtea_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while(bytes > 0) {
-        rtea_decrypt_block(out, in);
-        in += 2;
-        out += 2;
-        bytes -= 0x08;
-    }
 }
