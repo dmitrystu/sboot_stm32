@@ -1,6 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * Raiden-CBC block cipher implementation based on original code developed by 
+ * Raiden-CBC block cipher implementation based on original code developed by
  * Julio César Hernández Castro and Javier Polimón Olabarrieta
  * https://sourceforge.net/projects/raiden-cipher/
  *
@@ -24,11 +24,11 @@
 #endif
 
 #define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RAIDEN-CBC"
+#define CRYPTO_NAME    "RAIDEN"
 
-void raiden_init(void);
-void raiden_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void raiden_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+void raiden_init(const void* key);
+void raiden_encrypt(uint32_t *out, const uint32_t *in);
+void raiden_decrypt(uint32_t *out, const uint32_t *in);
 
 
 #if defined(__cplusplus)
