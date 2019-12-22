@@ -286,27 +286,40 @@ program_flash:
 /* clean FLASH_SR */
     ldr     r4, [r3, #FLASH_SR]
     str     r4, [r3, #FLASH_SR]
-/* check for the page start (2k page CAT2, 4k CAT3)*/
-    mov     r4, r6
-    adds    r4, r0
-#if defined(STM32G431xx) //Cat2
+    adds    r4, r0, r6
+/* check for the page start (2k page) */
     lsls    r5, r4, #21
-#else
-    lsls    r5, r4, #20
-#endif
     bne     .L_do_write
-/* erasing page */
-/* calculating PNB[7:0] and BKER */
 #if defined(STM32G431xx) //Cat2
-    lsls    r4, #12
-#else
-    lsls    r4, #11
+/* calculating PNB[6:0]: ADDR[17:11] -> CR[9:3] */
+    lsrs    r4, #11
+    bfi     r5, r4, #3, #7
+#else // Cat3
+/* check dual bank */
+    ldr     r5, [r3, #FLASH_OPTR]
+    lsrs    r5, #23     // DBANK -> CF
+    bcc     .L_single_bank
+/* calculating PNB[6:0] and BKER for dual bank*/
+/* ADDR[17:11] -> CR[9:3], ADDR[18] -> CR[11] */
+    movs    r5, #0x00
+    lsrs    r4, #11
+    bfi     r5, r4, #3, #7
+    lsrs    r4, #7
+    bfi     r5, r4, #11, #1
+    b       .L_do_erase
+.L_single_bank:
+/* check for the page start (4k page) */
+    lsls    r5, r4, #20
+    bne     .L_do_write
+/* calculating PNB[6:0]: ADDR[18:12] -> CR[9:3] */
+    lsrs    r4, #12
+    bfi     r5, r4, #3, #7
 #endif
-    lsrs    r4, #23
-    lsls    r4, #3
+/* erasing page */
+.L_do_erase:
 /* set PER */
-    adds    r4, #0x02
-    str     r4, [r3, #FLASH_CR]
+    adds    r5, #0x02
+    str     r5, [r3, #FLASH_CR]
     movs    r4, #0x01
     strh    r4, [r3, #FLASH_CR + 0x02]  /* set STRT */
     bl      wait_flash_ready

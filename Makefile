@@ -455,12 +455,18 @@ stm32g431xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32g4xx.S' \
 	                           FWDEFS='STM32G4 STM32G431xx USBD_ASM_DRIVER' \
-	                           LDPARAMS='ROMLEN=128K RAMLEN=16K'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=22K'
 
 stm32g474xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32g4xx.S' \
 	                           FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
-	                           LDPARAMS='ROMLEN=128K RAMLEN=16K'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=22K'
+
+stm32g474xe :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32g4xx.S' \
+	                           FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=512K RAMLEN=96K'
 
 .PHONY: clean bootloader crypter all program program_stcube rebuild fwclean $(FWTARGETS)
