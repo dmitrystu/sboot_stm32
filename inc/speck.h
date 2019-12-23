@@ -23,13 +23,9 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "SPECK 64/128-CBC"
-
 void speck_init(const void* key);
 void speck_encrypt(uint32_t *out, const uint32_t *in);
 void speck_decrypt(uint32_t *out, const uint32_t *in);
-
 
 #if defined(__cplusplus)
     }

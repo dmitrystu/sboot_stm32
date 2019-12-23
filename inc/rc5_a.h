@@ -23,9 +23,6 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RC5-32/12/128-CBC"
-
 void _rc5_init(const void* key);
 void _rc5_encrypt(uint32_t *out, const uint32_t *in);
 void _rc5_decrypt(uint32_t *out, const uint32_t *in);

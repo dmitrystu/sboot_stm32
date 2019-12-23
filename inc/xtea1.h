@@ -25,9 +25,6 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "XTEA-1 64/32/128-CBC"
-
 void xtea1_init(const void* key);
 void xtea1_encrypt(uint32_t *out, const uint32_t *in);
 void xtea1_decrypt(uint32_t *out, const uint32_t *in);

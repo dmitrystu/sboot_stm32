@@ -21,9 +21,6 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RTEA 64/64/256-CBC"
-
 void rtea_init(const void* key);
 void rtea_encrypt(uint32_t *out, const uint32_t *in);
 void rtea_decrypt(uint32_t *out, const uint32_t *in);

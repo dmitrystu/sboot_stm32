@@ -114,11 +114,7 @@ static usbd_respond dfu_upload(usbd_device *dev, int32_t blksize) {
         } else if (dfu_data.remained < DFU_BLOCKSZ) {
             blksize = dfu_data.remained;
         }
-#if defined(DFU_USE_CIPHER)
         aes_encrypt(dev->status.data_ptr, dfu_data.dptr, blksize);
-#else
-        dev->status.data_ptr = dfu_data.dptr;
-#endif
         dev->status.data_count = blksize;
         dfu_data.remained -= blksize;
         dfu_data.dptr += blksize;

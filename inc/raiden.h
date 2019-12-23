@@ -23,13 +23,9 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RAIDEN"
-
 void raiden_init(const void* key);
 void raiden_encrypt(uint32_t *out, const uint32_t *in);
 void raiden_decrypt(uint32_t *out, const uint32_t *in);
-
 
 #if defined(__cplusplus)
     }

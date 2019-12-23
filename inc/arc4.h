@@ -19,9 +19,6 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 1
-#define CRYPTO_NAME    "ARCFOUR"
-
 void arc4_init(const void* key);
 void arc4_crypt(void *out, const void *in);
 

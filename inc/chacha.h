@@ -23,10 +23,6 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 1
-#define CRYPTO_NAME    "RFC7539-CHACHA20"
-
-
 void chacha_init(const void* key, const void* nonce);
 void chacha_crypt(void *out, const void *in);
 
