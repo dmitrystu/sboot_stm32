@@ -46,7 +46,7 @@ static uint32_t sbox(uint32_t in) {
 
 
 static uint32_t F(uint32_t data, uint32_t round) {
-    return __ror32(sbox(data + RK[round]), 32 - 11);
+    return __rol32(sbox(data + RK[round]), 11);
 }
 
 void gost_encrypt(uint32_t *out, const uint32_t *in) {

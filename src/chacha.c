@@ -42,10 +42,10 @@ static void Qround (uint32_t *s, uint32_t abcd) {
     uint32_t C = s[(abcd >> 8 ) & 0x0F];
     uint32_t D = s[(abcd >> 0 ) & 0x0F];
 
-    A += B; D ^= A; D = __ror32(D, 32 - 16);
-    C += D; B ^= C; B = __ror32(B, 32 - 12);
-    A += B; D ^= A; D = __ror32(D, 32 - 8);
-    C += D; B ^= C; B = __ror32(B, 32 - 7);
+    A += B; D ^= A; D = __rol32(D, 16);
+    C += D; B ^= C; B = __rol32(B, 12);
+    A += B; D ^= A; D = __rol32(D, 8);
+    C += D; B ^= C; B = __rol32(B, 7);
 
     s[(abcd >> 24) & 0x0F] = A;
     s[(abcd >> 16) & 0x0F] = B;
@@ -79,11 +79,10 @@ void chacha_init(const void* key, const void* nonce) {
 }
 
 void chacha_crypt(void *out, const void *in) {
-    bytecount &= 0x3F;
-    if (bytecount == 0) {
+    if ((bytecount & 0x3F) == 0) {
         inits[12]++;
         chacha_block();
     }
-    *(uint8_t*)out = *(uint8_t*)in ^ ((uint8_t*)state)[bytecount];
+    *(uint8_t*)out = *(uint8_t*)in ^ ((uint8_t*)state)[bytecount & 0x3F];
     bytecount++;
 }

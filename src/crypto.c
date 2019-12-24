@@ -208,7 +208,7 @@ static void decrypt_block(void *out, const void *in) {
 #define CRYPTO_MODE "-OFB"
 #define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
 static void encrypt_block(void *out, const void *in) {
-    uint8_t TB[CRYPTO_BLKSIZE] __attribute__((aligned(4)));
+    uint32_t TB[CRYPTO_BLKSIZE / 4];
     crypto_encrypt(IV, IV);
     memcpy(TB, IV, CRYPTO_BLKSIZE);
     memxor(TB, in, CRYPTO_BLKSIZE);
@@ -216,7 +216,7 @@ static void encrypt_block(void *out, const void *in) {
 }
 
 static void decrypt_block(void *out, const void *in) {
-    uint8_t TB[CRYPTO_BLKSIZE] __attribute__((aligned(4)));
+    uint32_t TB[CRYPTO_BLKSIZE / 4];
     crypto_encrypt(IV, IV);
     memcpy(TB, in, CRYPTO_BLKSIZE);
     memxor(TB, IV, CRYPTO_BLKSIZE);
