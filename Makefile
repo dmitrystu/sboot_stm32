@@ -5,6 +5,7 @@ SWNAME     ?= fwcrypt
 FWTOOLS    ?= $(TOOLSET)
 CMSIS      ?= $(abspath ../CMSIS)
 CMSISDEV   ?= $(CMSIS)/Device
+TESTSUITE  ?= cipher_test
 
 STPROG_CLI ?= ~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI
 
@@ -31,6 +32,7 @@ CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c src/spec
 CRYPT_SRC  += src/xtea.c src/xtea1.c src/blowfish.c src/rtea.c src/checksum.c src/crypto.c
 FW_SRC      = $(CRYPT_SRC) $(FWSTARTUP) src/descriptors.c src/bootloader.c src/rc5a.S src/chacha_a.S
 SW_SRC      = $(CRYPT_SRC) src/encrypter.c
+TS_SRC      = $(filter-out src/crypto.c, $(CRYPT_SRC)) src/ctest.c
 
 #folders
 FWODIR    = $(OUTDIR)/objfw
@@ -47,6 +49,7 @@ SWINCS      = inc .
 #objects
 FWOBJ     = $(addprefix $(FWODIR)/, $(addsuffix .o, $(notdir $(basename $(FW_SRC)))))
 SWOBJ     = $(addprefix $(SWODIR)/, $(addsuffix .o, $(notdir $(basename $(SW_SRC)))))
+TSOBJ     = $(addprefix $(SWODIR)/, $(addsuffix .o, $(notdir $(basename $(TS_SRC)))))
 
 #modules
 MODULES     = usb
@@ -71,11 +74,19 @@ program_stcube: $(OUTDIR)/$(FWNAME).hex
 program: $(OUTDIR)/$(FWNAME).hex
 	st-flash --reset --format ihex write $(OUTDIR)/$(FWNAME).hex
 
-crypter: $(SWOBJ)
-	@echo creating crypter
-	@$(SWTOOLS)gcc $(SWCFLAGS) $(SWOBJ) -o $(OUTDIR)/$(SWNAME)
-
 bootloader: $(OUTDIR)/$(FWNAME).hex $(OUTDIR)/$(FWNAME).bin
+
+crypter: $(OUTDIR)/$(SWNAME)
+
+testsuite: $(OUTDIR)/$(TESTSUITE)
+
+$(OUTDIR)/$(SWNAME): $(SWOBJ)
+	@echo creating crypter
+	@$(SWTOOLS)gcc $(SWCFLAGS) $+ -o $@
+
+$(OUTDIR)/$(TESTSUITE): $(TSOBJ)
+	@echo creating cipher testsuite
+	@$(SWTOOLS)gcc $(SWCFLAGS) $+ -o $@
 
 $(OUTDIR)/$(FWNAME).hex: $(OUTDIR)/$(FWNAME).elf
 	@echo creating $@
@@ -100,6 +111,8 @@ $(FWODIR)/lib%.a: %
 
 $(SWOBJ): | $(SWODIR)
 
+$(TSOBJ): | $(SWODIR)
+
 $(FWOBJ): | $(FWODIR)
 
 $(OUTDIR):
@@ -107,7 +120,6 @@ $(OUTDIR):
 
 $(FWODIR) $(SWODIR): | $(OUTDIR)
 	@cd $(OUTDIR) && mkdir $(lastword $(subst /, ,$@)) && cd ..
-
 
 $(SWODIR)/%.o: %.c
 	@echo compiling $<
@@ -471,4 +483,4 @@ stm32g474xe :
 	                           FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
 	                           LDPARAMS='ROMLEN=512K RAMLEN=96K'
 
-.PHONY: clean bootloader crypter all program program_stcube rebuild fwclean $(FWTARGETS)
+.PHONY: clean bootloader crypter all program program_stcube rebuild fwclean testsuite $(FWTARGETS)

@@ -40,7 +40,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 #elif (DFU_CIPHER == DFU_CIPHER_GOST)
     #include "gost.h"
     #define CRYPTO_BLKSIZE 8
-    #define CRYPTO_NAME "GOST R 34.12-2015 \"MAGMA\"-CBC"
+    #define CRYPTO_NAME "GOST R 34.12-2015 \"MAGMA\""
     #define CRYPTO_KEY DFU_AES_KEY_A, DFU_AES_KEY_B
     #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
     #define crypto_init(key, nonce) gost_init(key)
@@ -268,6 +268,8 @@ static void decrypt_block(void *out, const void *in) {
 #else
     #error Unsupported CIPHER MODE
 #endif
+
+#pragma message "Using " CRYPTO_NAME CRYPTO_MODE " cipher"
 
 static const uint8_t key[] = {CRYPTO_KEY};
 static const uint32_t nonce[] = {CRYPTO_NONCE};
