@@ -21,8 +21,21 @@
     extern "C" {
 #endif
 
+/** @brief Initialize RTEA cipher
+ *  @param key pointer to 256-bit key
+ */
 void rtea_init(const void* key);
+
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void rtea_encrypt(uint32_t *out, const uint32_t *in);
+
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void rtea_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)

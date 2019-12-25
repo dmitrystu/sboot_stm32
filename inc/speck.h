@@ -1,6 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * SPECK 64/128-CBC block cipher implementation based on
+ * SPECK 64/128 block cipher implementation based on
  * "The Simon and Speck Families Of Lightwieght Block Ciphers"
  * http://eprint.iacr.org/2013/404.pdf
  *
@@ -23,8 +23,21 @@
     extern "C" {
 #endif
 
+/** @brief Initialize SPECK clock cipher
+ *  @param key pointer to array contains 128-bit key
+ */
 void speck_init(const void* key);
+
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void speck_encrypt(uint32_t *out, const uint32_t *in);
+
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void speck_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)

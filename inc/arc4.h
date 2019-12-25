@@ -19,7 +19,15 @@
     extern "C" {
 #endif
 
+/** @brief Initialize RC-4 stream cipher
+ *  @param key pointer to array contains 128-bit key
+ */
 void arc4_init(const void* key);
+
+/** @brief Encrypt/Decrypt byte
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void arc4_crypt(void *out, const void *in);
 
 #if defined(__cplusplus)

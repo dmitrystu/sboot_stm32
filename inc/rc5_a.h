@@ -23,8 +23,22 @@
     extern "C" {
 #endif
 
+/** @brief Initialize RC5-64/12/128 cipher
+ *  @param key pointer to 128-bit key
+ *  @note  THUMB assembly version
+ */
 void _rc5_init(const void* key);
+
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void _rc5_encrypt(uint32_t *out, const uint32_t *in);
+
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void _rc5_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)

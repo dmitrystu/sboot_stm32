@@ -23,7 +23,16 @@
     extern "C" {
 #endif
 
+/** @brief Initialize CHACHA-20 stream cipher
+ *  @param key pointer to array contains 256-bit key
+ *  @param nonce pointer to array contains 24-bit nonce
+ */
 void chacha_init(const void* key, const void* nonce);
+
+/** @brief Encrypt/Decrypt byte
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
 void chacha_crypt(void *out, const void *in);
 
 #if defined(__cplusplus)

@@ -10,7 +10,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 #if (DFU_CIPHER == DFU_CIPHER_RC5_A) && defined(__thumb__)
     #include "rc5_a.h"
     #define CRYPTO_BLKSIZE 8
-    #define CRYPTO_NAME "RC5-32/12/128"
+    #define CRYPTO_NAME "RC5-64/12/128"
     #define CRYPTO_KEY DFU_AES_KEY_A
     #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
     #define crypto_init(key, nonce) _rc5_init(key)
@@ -20,7 +20,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 #elif (DFU_CIPHER == DFU_CIPHER_RC5) || (DFU_CIPHER == DFU_CIPHER_RC5_A)
     #include "rc5.h"
     #define CRYPTO_BLKSIZE 8
-    #define CRYPTO_NAME "RC5-32/12/128"
+    #define CRYPTO_NAME "RC5-64/12/128"
     #define CRYPTO_KEY DFU_AES_KEY_A
     #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
     #define crypto_init(key, nonce) rc5_init(key)
@@ -30,7 +30,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 #elif (DFU_CIPHER == DFU_CIPHER_RAIDEN)
     #include "raiden.h"
     #define CRYPTO_BLKSIZE 8
-    #define CRYPTO_NAME "RAIDEN"
+    #define CRYPTO_NAME "RAIDEN-64/16/128"
     #define CRYPTO_KEY DFU_AES_KEY_A
     #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
     #define crypto_init(key, nonce) raiden_init(key)
@@ -50,7 +50,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
 #elif (DFU_CIPHER == DFU_CIPHER_SPECK)
     #include "speck.h"
     #define CRYPTO_BLKSIZE 8
-    #define CRYPTO_NAME "SPECK 64/128"
+    #define CRYPTO_NAME "SPECK-64/27/128"
     #define CRYPTO_KEY DFU_AES_KEY_A
     #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1
     #define crypto_init(key, nonce) speck_init(key)
@@ -104,7 +104,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
     #define DFU_CIPHER_MODE -1
     #define CRYPTO_KEY DFU_AES_KEY_A, DFU_AES_KEY_B
     #define CRYPTO_NONCE DFU_AES_NONCE0, DFU_AES_NONCE1, DFU_AES_NONCE2
-    #define crypto_init(key, nonce) chacha_crypto_init(key, nonce)
+    #define crypto_init(key, nonce) chacha_init(key, nonce)
     #define crypto_encrypt(out, in) chacha_crypt(out, in)
     #define crypto_decrypt(out, in) chacha_crypt(out, in)
 
@@ -141,18 +141,13 @@ static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unuse
         *(uint8_t*)out = *(uint8_t*)in;
     }
 
-    #define crypto_decrypt(out, in) encrypt(out, in);
+    #define crypto_decrypt(out, in) crypto_encrypt(out, in);
 
 #endif
 
-#if (DFU_CIPHER_MODE == DFU_CIPHER_ECB) || (DFU_CIPHER_MODE == -1)
-    #define crypto_init_iv(...)
-#else
-    #define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
-#endif
-
-#if (DFU_CIPHER_MODE == DFU_CIPHER_CBC)
-#define CRYPTO_MODE "CBC"
+#if !defined(DFU_CIPHER_MODE) || (DFU_CIPHER_MODE == DFU_CIPHER_CBC)
+#define CRYPTO_MODE "-CBC"
+#define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
 static void encrypt_block(void *out, const void *in) {
     uint32_t TB[CRYPTO_BLKSIZE / 4];
     memcpy(TB, in, CRYPTO_BLKSIZE);
@@ -171,7 +166,8 @@ static void decrypt_block(void *out, const void *in) {
 }
 
 #elif (DFU_CIPHER_MODE == DFU_CIPHER_PCBC)
-#define CRYPTO_MODE "PCBC"
+#define CRYPTO_MODE "-PCBC"
+#define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
 static void encrypt_block(void *out, const void *in) {
     uint32_t TB[CRYPTO_BLKSIZE / 4];
     memcpy(TB, in, CRYPTO_BLKSIZE);
@@ -193,6 +189,7 @@ static void decrypt_block(void *out, const void *in) {
 
 #elif (DFU_CIPHER_MODE == DFU_CIPHER_CFB)
 #define CRYPTO_MODE "-CFB"
+#define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
 static void encrypt_block(void *out, const void *in) {
     crypto_encrypt(IV, IV);
     memxor(IV, in, CRYPTO_BLKSIZE);
@@ -209,6 +206,7 @@ static void decrypt_block(void *out, const void *in) {
 
 #elif (DFU_CIPHER_MODE == DFU_CIPHER_OFB)
 #define CRYPTO_MODE "-OFB"
+#define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
 static void encrypt_block(void *out, const void *in) {
     uint8_t TB[CRYPTO_BLKSIZE] __attribute__((aligned(4)));
     crypto_encrypt(IV, IV);
@@ -227,6 +225,7 @@ static void decrypt_block(void *out, const void *in) {
 
 #elif (DFU_CIPHER_MODE == DFU_CIPHER_CTR)
 #define CRYPTO_MODE "-CTR"
+#define crypto_init_iv(dst, src, size) memcpy((dst), (src), (size))
 static void encrypt_block(void *out, const void *in) {
     uint32_t TB[CRYPTO_BLKSIZE / 4];
     crypto_encrypt(TB, IV);
@@ -241,6 +240,7 @@ static void decrypt_block(void *out, const void *in) {
 
 #elif (DFU_CIPHER_MODE == DFU_CIPHER_ECB)
 #define CRYPTO_MODE "-ECB"
+#define crypto_init_iv(...)
 static void encrypt_block(void *out, const void *in) {
     uint32_t TB[CRYPTO_BLKSIZE / 4];
     memcpy(TB, in, CRYPTO_BLKSIZE);
@@ -257,6 +257,7 @@ static void decrypt_block(void *out, const void *in) {
 
 #elif (DFU_CIPHER_MODE == -1)
 #define CRYPTO_MODE "-STREAM"
+#define crypto_init_iv(...)
 static void encrypt_block(void *out, const void *in) {
     crypto_encrypt(out, in);
 }
@@ -281,7 +282,7 @@ static void memxor(void *dst, const void *src, uint32_t sz) {
     }
 }
 
-const char*    aes_name = CRYPTO_NAME "-" CRYPTO_MODE;
+const char*    aes_name = CRYPTO_NAME CRYPTO_MODE;
 const uint32_t aes_blksize = CRYPTO_BLKSIZE;
 
 void aes_init(void) {
