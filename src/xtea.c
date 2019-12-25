@@ -28,7 +28,7 @@
 #define rounds  32
 #define delta   0x9E3779B9
 
-#if defined(DFU_CIPHER_XTEA1)
+#if (DFU_CIPHER == DFU_CIPHER_XTEA1)
     #define RA(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol32(k[s & 0x03], x)
     #define RB(x, s, k) ((x << 4) ^ (x >> 5)) + ( x ^ s) + __rol32(k[(s >> 11) & 0x03], x)
 #else
