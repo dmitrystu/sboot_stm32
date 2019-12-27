@@ -471,16 +471,41 @@ stm32g431xb :
 	                           FWDEFS='STM32G4 STM32G431xx USBD_ASM_DRIVER' \
 	                           LDPARAMS='ROMLEN=128K RAMLEN=22K'
 
+stm32g431x6 :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32g4xx.S' \
+	                           FWDEFS='STM32G4 STM32G431xx USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=32K RAMLEN=22K'
+
+stm32g431x8 :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32g4xx.S' \
+	                           FWDEFS='STM32G4 STM32G431xx USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=64K RAMLEN=22K'
+
+stm32g431xb :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32g4xx.S' \
+	                           FWDEFS='STM32G4 STM32G431xx USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=128K RAMLEN=22K'
+
 stm32g474xb :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32g4xx.S' \
 	                           FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
-	                           LDPARAMS='ROMLEN=128K RAMLEN=22K'
+	                           LDPARAMS='ROMLEN=128K RAMLEN=96K APPALIGN=0x1000'
+
+stm32g474xc :
+	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
+	                           FWSTARTUP='mcu/stm32g4xx.S' \
+	                           FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
+	                           LDPARAMS='ROMLEN=256K RAMLEN=96K APPALIGN=0x1000'
 
 stm32g474xe :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32g4xx.S' \
 	                           FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
-	                           LDPARAMS='ROMLEN=512K RAMLEN=96K'
+	                           LDPARAMS='ROMLEN=512K RAMLEN=96K APPALIGN=0x1000'
+
 
 .PHONY: clean bootloader crypter all program program_stcube rebuild fwclean testsuite $(FWTARGETS)
