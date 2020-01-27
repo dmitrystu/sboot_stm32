@@ -1,10 +1,12 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * ChaCha20 stream cipher implementation based on RFC7539
- * "ChaCha20 and Poly1305 for IETF Protocols"
- * https://tools.ietf.org/html/rfc7539
+ * eXtended TEA block cipher based on:
+ * "Tea extensions" Roger M. Needham and David J. Wheeler
+ * http://www.cix.co.uk/~klockstone/xtea.pdf
+ * "Extended TEA Algorithms" Tom St Denis
+ * http://tomstdenis.tripod.com/xtea.pdf
  *
- * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
+ * Copyright ©2017 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +19,30 @@
  * limitations under the License.
  */
 
-#ifndef _CHACHA_H_
-#define _CHACHA_H_
+#ifndef _XTEA1_H_
+#define _XTEA1_H_
 #if defined(__cplusplus)
     extern "C" {
 #endif
 
-/** @brief Initialize CHACHA-20 stream cipher
- *  @param key pointer to array contains 256-bit key
- *  @param nonce pointer to array contains 24-bit nonce
+/** @brief Initialize XTEA-1 block cipher
+ *  @param key pointer to array contains 128-bit key
  */
-void chacha_init(const void* key, const void* nonce);
+void xtea1_init(const void* key);
 
-/** @brief Encrypt/Decrypt byte
+/** @brief Encrypt 64-bit block
  *  @param out cipher output
  *  @param in  cipher input
  */
-void chacha_crypt(void *out, const void *in);
+void xtea1_encrypt(uint32_t *out, const uint32_t *in);
+
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void xtea1_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }
 #endif
-#endif //_CHACHA_H_
+#endif // _XTEA1_H_

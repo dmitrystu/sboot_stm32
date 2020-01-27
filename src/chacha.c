@@ -20,25 +20,20 @@
 #include <stdint.h>
 #include <string.h>
 #include "misc.h"
-#include "config.h"
 #include "chacha.h"
 
 #define QR(s,a,b,c,d) Qround((s), (a) << 24 | (b) << 16 | (c) << 8 | (d) << 0)
 
 #define SPLIT(x) (x) & 0xFF, ((x) >> 8) & 0xFF, ((x) >> 16) & 0xFF, ((x) >> 24) & 0xFF
 
-static const uint8_t _key[] = {
+static const uint8_t prefix[] = {
     0x65, 0x78, 0x70, 0x61, 0x6e, 0x64, 0x20, 0x33,
     0x32, 0x2d, 0x62, 0x79, 0x74, 0x65, 0x20, 0x6b,
-    DFU_AES_KEY_A, DFU_AES_KEY_B,
-    0x00, 0x00, 0x00, 0x00,
-    SPLIT(DFU_AES_NONCE0),
-    SPLIT(DFU_AES_NONCE1),
-    SPLIT(DFU_AES_NONCE2)
 };
 
 static uint32_t inits[16];
 static uint32_t state[16];
+static uint8_t  bytecount;
 
 static void Qround (uint32_t *s, uint32_t abcd) {
 
@@ -47,10 +42,10 @@ static void Qround (uint32_t *s, uint32_t abcd) {
     uint32_t C = s[(abcd >> 8 ) & 0x0F];
     uint32_t D = s[(abcd >> 0 ) & 0x0F];
 
-    A += B; D ^= A; D = __ror32(D, 32 - 16);
-    C += D; B ^= C; B = __ror32(B, 32 - 12);
-    A += B; D ^= A; D = __ror32(D, 32 - 8);
-    C += D; B ^= C; B = __ror32(B, 32 - 7);
+    A += B; D ^= A; D = __rol32(D, 16);
+    C += D; B ^= C; B = __rol32(B, 12);
+    A += B; D ^= A; D = __rol32(D, 8);
+    C += D; B ^= C; B = __rol32(B, 7);
 
     s[(abcd >> 24) & 0x0F] = A;
     s[(abcd >> 16) & 0x0F] = B;
@@ -70,19 +65,24 @@ static void chacha_block() {
         QR(state, 2, 7,  8, 13);
         QR(state, 3, 4,  9, 14);
     }
+    for (int i = 0; i < 16; i++) {
+        state[i] += inits[i];
+    }
 }
 
-void chacha_init(void) {
-    memcpy(inits, _key, sizeof(inits));
+void chacha_init(const void* key, const void* nonce) {
+    memcpy(&inits[0], prefix, 16);
+    memcpy(&inits[4], key, 32);
+    memcpy(&inits[13], nonce, 12);
+    inits[12] = 0;
+    bytecount = 0;
 }
 
-void chacha_crypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while (bytes > 0) {
+void chacha_crypt(void *out, const void *in) {
+    if ((bytecount & 0x3F) == 0) {
         inits[12]++;
         chacha_block();
-        for (int i = 0; i < 16; i++) {
-            *out++ = (state[i] + inits[i]) ^ *in++;
-        }
-        bytes -= 64;
     }
+    *(uint8_t*)out = *(uint8_t*)in ^ ((uint8_t*)state)[bytecount & 0x3F];
+    bytecount++;
 }

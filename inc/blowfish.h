@@ -1,4 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
+ * Blowfish cypher implementation based on
+ * https://www.schneier.com/academic/archives/1994/09/description_of_a_new.html
  *
  * Copyright ©2017 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
@@ -19,12 +21,23 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "BLOWFISH 64/16/256-CBC"
+/** @brief Initialize Blowfish-type block cipher
+ *  @param key pointer to array contains 256-bit key
+ *  @note  incompatible with reference, cipher uses XORSHIFT PRNG instead digits of the PI
+ */
+void blowfish_init(const void *key);
 
-void blowfish_init(void);
-void blowfish_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void blowfish_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void blowfish_encrypt(uint32_t *out, const uint32_t *in);
+
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void blowfish_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }

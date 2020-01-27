@@ -21,12 +21,22 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RTEA 64/64/256-CBC"
+/** @brief Initialize RTEA cipher
+ *  @param key pointer to 256-bit key
+ */
+void rtea_init(const void* key);
 
-void rtea_init(void);
-void rtea_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void rtea_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void rtea_encrypt(uint32_t *out, const uint32_t *in);
+
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void rtea_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }

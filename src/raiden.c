@@ -19,43 +19,35 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "config.h"
 #include "raiden.h"
 
-static const uint8_t key[] = {DFU_AES_KEY_A};
-
 static uint32_t subkey[0x10];
-static uint32_t CK[2];
 
-static void raiden_encrypt_block(uint32_t *out, const uint32_t *in) {
-    uint32_t b0 = in[0] ^ CK[0];
-    uint32_t b1 = in[1] ^ CK[1];
+void raiden_encrypt(uint32_t *out, const uint32_t *in) {
+    uint32_t b0 = in[0];
+    uint32_t b1 = in[1];
     for (int i = 0; i < 16; i++ ) {
         uint32_t sk = subkey[i];
         b0 += ((sk+b1)<<9) ^ ((sk-b1)^((sk+b1)>>14));
         b1 += ((sk+b0)<<9) ^ ((sk-b0)^((sk+b0)>>14));
     }
-    out[0] = CK[0] = b0;
-    out[1] = CK[1] = b1;
+    out[0] = b0;
+    out[1] = b1;
 }
 
-static void raiden_decrypt_block(uint32_t *out, const uint32_t *in) {
+void raiden_decrypt(uint32_t *out, const uint32_t *in) {
     uint32_t b0 = in[0];
     uint32_t b1 = in[1];
-    uint32_t i0 = b0;
-    uint32_t i1 = b1;
     for (int i = 15; i >= 0; i--) {
         uint32_t sk = subkey[i];
         b1 -= ((sk+b0)<<9) ^ ((sk-b0)^((sk+b0)>>14));
         b0 -= ((sk+b1)<<9) ^ ((sk-b1)^((sk+b1)>>14));
     }
-    out[0] = b0 ^ CK[0];
-    out[1] = b1 ^ CK[1];
-    CK[0] = i0;
-    CK[1] = i1;
+    out[0] = b0;
+    out[1] = b1;
 }
 
-void raiden_init(void) {
+void raiden_init(const void* key) {
     uint32_t k[4];
     memcpy(k, key, sizeof(k));
     for (int i = 0; i < 16; i++) {
@@ -63,28 +55,4 @@ void raiden_init(void) {
         k[i & 0x03] = sk;
         subkey[i] = sk;
     }
-    CK[0] = DFU_AES_NONCE0;
-    CK[1] = DFU_AES_NONCE1;
 }
-
-void raiden_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while(bytes > 0) {
-        raiden_encrypt_block(out, in);
-        out += 2;
-        in += 2;
-        bytes -= 0x08;
-    }
-}
-
-void raiden_decrypt(uint32_t* out, const uint32_t *in, int32_t bytes) {
-    while(bytes > 0) {
-        raiden_decrypt_block(out, in);
-        out += 2;
-        in += 2;
-        bytes -= 0x08;
-    }
-}
-
-
-
-

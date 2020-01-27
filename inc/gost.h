@@ -1,8 +1,8 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * GOST R 34.12-2015 "MAGMA" CBC block cipher implementation based on
+ * GOST R 34.12-2015 "MAGMA" block cipher implementation based on
  * official GOST R 34.12-2015 national standard of the Russian Federation
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,23 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "GOST R 34.12-2015 \"MAGMA\"-CBC"
+/** @brief Initialize GOST R 34.12-2015 "MAGMA" 64-bit block cipher
+ *  @param key pointer to array contains 256-bit key
+ *  @note  incompatible with reference, input data treated as 64-bit LE instead BE
+ */
+void gost_init(const void* key);
 
-void gost_init();
-void gost_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void gost_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void gost_encrypt(uint32_t *out, const uint32_t *in);
 
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void gost_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }

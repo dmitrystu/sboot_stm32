@@ -1,6 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * eXtended TEA CBC block cipher based on:
+ * eXtended TEA block cipher based on:
  * "Tea extensions" Roger M. Needham and David J. Wheeler
  * http://www.cix.co.uk/~klockstone/xtea.pdf
  * "Extended TEA Algorithms" Tom St Denis
@@ -25,19 +25,23 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#if (DFU_CIPHER == DFU_CIPHER_XTEA1)
-    #define CRYPTO_NAME    "XTEA-1 64/32/128-CBC"
-#else
-    #define CRYPTO_NAME    "XTEA 64/32/128-CBC"
-#endif
+/** @brief Initialize XTEA block cipher
+ *  @param key pointer to array contains 128-bit key
+ *  @note  incomaptible with reference, data and key treated as 32-bit LE instead BE
+ */
+void xtea_init(const void* key);
 
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void xtea_encrypt(uint32_t *out, const uint32_t *in);
 
-
-void xtea_init(void);
-void xtea_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void xtea_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void xtea_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }

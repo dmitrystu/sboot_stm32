@@ -14,20 +14,18 @@
  */
 
 #include <stdint.h>
-#include "config.h"
 #include "arc4.h"
 
-static const uint8_t key[] = {DFU_AES_KEY_A};
 static uint8_t S[256];
 static uint8_t si;
 static uint8_t sj;
 
-void arc4_init (void) {
+void arc4_init (const void *key) {
     for (int i=0; i < 256; i++) {
         S[i] = i;
     }
     for (int i=0, j=0; i < 255; i++) {
-        j = (j + S[i] + key[i & 0x0F]) & 0xFF;
+        j = (j + S[i] + ((uint8_t*)key)[i & 0x0F]) & 0xFF;
         uint8_t _t = S[i];
         S[i] = S[j];
         S[j] = _t;
@@ -36,16 +34,12 @@ void arc4_init (void) {
     sj = 0;
 }
 
-void arc4_crypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    const uint8_t *bin = (void*)in;
-    uint8_t *bout = (void*)out;
-    while (bytes--){
-        uint8_t _t;
-        _t = S[++si];
-        sj = sj + _t;
-        S[si] = S[sj];
-        S[sj] = _t;
-        *bout++ = *bin++ ^ S[(S[si] + S[sj]) & 0xFF];
-    }
+void arc4_crypt(void *out, const void *in) {
+    uint8_t _t;
+    _t = S[++si];
+    sj = sj + _t;
+    S[si] = S[sj];
+    S[sj] = _t;
+    *(uint8_t*)out = *(uint8_t*)in ^ S[(S[si] + S[sj]) & 0xFF];
 }
 

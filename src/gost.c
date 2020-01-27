@@ -18,15 +18,11 @@
 
 #include <stdint.h>
 #include "misc.h"
-#include "config.h"
 #include "gost.h"
 
 #define rounds 32
 
-static const uint8_t key[] = {DFU_AES_KEY_A, DFU_AES_KEY_B};
-
 static uint32_t RK[32];
-static uint32_t CK[2];
 
 static const uint32_t S[] = {
     0xC6BC7581, 0x4838FDE7, 0x62525F2E, 0x2381A65D,
@@ -49,68 +45,40 @@ static uint32_t sbox(uint32_t in) {
 #pragma GCC diagnostic pop
 
 
-__attribute__((noinline))static uint32_t F(uint32_t data, uint32_t round) {
-    return __ror32(sbox(data + RK[round]), 32 - 11);
+static uint32_t F(uint32_t data, uint32_t round) {
+    return __rol32(sbox(data + RK[round]), 11);
 }
 
-static void gost_encrypt_block(uint32_t *out, const uint32_t *in) {
-    uint32_t A = in[0] ^ CK[0];
-    uint32_t B = in[1] ^ CK[1];
+void gost_encrypt(uint32_t *out, const uint32_t *in) {
+    uint32_t A = in[0];
+    uint32_t B = in[1];
     for (int i = 0; i < rounds; i++) {
        uint32_t A1 = B ^ F(A, i);
        B = A;
        A = A1;
     }
-    out[0] = CK[0] = B;
-    out[1] = CK[1] = A;
+    out[0] = B;
+    out[1] = A;
 }
 
-static void gost_decrypt_block(uint32_t *out, const uint32_t *in) {
+void gost_decrypt(uint32_t *out, const uint32_t *in) {
     uint32_t A = in[0];
     uint32_t B = in[1];
-    uint32_t i0 = A;
-    uint32_t i1 = B;
-
     for (int i = 31; i >= 0; i--) {
         uint32_t A1 = B ^ F(A, i);
         B = A;
         A = A1;
     }
-    out[0] = B ^ CK[0];
-    out[1] = A ^ CK[1];
-    CK[0] = i0;
-    CK[1] = i1;
+    out[0] = B;
+    out[1] = A;
 }
 
-void gost_init(void){
+void gost_init(const void* key){
+    const uint8_t *K = key;
     for (int i = 0; i < 8; i++) {
-        RK[i] = key[4*i] << 24 | key[4*i+1] << 16 | key[4*i+2] << 8 | key[4*i+3];
+        RK[i] = K[4*i] << 24 | K[4*i+1] << 16 | K[4*i+2] << 8 | K[4*i+3];
         RK[8+i] = RK[i];
         RK[16+i] = RK[i];
         RK[31-i] = RK[i];
     }
-    CK[0] = DFU_AES_NONCE0;
-    CK[1] = DFU_AES_NONCE1;
 }
-
-void gost_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while(bytes > 0) {
-        gost_encrypt_block(out, in);
-        in += 2;
-        out += 2;
-        bytes -= 0x08;
-    }
-}
-
-
-void gost_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes) {
-    while(bytes > 0) {
-        gost_decrypt_block(out, in);
-        in += 2;
-        out += 2;
-        bytes -= 0x08;
-    }
-}
-
-
-

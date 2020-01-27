@@ -1,9 +1,9 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * RC5-32/12/128-CBC block cipher implementation based on
+ * RC5-32/12/128 block cipher implementation based on
  * Ronald L. Rivest "The RC5 Encryption Algorithm"
  * http://people.csail.mit.edu/rivest/Rivest-rc5rev.pdf
- * 
+ *
  * Copyright ©2016 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,22 @@
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 8
-#define CRYPTO_NAME    "RC5-32/12/128-CBC"
+/** @brief Initialize RC5-64/12/128 cipher
+ *  @param key pointer to 128-bit key
+ */
+void rc5_init(const void* key);
 
-void rc5_init(void);
-void rc5_encrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
-void rc5_decrypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+/** @brief Encrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void rc5_encrypt(uint32_t *out, const uint32_t *in);
 
+/** @brief Decrypt 64-bit block
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void rc5_decrypt(uint32_t *out, const uint32_t *in);
 
 #if defined(__cplusplus)
     }
