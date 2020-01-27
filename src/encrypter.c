@@ -101,14 +101,16 @@ int main(int argc, char **argv)
     }
 
     fseek(fi, 0, SEEK_END);
-    uint32_t length = ftell(fi);
+    size_t length = ftell(fi);
     fseek(fi, 0, SEEK_SET);
 
-    uint32_t *buf = malloc(length + 0x1000);
+
+    size_t   blen = length + 0x1000;
+    uint32_t *buf = malloc(blen);
     uint8_t  *buf8 = (uint8_t*)buf;
 
     if (buf == NULL) {
-        printf("Failed to allocate buffer. length %d\n", length);
+        printf("Failed to allocate buffer. length %zd\n", length);
         exit(3);
     }
 
@@ -119,22 +121,24 @@ int main(int argc, char **argv)
     if (dir) {
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
         if (crc) {
-            size_t cslen = append_checksum(buf, length);
+            size_t newlen = append_checksum(buf, length, blen);
 
-            printf("Firmware length: %d bytes, signature: (%s) %s\n",
-                   length, checksum_name, strsign(&buf8[length], cslen));
-
-            length += cslen;
+            printf("Firmware length: %zd bytes, signature: (%s) %s\n",
+                   length,
+                   checksum_name,
+                   strsign(&buf8[length], checksum_length)
+                  );
 
             printf("Validating firmware signature. ");
-            size_t checked_length = validate_checksum(buf, length);
+            size_t checked_length = validate_checksum(buf, blen);
 
-            if ((checked_length + cslen) != length ) {
+            if (checked_length != length ) {
                 printf("FAIL. Collision found at offset %zd\n", checked_length);
                 exit(-3);
             } else {
                 printf("OK.\n");
             }
+            length = newlen;
         }
 #endif
 
@@ -142,24 +146,28 @@ int main(int argc, char **argv)
         if (length % aes_blksize) {
             length += (aes_blksize - (length % aes_blksize));
         }
-        printf("Encrypting %u bytes using %s cipher.\n", length, aes_name);
+        printf("Encrypting %zd bytes using %s cipher.\n", length, aes_name);
         aes_encrypt(buf, buf, length);
 #endif
 
     } else {
 
 #if(DFU_CIPHER != _DISABLE)
-        printf("Decrypting %u bytes using %s cipher.\n", length, aes_name);
+        printf("Decrypting %zd bytes using %s cipher.\n", length, aes_name);
         aes_decrypt(buf, buf, length);
 #endif
 
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
         if (crc) {
-            uint32_t checked_length = validate_checksum(buf, length);
+            size_t checked_length = validate_checksum(buf, blen);
             if (checked_length == 0) {
                 printf("No valid signature found.\n");
             } else {
-                printf("Valid signature found at offset %d\n", checked_length);
+                printf("Valid signature (%s) %s found at offset %zd\n",
+                        checksum_name,
+                        strsign(&buf8[checked_length], checksum_length),
+                        checked_length
+                      );
                 length = checked_length;
             }
         }
@@ -167,7 +175,7 @@ int main(int argc, char **argv)
 
     }
     if (dry || outfile == NULL) {
-        printf("Writing %d bytes. Dry run.\n", length);
+        printf("Writing %zd bytes. Dry run.\n", length);
     } else {
         FILE *fo = fopen(outfile, "wb");
         if (fo == NULL) {

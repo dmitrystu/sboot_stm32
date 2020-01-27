@@ -116,37 +116,43 @@ static void update_checksum(checksum_t *cs, uint8_t data) { }
 static void init_checksum(checksum_t *cs) { *cs = 0; }
 #endif
 
-size_t append_checksum(void *data, uint32_t len) {
+static int __memcmp(const void *a, const void *b, size_t len) {
+    while(len--) {
+        int res = *(const int8_t*)a++ - *(const int8_t*)b++;
+        if (res != 0) {
+            return res;
+        }
+    }
+    return 0;
+}
+
+const size_t checksum_length = sizeof(checksum_t);
+
+size_t append_checksum(void *data, size_t len, size_t bsize) {
     checksum_t cs;
     uint8_t *buf = data;
+    if (bsize < len + sizeof(checksum_t)) {
+        return 0;
+    }
     init_checksum(&cs);
     while (len--) {
         update_checksum(&cs, *buf);
         buf++;
     }
     memcpy(buf, &cs, sizeof(cs));
-    return sizeof(checksum_t);
+    return len + sizeof(checksum_t);
 }
 
-size_t validate_checksum(const void *data, uint32_t len)  {
-    checksum_t cs, tcs;
+size_t validate_checksum(const void *data, size_t bsize)  {
+    checksum_t cs;
     const uint8_t *buf = data;
     init_checksum(&cs);
-    memcpy(&tcs, buf, sizeof(checksum_t));
-    while(1) {
-        if (cs == tcs) return (size_t)(buf - (uint8_t *)data);
-        if (sizeof(checksum_t) >= len--) break;
-        update_checksum(&cs, (uint8_t)(tcs & 0xFF));
-        tcs = (tcs & ~0xFF) | buf[sizeof(checksum_t)];
-        tcs = (tcs >> 8) | (tcs << (8 * sizeof(checksum_t) - 8));
+    while(sizeof(checksum_t) <= bsize--) {
+        if (__memcmp(&cs, buf, sizeof(cs)) == 0) {
+            return (size_t)(buf - (uint8_t *)data);
+        }
+        update_checksum(&cs, *buf);
         buf++;
-//        if (!memcmp((void*)buf, &cs, sizeof(checksum_t))) {
-//            return (size_t)(buf - (uint8_t *)data);
-//        }
-//        update_checksum(&cs, *buf++);
     }
     return 0;
 }
-
-
-

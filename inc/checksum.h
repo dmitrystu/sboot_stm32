@@ -23,11 +23,25 @@
     extern "C" {
 #endif
 
-#include "config.h"
-
 const char *checksum_name;
-size_t append_checksum(void *data, uint32_t len);
-size_t validate_checksum(const void *data, uint32_t len);
+const size_t checksum_length;
+
+/**
+ * @brief Calculate and append checksum to data.
+ * @param data data buffer
+ * @param len  data length
+ * @param bsize data buffer size
+ * @return size_t length of the data with appended checksum or 0 if no enought space in buffer
+ */
+size_t append_checksum(void *data, size_t len, size_t bsize);
+
+/**
+ * @brief Find and derify checksum.
+ * @param data data buffer
+ * @param bsize length of the data buffer
+ * @return size_t length of the data w/o checksum or 0 if no data with correct checksum found
+ */
+size_t validate_checksum(const void *data, size_t bsize);
 
 #if defined(__cplusplus)
     }
