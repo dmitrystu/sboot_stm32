@@ -278,7 +278,7 @@ static uint32_t IV[CRYPTO_BLKSIZE / 4];
 
 static void memxor(void *dst, const void *src, uint32_t sz) {
     while(sz--) {
-        *(uint8_t*)dst++ ^= *(uint8_t*)src++;
+        *(uint8_t*)dst++ ^= *(const uint8_t*)src++;
     }
 }
 
