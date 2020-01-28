@@ -6,17 +6,28 @@
 + Supports one of the following ciphers
   + No encryption
   + ARCFOUR stream cipher
-  + CHACHA20 stream cipher (C and ASM implementation)
-  + RC5-32/12/128 block cipher in CBC mode (C and ASM implementation)
-  + GOST R 34.12-2015 "MAGMA" block cipher in CBC mode
-  + RAIDEN block cipher in CBC mode
-  + SPECK 64/128 block cipher in CBC mode
-  + XTEA (classic and XTEA-1) block cipher in CBC mode
-  + BLOWFISH block cipher in CBC mode
+  + CHACHA20 stream cipher
+  + RC5-32/12/128 block cipher (C and ASM implementation)
+  + GOST R 34.12-2015 "MAGMA" block cipher
+  + RAIDEN block cipher
+  + SPECK 64/128 block cipher
+  + XTEA (classic and XTEA-1) block cipher
+  + RTEA block cipher
+  + BLOWFISH type block cipher
++ Cipher modes for block ciphers
+  + Electronic Codebook (ECB)
+  + Cipher Block Chaining (CBC)
+  + Propagating CBC (PCBC)
+  + Cipher Feedback (CFB)
+  + Output Feedback (OFB)
+  + Counter (CTR)
++ Frmware verification signature
+  + CRC (CRC32, CRC64)
+  + Fowler-Noll-Vo (FNV-1A-32, FNV1A-64)
 + Different interfaces for flash and eeprom programming
 + Autoseal using RDP level 1 or 2 (prevents reading decrypted FW trough debug interface).
-  Be careful when you set RDP to level 2. This operation is irreversible and disables
-  all debug functions and option bytes programming.
+  Be careful when you set RDP to level 2. **This operation is irreversible and disables
+  all debug functions and option bytes programming.**
 + Software for firmaware encryption/decription included
 + Supported STM32 family
   + STM32L0x2
@@ -24,6 +35,8 @@
   + STM32L476xx (OTG FS in device mode)
   + STM32F103
   + STM32F105, STM32F107 (OTG FS in device mode)
+  + STM32F429
+  + STM32G4 series
 
 #### Usage:
 
@@ -85,6 +98,9 @@ Bootloader can be configured using preprocessor variables stored in **config.h**
 | stm32l433xc   | STM32L433CC, STM32L433RC, STM32L433VC              | tested          |
 | stm32f070x6   | STM32F070C6                                        |                 |
 | stm32f070xb   | STM32F070CB                                        | tested          |
+| stm32f429xe   | STM32F429xE series (single bank mode)              |                 |
+| stm32f429xg   | STM32F429xG series (single bank mode)              |                 |
+| stm32f429xi   | STM32F429xI series (single and dual bank)          | teted           |
 | stm32g431x6   | STM32G431x6, STM32G441x6                           |                 |
 | stm32g431x8   | STM32G431x8, STM32G441x8                           |                 |
 | stm32g431xb   | STM32G431xB, STM32G441xB                           | tested G431RB   |
@@ -109,6 +125,7 @@ Now you can use usbd core and driver from bootloader in your application. Don't 
 + put DFU_BOOTKEY on DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset
 + by DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT on startup (optional)
 + make a double reset in DFU_DBLRESET_MS period (optional)
++
 
 #### Encryption/Decryption user firmware
 At this moment only binary files supported
