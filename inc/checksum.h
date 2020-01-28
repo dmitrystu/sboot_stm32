@@ -23,11 +23,9 @@
     extern "C" {
 #endif
 
-#include "config.h"
-
 const char *checksum_name;
-size_t append_checksum(void *data, uint32_t len);
-size_t validate_checksum(const void *data, uint32_t len);
+size_t append_checksum(void *data, size_t len);
+size_t validate_checksum(const void *data, size_t len);
 
 #if defined(__cplusplus)
     }
