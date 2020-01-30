@@ -15,6 +15,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include "config.h"
 #include "stm32.h"
 #include "usb.h"
@@ -40,7 +41,7 @@
 
 /* Checking for application start address */
 #if (DFU_APP_START == _AUTO)
-    #define _APP_START  ((uint32_t)&__app_start)
+    #define _APP_START  ((size_t)&__app_start)
 #elif ((DFU_APP_START & 0x000007FF) == 0)
     #define _APP_START  DFU_APP_START
 #else
@@ -49,7 +50,7 @@
 
 /* Checking for application size */
 #if (DFU_APP_SIZE == _AUTO)
-    #define _APP_LENGTH ((uint32_t)&__romend - _APP_START)
+    #define _APP_LENGTH ((size_t)&__romend - _APP_START)
 #else
     #define _APP_LENGTH DFU_APP_SIZE
 #endif
@@ -60,19 +61,16 @@
 extern uint8_t  __app_start;
 extern uint8_t  __romend;
 
-typedef uint8_t(*flash_rom)(void *romptr, const void *buffer, uint32_t blksize);
-
 static uint32_t dfu_buffer[DFU_BUFSZ];
 static usbd_device dfu;
 
-static struct {
-    flash_rom   flash;
+static struct dfu_data_s {
+    uint8_t     (*flash)(void *romptr, const void *buf, size_t blksize);
     void        *dptr;
-    int32_t     remained;
+    size_t      remained;
     uint8_t     interface;
     uint8_t     bStatus;
     uint8_t     bState;
-
 } dfu_data;
 
 /** Processing DFU_SET_IDLE request */
@@ -84,13 +82,13 @@ static usbd_respond dfu_set_idle(void) {
 #if defined(_EEPROM_ENABLED)
     case 1:
         dfu_data.dptr = (void*)_EE_START;
-        dfu_data.remained = (uint32_t)_EE_LENGTH;
+        dfu_data.remained = _EE_LENGTH;
         dfu_data.flash = program_eeprom;
         break;
 #endif
     default:
         dfu_data.dptr = (void*)_APP_START;
-        dfu_data.remained = (uint32_t)_APP_LENGTH;
+        dfu_data.remained = _APP_LENGTH;
         dfu_data.flash = program_flash;
         break;
     }
@@ -103,12 +101,12 @@ static usbd_respond dfu_err_badreq(void) {
     return usbd_fail;
 }
 
-static usbd_respond dfu_upload(usbd_device *dev, int32_t blksize) {
+static usbd_respond dfu_upload(usbd_device *dev, size_t blksize) {
     switch (dfu_data.bState) {
 #if (DFU_CAN_UPLOAD == _ENABLE)
     case USB_DFU_STATE_DFU_IDLE:
     case USB_DFU_STATE_DFU_UPLOADIDLE:
-        if (dfu_data.remained <= 0) {
+        if (dfu_data.remained == 0) {
             dev->status.data_count = 0;
             return dfu_set_idle();
         } else if (dfu_data.remained < DFU_BLOCKSZ) {
@@ -125,7 +123,7 @@ static usbd_respond dfu_upload(usbd_device *dev, int32_t blksize) {
     }
 }
 
-static usbd_respond dfu_dnload(void *buf, int32_t blksize) {
+static usbd_respond dfu_dnload(void *buf, size_t blksize) {
     switch(dfu_data.bState) {
     case    USB_DFU_STATE_DFU_DNLOADIDLE:
     case    USB_DFU_STATE_DFU_DNLOADSYNC:
@@ -270,13 +268,12 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
 
 
 static usbd_respond dfu_config(usbd_device *dev, uint8_t config) {
-    (void)dev;
     switch (config) {
     case 0:
-        usbd_reg_event(&dfu, usbd_evt_reset, 0);
+        usbd_reg_event(dev, usbd_evt_reset, 0);
         break;
     case 1:
-        usbd_reg_event(&dfu, usbd_evt_reset, dfu_reset);
+        usbd_reg_event(dev, usbd_evt_reset, dfu_reset);
         break;
     default:
         return usbd_fail;

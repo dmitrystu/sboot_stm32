@@ -18,12 +18,36 @@
 #if defined(__cplusplus)
     extern "C" {
 #endif
-
+/**
+ * @brief Initialize cipher
+ */
 void aes_init(void);
-void aes_encrypt(void *out, const void *in, int32_t sz);
-void aes_decrypt(void *out, const void *in, int32_t sz);
+
+/**
+ * @brief Encrypt data
+ * @param out output buffer
+ * @param in input buffer
+ * @param sz data amount in bytes. must fit block size.
+ */
+void aes_encrypt(void *out, const void *in, size_t sz);
+
+/**
+ * @brief Decrypt data
+ * @param out output buffer
+ * @param in input buffer
+ * @param sz data amount in bytes. must fit block size
+ */
+void aes_decrypt(void *out, const void *in, size_t sz);
+
+/**
+ * @brief Cipher name and mode
+ */
 const char *aes_name;
-const uint32_t aes_blksize;
+
+/**
+ * @brief Cipher block size
+ */
+const size_t aes_blksize;
 
 #if defined(__cplusplus)
     }

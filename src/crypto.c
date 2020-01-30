@@ -5,7 +5,7 @@
 static const uint8_t key[] __attribute__((unused));
 static const uint32_t nonce[] __attribute__((unused));
 static uint32_t IV[] __attribute__((unused));
-static void memxor(void *dst, const void *src, uint32_t sz) __attribute__((unused));
+static void memxor(void *dst, const void *src, size_t sz) __attribute__((unused));
 
 #if (DFU_CIPHER == DFU_CIPHER_RC5_A) && defined(__thumb__)
     #include "rc5_a.h"
@@ -276,7 +276,7 @@ static const uint8_t key[] = {CRYPTO_KEY};
 static const uint32_t nonce[] = {CRYPTO_NONCE};
 static uint32_t IV[CRYPTO_BLKSIZE / 4];
 
-static void memxor(void *dst, const void *src, uint32_t sz) {
+static void memxor(void *dst, const void *src, size_t sz) {
     while(sz--) {
         *(uint8_t*)dst++ ^= *(const uint8_t*)src++;
     }
@@ -290,20 +290,18 @@ void aes_init(void) {
     crypto_init(key, nonce);
 }
 
-void aes_encrypt(void *out, const void *in, int32_t sz) {
-    while(sz > 0) {
+void aes_encrypt(void *out, const void *in, size_t sz) {
+    for (size_t i = 0; i < sz; i += CRYPTO_BLKSIZE) {
         encrypt_block(out, in);
         out += CRYPTO_BLKSIZE;
         in += CRYPTO_BLKSIZE;
-        sz -= CRYPTO_BLKSIZE;
     }
 }
 
-void aes_decrypt(void *out, const void *in, int32_t sz) {
-    while(sz > 0) {
+void aes_decrypt(void *out, const void *in, size_t sz) {
+    for (size_t i = 0; i < sz; i += CRYPTO_BLKSIZE) {
         decrypt_block(out, in);
         out += CRYPTO_BLKSIZE;
         in += CRYPTO_BLKSIZE;
-        sz -= CRYPTO_BLKSIZE;
     }
 }

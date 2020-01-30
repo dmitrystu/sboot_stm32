@@ -18,8 +18,8 @@
 #if defined(__cplusplus)
     extern "C" {
 #endif
-__attribute__((long_call)) uint8_t program_eeprom(void *romaddr, const void *buffer, uint32_t blksize);
-__attribute__((long_call)) uint8_t program_flash(void *romaddr, const void *buffer, uint32_t blksize);
+__attribute__((long_call)) uint8_t program_eeprom(void *romaddr, const void *buffer, size_t blksize);
+__attribute__((long_call)) uint8_t program_flash(void *romaddr, const void *buffer, size_t blksize);
 __attribute__((long_call)) uint8_t seal_flash(void);
 #if defined(__cplusplus)
     }
