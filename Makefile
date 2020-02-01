@@ -465,12 +465,6 @@ stm32f070xb :
 	                           FWDEFS='STM32F0 STM32F070xB USBD_ASM_DRIVER' \
 	                           LDPARAMS='ROMLEN=128K RAMLEN=16K'
 
-stm32g431xb :
-	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
-	                           FWSTARTUP='mcu/stm32g4xx.S' \
-	                           FWDEFS='STM32G4 STM32G431xx USBD_ASM_DRIVER' \
-	                           LDPARAMS='ROMLEN=128K RAMLEN=22K'
-
 stm32g431x6 :
 	$(MAKE) fwclean bootloader FWCPU='-mcpu=cortex-m4' \
 	                           FWSTARTUP='mcu/stm32g4xx.S' \
