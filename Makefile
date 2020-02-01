@@ -65,6 +65,8 @@ FWLDFLAGS   = -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,-Map=$(OUTDI
 SWLDFLAGS   = -libstd
 LDSCRIPT    = $(FWODIR)/script.ld
 
+#passing DFU related variables
+USERDEFS = $(foreach v,$(filter DFU_%,$(.VARIABLES)),$(v)=$($(v)) )
 
 all: bootloader crypter
 
@@ -127,11 +129,11 @@ $(SWODIR)/%.o: %.c
 
 $(FWODIR)/%.o: %.c
 	@echo compiling $<
-	@$(FWTOOLS)gcc $(FWCPU) $(FWCFLAGS) $(FWXFLAGS) $(addprefix -D,$(FWDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
+	@$(FWTOOLS)gcc $(FWCPU) $(FWCFLAGS) $(FWXFLAGS) $(addprefix -D,$(FWDEFS) $(USERDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
 
 $(FWODIR)/%.o: %.S
 	@echo assembling $<
-	@$(FWTOOLS)gcc $(FWCFLAGS) $(addprefix -D,$(FWDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
+	@$(FWTOOLS)gcc $(addprefix -D,$(FWDEFS) $(USERDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
 
 fwclean: | $(FWODIR)
 	@$(RM) $(call FixPath, $(FWODIR)/*.*)
