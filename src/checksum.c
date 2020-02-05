@@ -111,18 +111,19 @@ static void update_checksum(checksum_t *checksum, uint8_t data) {
 }
 
 #else
-typedef uint32_t checksum_t;
+
 static void update_checksum(checksum_t *cs, uint8_t data) { }
 static void init_checksum(checksum_t *cs) { *cs = 0; }
+
 #endif
 
 static int __memcmp(const void *a, const void *b, size_t len) {
-    while(len--) {
-        int res = *(const int8_t*)a++ - *(const int8_t*)b++;
-        if (res != 0) {
-            return res;
-        }
-    }
+    const int8_t *x = a;
+    const int8_t *y = b;
+    for(size_t i = 0; i < len; i++){
+        int res = x[i] - y[i];
+        if (res != 0) return res;
+     }
     return 0;
 }
 

@@ -5,7 +5,7 @@
 static const uint8_t key[] __attribute__((unused));
 static const uint32_t nonce[] __attribute__((unused));
 static uint32_t IV[] __attribute__((unused));
-static void memxor(void *dst, const void *src, size_t sz) __attribute__((unused));
+static void* memxor(void *dst, const void *src, size_t sz) __attribute__((unused));
 
 #if (DFU_CIPHER == DFU_CIPHER_RC5_A) && defined(__thumb__)
     #include "rc5_a.h"
@@ -276,14 +276,17 @@ static const uint8_t key[] = {CRYPTO_KEY};
 static const uint32_t nonce[] = {CRYPTO_NONCE};
 static uint32_t IV[CRYPTO_BLKSIZE / 4];
 
-static void memxor(void *dst, const void *src, size_t sz) {
-    while(sz--) {
-        *(uint8_t*)dst++ ^= *(const uint8_t*)src++;
+static void* memxor(void *dst, const void *src, size_t sz) {
+    uint8_t *d = dst;
+    const uint8_t *s = src;
+    for (size_t i = 0; i < sz; i++) {
+        d[i] ^= s[i];
     }
+    return d;
 }
 
 const char*    aes_name = CRYPTO_NAME CRYPTO_MODE;
-const uint32_t aes_blksize = CRYPTO_BLKSIZE;
+const size_t aes_blksize = CRYPTO_BLKSIZE;
 
 void aes_init(void) {
     crypto_init_iv(IV, nonce, CRYPTO_BLKSIZE);
