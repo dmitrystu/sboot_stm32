@@ -47,7 +47,7 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_AES_KEY_128     | 128-bit cipher key                  | Comma separated bytes          |                         |
 |DFU_AES_KEY_256     | 256-bit cipher key                  | Comma separated bytes          |                         |
 |DFU_AES_IV_64       | 64-bit cipher IV                    | Comma separated bytes          |                         |
-|DFU_AES_IV_96       | 64-bit cipher IV                    | Comma separated bytes          | Used for the CHACHA     |
+|DFU_AES_IV_96       | 96-bit cipher IV                    | Comma separated bytes          | Used for the CHACHA     |
 
 ### Table 2. Available Checksums
 *Note:* Firmware checksum will be checked on every startup. Bootloader will be activated if no correct firmware found. It may take a lot of time.
