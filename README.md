@@ -41,7 +41,7 @@
 #### Usage:
 
 #### Configure bootloader
-Bootloader can be configured using preprocessor variables stored in **config.h**
+Bootloader can be configured trough the make parameters. See CONFIG.md for details.
 
 #### Building bootloader
 1. Prerequisites
