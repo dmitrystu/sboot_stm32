@@ -125,7 +125,7 @@ $(FWODIR) $(SWODIR): | $(OUTDIR)
 
 $(SWODIR)/%.o: %.c
 	@echo compiling $<
-	@$(SWTOOLS)gcc $(SWCFLAGS) $(addprefix -D,$(SWDEFS)) $(addprefix -I,$(SWINCS)) -c $< -o $@
+	@$(SWTOOLS)gcc $(SWCFLAGS) $(addprefix -D,$(SWDEFS) $(USERDEFS)) $(addprefix -I,$(SWINCS)) -c $< -o $@
 
 $(FWODIR)/%.o: %.c
 	@echo compiling $<
