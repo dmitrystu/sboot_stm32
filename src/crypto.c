@@ -166,6 +166,7 @@ static void* memxor(void *dst, const void *src, size_t sz) __attribute__((unused
     #undef  DFU_CIPHER_MODE
     #define DFU_CIPHER_MODE -1
     #define CRYPTO_BLKSIZE 1
+    #define CRYPTO_KEYSIZE 1
     #define CRYPTO_NAME "NONE"
     #define CRYPTO_KEY
     #define CRYPTO_NONCE
