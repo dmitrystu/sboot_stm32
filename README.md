@@ -7,7 +7,8 @@
   + No encryption
   + ARCFOUR stream cipher
   + CHACHA20 stream cipher
-  + RC5-32/12/128 block cipher (C and ASM implementation)
+  + RC5-32/12/16 block cipher (C and ASM implementation)
+  + RC6-32/20/16 block cipher (C and ASM implementation)
   + GOST R 34.12-2015 "MAGMA" block cipher
   + RAIDEN block cipher
   + SPECK 64/128 block cipher

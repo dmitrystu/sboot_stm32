@@ -77,6 +77,8 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_CIPHER_XTEA1    | XTEA-1                       |  64        | 128      | 64      | treat data as LE64       |
 |DFU_CIPHER_BLOWFISH | Blowfish                     |  64        | 256      | 64      | Uses xorshift instead PI |
 |DFU_CIPHER_RTEA     | Ruptor's TEA or Repaired TEA |  64        | 256      | 64      |                          |
+|DFU_CIPHER_RC6      | Rivest RC6-32/20/16          |  128       | 128      | 128     |                          |
+|DFU_CIPHER_RC6_A    | Rivest RC6-32/20/16          |  128       | 128      | 128     | THUMB ASM verison        |
 
 ### Table 4. Available Block Cipher Modes of Operation
 |Cipher mode     | Description                              |

@@ -140,6 +140,28 @@ static void* memxor(void *dst, const void *src, size_t sz) __attribute__((unused
     #define crypto_encrypt(out, in) rtea_encrypt(out, in)
     #define crypto_decrypt(out, in) rtea_decrypt(out, in)
 
+#elif (DFU_CIPHER == DFU_CIPHER_RC6_A) && defined(__thumb__)
+    #include "rc6a.h"
+    #define CRYPTO_BLKSIZE 16
+    #define CRYPTO_KEYSIZE 16
+    #define CRYPTO_NAME "RC6-32/20/16"
+    #define CRYPTO_KEY DFU_AES_KEY_128
+    #define CRYPTO_NONCE DFU_AES_IV_128
+    #define crypto_init(key, nonce) rc6a_init(key)
+    #define crypto_encrypt(out, in) rc6a_encrypt(out, in)
+    #define crypto_decrypt(out, in) rc6a_decrypt(out, in)
+
+#elif (DFU_CIPHER == DFU_CIPHER_RC6) || (DFU_CIPHER == DFU_CIPHER_RC6_A)
+    #include "rc6.h"
+    #define CRYPTO_BLKSIZE 16
+    #define CRYPTO_KEYSIZE 16
+    #define CRYPTO_NAME "RC6-32/20/16"
+    #define CRYPTO_KEY DFU_AES_KEY_128
+    #define CRYPTO_NONCE DFU_AES_IV_128
+    #define crypto_init(key, nonce) rc6_init(key)
+    #define crypto_encrypt(out, in) rc6_encrypt(out, in)
+    #define crypto_decrypt(out, in) rc6_decrypt(out, in)
+
 #else
     #undef  DFU_CIPHER_MODE
     #define DFU_CIPHER_MODE -1

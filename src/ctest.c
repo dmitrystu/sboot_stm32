@@ -12,6 +12,7 @@
 #include "blowfish.h"
 #include "chacha.h"
 #include "arc4.h"
+#include "rc6.h"
 
 
 #define _countof(x) (sizeof(x) / sizeof(*x))
@@ -167,6 +168,16 @@ const test_t data[] = {
         .init    = chaha_init_512,
         .encrypt = chacha_enc_512,
         .decrypt = chacha_enc_512,
+    },
+    {
+        .blocksize = 16,
+        .name    = "RC6-32/20/16 IETF",
+        .key     = "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F",
+        .plain   = "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F",
+        .cipher  = "3A 96 F9 C7 F6 75 5C FE 46 F0 0E 3D CD 5D 2A 3C",
+        .init    = rc6_init,
+        .encrypt = rc6_encrypt,
+        .decrypt = rc6_decrypt,
     },
 };
 

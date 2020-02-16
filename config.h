@@ -35,6 +35,8 @@
 #define DFU_CIPHER_XTEA1    19  /* XTEA-1 block cipher */
 #define DFU_CIPHER_BLOWFISH 20  /* Blowfish block cipher */
 #define DFU_CIPHER_RTEA     21  /* Ruptor's TEA or Repaired TEA */
+#define DFU_CIPHER_RC6      22  /* Rivest RC6-32/20/128 block cipher */
+#define DFU_CIPHER_RC6_A    23  /* Rivest RC6-32/20/128 block cipher (ASM)*/
 /** Modes for using with block cipher */
 #define DFU_CIPHER_ECB      0   /* Electronic Codebook (ECB) */
 #define DFU_CIPHER_CBC      1   /* Cipher Block Chaining (CBC) */
@@ -196,6 +198,11 @@
 
 #ifndef DFU_AES_IV_96
 #define DFU_AES_IV_96       0x44, 0x33, 0x22, 0x11, 0x88, 0x77, 0x66, 0x55, 0xCC, 0xBB, 0xAA, 0x99
+#endif
+
+#ifndef DFU_AES_IV_128
+#define DFU_AES_IV_128      0x44, 0x33, 0x22, 0x11, 0x88, 0x77, 0x66, 0x55,\
+                            0xCC, 0xBB, 0xAA, 0x99, 0x44, 0x33, 0x22, 0x11
 #endif
 
 #endif // _DFU_BOOTLOADER_H_

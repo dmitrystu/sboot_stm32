@@ -30,7 +30,8 @@ LDPARAMS   ?= ROMLEN=64K RAMLEN=8K
 #sources
 CRYPT_SRC   = src/arc4.c src/chacha.c src/gost.c src/raiden.c src/rc5.c src/speck.c
 CRYPT_SRC  += src/xtea.c src/xtea1.c src/blowfish.c src/rtea.c src/checksum.c src/crypto.c
-FW_SRC      = $(CRYPT_SRC) $(FWSTARTUP) src/descriptors.c src/bootloader.c src/rc5a.S src/chacha_a.S
+CRYPT_SRC  += src/rc6.c
+FW_SRC      = $(CRYPT_SRC) $(FWSTARTUP) src/descriptors.c src/bootloader.c src/rc5a.S src/chacha_a.S src/rc6a.S
 SW_SRC      = $(CRYPT_SRC) src/encrypter.c
 TS_SRC      = $(filter-out src/crypto.c, $(CRYPT_SRC)) src/ctest.c
 
