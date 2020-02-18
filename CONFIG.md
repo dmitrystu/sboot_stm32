@@ -48,6 +48,7 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_AES_KEY_256     | 256-bit cipher key                  | Comma separated bytes          |                         |
 |DFU_AES_IV_64       | 64-bit cipher IV                    | Comma separated bytes          |                         |
 |DFU_AES_IV_96       | 96-bit cipher IV                    | Comma separated bytes          | Used for the CHACHA     |
+|DFU_AES_IV_128      | 128-bit cipher IV                   | Comma separated bytes          |                         |
 
 ### Table 2. Available Checksums
 *Note:* Firmware checksum will be checked on every startup. Bootloader will be activated if no correct firmware found. It may take a lot of time.
@@ -68,6 +69,7 @@ You can find configuration parameters in the following tables. Defaults marked *
 |_DISABLE            | Disable encryption           |            |          |         |                          |
 |DFU_CIPHER_ARC4     | Rivest RC-4                  | Stream     | 128      | N/A     | Unsafe                   |
 |DFU_CIPHER_CHACHA   | RFC7539-CHACHA20             | Stream     | 256      | 96      |                          |
+|DFU_CIPHER_CHACHA_A | RFC7539-CHACHA20             | Stream     | 256      | 96      | THUMB ASM version        |
 |DFU_CIPHER_GOST     | GOST R 34.12-2015 MAGMA      |  64        | 256      | 64      | treat data as LE32       |
 |DFU_CIPHER_RAIDEN   | RAIDEN                       |  64        | 128      | 64      |                          |
 |DFU_CIPHER_RC5      | Rivest RC5-32/12/128         |  64        | 128      | 64      |                          |

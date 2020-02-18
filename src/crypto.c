@@ -97,14 +97,21 @@ static void* memxor(void *dst, const void *src, size_t sz) __attribute__((unused
     #define crypto_encrypt(out, in) arc4_crypt(out, in)
     #define crypto_decrypt(out, in) arc4_crypt(out, in)
 
-#elif (DFU_CIPHER == DFU_CIPHER_CHACHA_A)
-    #error Cipher DISABLED
+#elif (DFU_CIPHER == DFU_CIPHER_CHACHA_A) && defined(__thumb__)
     #include "chacha_a.h"
-    #define init(key) _chacha_init(key)
-    #define encrypt(out, in) _chacha_crypt(out, in)
-    #define decrypt(out, in) _chacha_crypt(out, in)
+    #define CRYPTO_BLKSIZE 1
+    #define CRYPTO_KEYSIZE 32
+    #define CRYPTO_IVSIZE  12
+    #define CRYPTO_NAME    "RFC7539-CHACHA20"
+    #undef  DFU_CIPHER_MODE
+    #define DFU_CIPHER_MODE -1
+    #define CRYPTO_KEY DFU_AES_KEY_256
+    #define CRYPTO_NONCE DFU_AES_IV_96
+    #define crypto_init(key, nonce) _chacha_init(key, nonce)
+    #define crypto_encrypt(out, in) _chacha_crypt(out, in)
+    #define crypto_decrypt(out, in) _chacha_crypt(out, in)
 
-#elif (DFU_CIPHER == DFU_CIPHER_CHACHA)
+#elif (DFU_CIPHER == DFU_CIPHER_CHACHA) || (DFU_CIPHER == DFU_CIPHER_CHACHA_A)
     #include "chacha.h"
     #define CRYPTO_BLKSIZE 1
     #define CRYPTO_KEYSIZE 32

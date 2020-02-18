@@ -16,19 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef _CHACHA_A_H_
 #define _CHACHA_A_H_
 #if defined(__cplusplus)
     extern "C" {
 #endif
 
-#define CRYPTO_BLKSIZE 1
-#define CRYPTO_NAME    "RFC7539-CHACHA20"
+/**
+ * @brief initialize CHACHA-20 stream cipher
+ * @param key  256-bit ket
+ * @param nonce 96-bit IV
+ */
+void _chacha_init(const void *key, const void *nonce);
 
-
-void _chacha_init(void);
-void _chacha_crypt(uint32_t *out, const uint32_t *in, int32_t bytes);
+/** @brief Encrypt/Decrypt byte
+ *  @param out cipher output
+ *  @param in  cipher input
+ */
+void _chacha_crypt(void *out, const void *in);
 
 #if defined(__cplusplus)
     }
