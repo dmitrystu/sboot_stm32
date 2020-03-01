@@ -169,6 +169,30 @@ static void* memxor(void *dst, const void *src, size_t sz) __attribute__((unused
     #define crypto_encrypt(out, in) rc6_encrypt(out, in)
     #define crypto_decrypt(out, in) rc6_decrypt(out, in)
 
+#elif (DFU_CIPHER == DFU_CIPHER_RIJNDAEL)
+    #include "rijndael.h"
+    #if (RIJNDAEL_KEYSIZE == 128)
+        #define CRYPTO_KEYSIZE 16
+        #define CRYPTO_NAME "AES-128"
+        #define CRYPTO_KEY DFU_AES_KEY_128
+    #elif (RIJNDAEL_KEYSIZE == 192)
+        #define CRYPTO_KEYSIZE 24
+        #define CRYPTO_NAME "AES-192"
+        #define CRYPTO_KEY DFU_AES_KEY_192
+    #elif (RIJNDAEL_KEYSIZE == 256)
+        #define CRYPTO_KEYSIZE 32
+        #define CRYPTO_NAME "AES-256"
+        #define CRYPTO_KEY DFU_AES_KEY_256
+    #else
+        #error "Unsupported AES key size."
+    #endif
+
+    #define CRYPTO_BLKSIZE 16
+    #define CRYPTO_NONCE DFU_AES_IV_128
+    #define crypto_init(key, nonce) rijndael_init(key)
+    #define crypto_encrypt(out, in) rijndael_encrypt(out, in)
+    #define crypto_decrypt(out, in) rijndael_decrypt(out, in)
+
 #else
     #undef  DFU_CIPHER_MODE
     #define DFU_CIPHER_MODE -1

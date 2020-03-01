@@ -13,13 +13,12 @@
 #include "chacha.h"
 #include "arc4.h"
 #include "rc6.h"
-
+#include "rijndael.h"
 
 #define _countof(x) (sizeof(x) / sizeof(*x))
 
 typedef struct test_s {
     const size_t    blocksize;
-    const size_t    blockcount;
     const char*     key;
     const char*     name;
     const char*     plain;
@@ -55,8 +54,6 @@ static void chacha_enc_512(uint32_t* out, const uint32_t* in) {
         i++;
     }
 }
-
-
 
 const test_t data[] = {
     {
@@ -179,10 +176,82 @@ const test_t data[] = {
         .encrypt = rc6_encrypt,
         .decrypt = rc6_decrypt,
     },
+#if (RIJNDAEL_KEYSIZE == 128)
+    {
+        .blocksize = 16,
+        .name    = "AES-128 NIST AESAVS C.1 Vector 2",
+        .key     = "CA EA 65 CD BB 75 E9 16 9E CD 22 EB E6 E5 46 75",
+        .plain   = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+        .cipher  = "6E 29 20 11 90 15 2D F4 EE 05 81 39 DE F6 10 BB",
+        .init    = rijndael_init,
+        .encrypt = rijndael_encrypt,
+        .decrypt = rijndael_decrypt,
+    },
+    {
+        .blocksize = 16,
+        .name    = "AES-128 FIPS-197",
+        .key     = "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F",
+        .plain   = "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF",
+        .cipher  = "69 C4 E0 D8 6A 7B 04 30 D8 CD B7 80 70 B4 C5 5A",
+        .init    = rijndael_init,
+        .encrypt = rijndael_encrypt,
+        .decrypt = rijndael_decrypt,
+    },
+#elif (RIJNDAEL_KEYSIZE == 192)
+    {
+        .blocksize = 16,
+        .name    = "AES-192 NIST AESAVS C.2 Vector 3",
+        .key     = "A8 A2 82 EE 31 C0 3F AE 4F 8E 9B 89 30 D5 47 3C"
+                  " 2E D6 95 A3 47 E8 8B 7C",
+        .plain   = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+        .cipher  = "93 F3 27 0C FC 87 7E F1 7E 10 6C E9 38 97 9C B0",
+        .init    = rijndael_init,
+        .encrypt = rijndael_encrypt,
+        .decrypt = rijndael_decrypt,
+    },
+    {
+        .blocksize = 16,
+        .name    = "AES-192 FIPS-197",
+        .key     = "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"
+                  " 10 11 12 13 14 15 16 17",
+        .plain   = "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF",
+        .cipher  = "DD A9 7C A4 86 4C DF E0 6E AF 70 A0 EC 0D 71 91",
+        .init    = rijndael_init,
+        .encrypt = rijndael_encrypt,
+        .decrypt = rijndael_decrypt,
+    },
+#elif (RIJNDAEL_KEYSIZE == 256)
+    {
+        .blocksize = 16,
+        .name    = "AES-256 NIST AESAVS C.3 Vector 1",
+        .key     = "C4 7B 02 94 DB BB EE 0F EC 47 57 F2 2F FE EE 35"
+                  " 87 CA 47 30 C3 D3 3B 69 1D F3 8B AB 07 6B C5 58",
+        .plain   = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+        .cipher  = "46 F2 FB 34 2D 6F 0A B4 77 47 6F C5 01 24 2C 5F",
+        .init    = rijndael_init,
+        .encrypt = rijndael_encrypt,
+        .decrypt = rijndael_decrypt,
+    },
+    {
+        .blocksize = 16,
+        .name    = "AES-256 FIPS-197",
+        .key     = "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"
+                  " 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F",
+        .plain   = "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF",
+        .cipher  = "8E A2 B7 CA 51 67 45 BF EA FC 49 90 4B 49 60 89",
+        .init    = rijndael_init,
+        .encrypt = rijndael_encrypt,
+        .decrypt = rijndael_decrypt,
+    },
+#endif
+
+
+
+
 };
 
-int strtoba(const char *str, void *buf) {
-    int count = 0;
+size_t strtoba(const char *str, void *buf) {
+    size_t count = 0;
     uint8_t *b = buf;
     while (*str) {
         int c = *str++;
@@ -204,7 +273,7 @@ int strtoba(const char *str, void *buf) {
     return count;
 }
 
-int batostr(const void *buf, char *str, size_t count) {
+void batostr(const void *buf, char *str, size_t count) {
     const char *charset = "0123456789ABCDEF";
     const uint8_t *b = buf;
     while (count--) {

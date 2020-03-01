@@ -15,6 +15,7 @@
   + XTEA (classic and XTEA-1) block cipher
   + RTEA block cipher
   + BLOWFISH type block cipher
+  + Rijndael AES-128/192/256 block cipher
 + Cipher modes for block ciphers
   + Electronic Codebook (ECB)
   + Cipher Block Chaining (CBC)

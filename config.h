@@ -37,6 +37,7 @@
 #define DFU_CIPHER_RTEA     21  /* Ruptor's TEA or Repaired TEA */
 #define DFU_CIPHER_RC6      22  /* Rivest RC6-32/20/128 block cipher */
 #define DFU_CIPHER_RC6_A    23  /* Rivest RC6-32/20/128 block cipher (ASM)*/
+#define DFU_CIPHER_RIJNDAEL 24  /* Rinjdael AES-128 block cipher */
 /** Modes for using with block cipher */
 #define DFU_CIPHER_ECB      0   /* Electronic Codebook (ECB) */
 #define DFU_CIPHER_CBC      1   /* Cipher Block Chaining (CBC) */
@@ -187,6 +188,12 @@
 #define DFU_AES_KEY_128     DFU_AES_KEY_A
 #endif
 
+#ifndef DFU_AES_KEY_192
+#define DFU_AES_KEY_192     0x2D, 0x4D, 0x61, 0x6B, 0x65, 0x4C, 0x6F, 0x76, \
+                            0x65, 0x4E, 0x6F, 0x74, 0x57, 0x61, 0x72, 0x2D, \
+                            0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+#endif
+
 #ifndef DFU_AES_KEY_256
 #define DFU_AES_KEY_256     DFU_AES_KEY_A, DFU_AES_KEY_B
 #endif
@@ -197,7 +204,8 @@
 #endif
 
 #ifndef DFU_AES_IV_96
-#define DFU_AES_IV_96       0x44, 0x33, 0x22, 0x11, 0x88, 0x77, 0x66, 0x55, 0xCC, 0xBB, 0xAA, 0x99
+#define DFU_AES_IV_96       0x44, 0x33, 0x22, 0x11, 0x88, 0x77, 0x66, 0x55, \
+                            0xCC, 0xBB, 0xAA, 0x99
 #endif
 
 #ifndef DFU_AES_IV_128
