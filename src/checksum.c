@@ -136,7 +136,7 @@ size_t append_checksum(void *data, size_t len, size_t bsize) {
         return 0;
     }
     init_checksum(&cs);
-    while (len--) {
+    for (size_t i = 0; i < len; i++) {
         update_checksum(&cs, *buf);
         buf++;
     }
