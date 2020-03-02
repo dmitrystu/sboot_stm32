@@ -21,6 +21,8 @@
 #define RCC_APB2RSTR    0x0C
 #define RCC_APB2ENR     0x18
 
+#define AFIO_BASE       0x40010000
+
 #define GPIOA           0x40010800
 #define GPIOB           0x40010C00
 #define GPIOC           0x40011000
@@ -113,8 +115,13 @@ Reset_Handler:
 /* pulling down GPIOA12 (USB-DP)*/
 /* this will force re-enumeration. Very useful if no DP control pin used */
     ldr     r0, =#RCC_BASE
-    movs    r2, #(0x04 | BOOTSTRAP_RCC)
+    movs    r2, #(0x05 | BOOTSTRAP_RCC)
     strb    r2, [r0, #RCC_APB2ENR]
+#if (DFU_DISABLE_SWD == _ENABLE)
+    ldr     r1, =#AFIO_BASE
+    ldr     r3, =#0x04000000
+    str     r3, [r1, #0x04]
+#endif
     ldr     r1, =#GPIOA
     ldr     r2, [r1, #GPIO_CRH]
     ldr     r3, =#0x000F0000

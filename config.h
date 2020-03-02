@@ -86,6 +86,10 @@
 #ifndef DFU_SEAL_LEVEL
 #define DFU_SEAL_LEVEL      0
 #endif
+/** Disable SWD/JTAG interface **/
+#ifndef DFU_DISABLE_SWD
+#define DFU_DISABLE_SWD     _DISABLE
+#endif
 /* USB VID */
 #ifndef DFU_VENDOR_ID
 #define DFU_VENDOR_ID       0x0483

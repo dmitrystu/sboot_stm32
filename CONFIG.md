@@ -40,6 +40,8 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_BOOTSTRAP_LEVEL | Level on bootstrap pin to activate  | **_LOW**/_HIGH                 |                         |
 |DFU_BOOTSTRAP_PULL  | Bootstrap pin pullup control        | _DISABLE/**_AUTO**/_LOW/_HIGH  |                         |
 |DFU_DBLRESET_MS     | Doublereset activation time (ms)    | TIMEOUT/_DISABLE               | **300**                 |
+|DFU_SEAL_LEVEL      | RDP level                           | **0**, 1, 2 (if available)     |                         |
+|DFU_DISABLE_SWD     | Disable SWD/JTAG on strart          | _ENABLE/**_DISABLE**           |                         |
 |DFU_APP_START       | Start address for user code         | ROM ADDRESS/**_AUTO**          | must be page aligned    |
 |DFU_APP_SIZE        | User application max size           | AMMOUNT/**_AUTO**              | up to the ROM end       |
 |DFU_CIPHER          | Type of ciper                       | See Table 3                    | **DFU_CIPHER_RC5**      |
