@@ -1,6 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * Rinjdael AES-128/192/256
+ * Rijndael AES-128/192/256
  *
  * Copyright ©2020 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  * Based on: https://github.com/kokke/tiny-AES-c

@@ -1,6 +1,6 @@
 /* This file is the part of the STM32 secure bootloader
  *
- * Rinjdael AES-128/192/256
+ * Rijndael AES-128/192/256
  *
  * Copyright ©2020 Dmitry Filimonchuk <dmitrystu[at]gmail[dot]com>
  * Based on: https://github.com/kokke/tiny-AES-c
@@ -35,20 +35,23 @@
 #define KEYSIZE32   (RIJNDAEL_KEYSIZE / 32)
 #define RKSIZE32    (4 * (ROUNDS + 1))
 
-
-
-// Function prototypes
-static uint8_t gmul2(uint8_t x);
-static uint8_t gmul(uint8_t x, uint8_t y);
-
 // state - array holding the intermediate results during decryption.
 typedef uint8_t state_t[4][4];
 
-// The round constant word array, Rcon[i], contains the values given by
-// x to the power (i-1) being powers of x (x is denoted as {02}) in the field GF(2^8)
-static const uint8_t Rcon[11] = {
-    0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
-};
+// Roundkey storage
+static uint32_t roundkey[RKSIZE32];
+
+// Basic GF2 math
+static uint8_t gmul2(uint8_t x) {
+    if (x & 0x80) {
+        return (x << 1) ^ 0x1B;
+    } else {
+        return (x << 1);
+    }
+}
+
+#define gmul4(x) gmul2(gmul2(x))
+#define gmul8(x) gmul2(gmul4(x))
 
 #if (RIJNDAEL_ROM_SBOXES == 1)
 
@@ -103,9 +106,15 @@ static void init_sbox(void) {
     /* loop invariant: p * q == 1 in the Galois field */
     do {
         /* multiply p by 3 */
-        p = gmul(p, 0x03);
+        p ^= gmul2(p);
         /* divide q by 3 (equals multiplication by 0xf6) */
-        q = gmul(q, 0xF6);
+        q ^= (q << 1);
+        q ^= (q << 2);
+        q ^= (q << 4);
+        q &= 0xFF;
+        if (q & 0x80) {
+            q ^= 0x09;
+        }
         /* compute the affine transformation */
         uint32_t s = 0x63 ^ q ^ (q << 1) ^ (q << 2) ^ (q << 3) ^ (q << 4);
         s = 0xFF & (s ^ (s >> 8));
@@ -121,28 +130,6 @@ static void init_sbox(void) {
 
 #endif //USE_ROM_SBOXES
 
-// Roundkey storage
-static uint32_t roundkey[RKSIZE32];
-
-static uint8_t gmul2(uint8_t x) {
-    if (x & 0x80) {
-        return (x << 1) ^ 0x1B;
-    } else {
-        return (x << 1);
-    }
-}
-
-static uint8_t gmul(uint8_t x, uint8_t y) {
-    uint8_t res = 0;
-    for (; y != 0; y >>= 1) {
-        if (y & 0x01) {
-            res ^= x;
-        }
-        x = gmul2(x);
-    }
-    return res;
-}
-
 static void sub_box(void *data, const uint8_t *box, size_t sz) {
     uint8_t *raw = data;
     for (size_t i = 0; i < sz; i++) {
@@ -151,9 +138,10 @@ static void sub_box(void *data, const uint8_t *box, size_t sz) {
     }
 }
 
-static void XorRoundKey(void *dst, const void *src, const void *rk) {
+static void AddRoundKey(void *dst, const void *src, int round) {
+    uint8_t *rk = (uint8_t*)roundkey + sizeof(state_t) * round;
     for (int i = 0; i < sizeof(state_t); i++) {
-        ((uint8_t*)dst)[i] = ((uint8_t*)src)[i] ^ ((uint8_t*)rk)[i];
+        ((uint8_t*)dst)[i] = ((uint8_t*)src)[i] ^ rk[i];
     }
 }
 
@@ -200,16 +188,35 @@ static void MixColumns(state_t* state) {
     }
 }
 
+// Let "*" denotes polynomial multiplication modulo x4+1 over GF(2^8)
+// Let "+" denotes polynomyal addition over GF(2^8) (XOR) X + X = 0
+// A' = (A*8 + A*4 + A*2) + (B*8 + B*2 + B) + (C*8 + C*4 + C) + (D*8 + D)
+// B' = (A*8 + A) + (B*8 + B*4 + B*2) + (C*8 + C*2 + C) + (D*8 + D*4 + D)
+// C' = (A*8 + A*4 + A) + (B*8 + B) + (C*8 + C*4 + C*2) + (D*8 + D*2 + D)
+// D' = (A*8 + A*2 + A) + (B*8 + B*4 + B) + (C*8 + C) + (D*8 + D*4 + D*2)
+// Let
+// T = (A + B + C + D)*8 + (A + B + C + D)
+// Then
+// A' = T + (A + C)*4 + (A + B)*2 + A
+// B' = T + (B + D)*4 + (B + C)*2 + B
+// C' = T + (C + A)*4 + (C + D)*2 + C
+// D' = T + (D + B)*4 + (D + A)*2 + D
+// So (A + C)*4 = (C + A)* 4 and (B + D)*4 = (D + B)*4
 static void InvMixColumns(state_t* state) {
     for (int i = 0; i < 4; ++i) {
         uint8_t a = (*state)[i][0];
         uint8_t b = (*state)[i][1];
         uint8_t c = (*state)[i][2];
         uint8_t d = (*state)[i][3];
-        (*state)[i][0] = gmul(a, 0x0e) ^ gmul(b, 0x0b) ^ gmul(c, 0x0d) ^ gmul(d, 0x09);
-        (*state)[i][1] = gmul(a, 0x09) ^ gmul(b, 0x0e) ^ gmul(c, 0x0b) ^ gmul(d, 0x0d);
-        (*state)[i][2] = gmul(a, 0x0d) ^ gmul(b, 0x09) ^ gmul(c, 0x0e) ^ gmul(d, 0x0b);
-        (*state)[i][3] = gmul(a, 0x0b) ^ gmul(b, 0x0d) ^ gmul(c, 0x09) ^ gmul(d, 0x0e);
+        uint8_t T, X;
+        T = a ^ b ^ c ^ d;
+        T ^= gmul8(T);
+        X = gmul4(a ^ c);
+        (*state)[i][0] = T ^ X ^ gmul2(a ^ b) ^ a;
+        (*state)[i][2] = T ^ X ^ gmul2(c ^ d) ^ c;
+        X = gmul4(b ^ d);
+        (*state)[i][1] = T ^ X ^ gmul2(b ^ c) ^ b;
+        (*state)[i][3] = T ^ X ^ gmul2(d ^ a) ^ d;
     }
 }
 
@@ -246,14 +253,16 @@ static void InvShiftRows(state_t* state)
 }
 
 void rijndael_init(const void *key) {
+    uint8_t rcon = 0x01;
     init_sbox();
     memcpy(roundkey, key, KEYSIZE);
-    for (int i = KEYSIZE32, j = 0, k = 0; i < RKSIZE32; i++) {
+    for (int i = KEYSIZE32, j = 0; i < RKSIZE32; i++) {
         uint32_t temp = roundkey[i - 1];
         if (j == 0) {
             temp = __ror32(temp, 8);
             sub_box(&temp, sbox, 4);
-            temp ^= Rcon[++k];
+            temp ^= rcon;
+            rcon = gmul2(rcon);
         }
         // 256-bit key special
         if (KEYSIZE == 32 && j == 4) {
@@ -268,35 +277,35 @@ void rijndael_init(const void *key) {
 
 void rijndael_encrypt(uint32_t *out, const uint32_t *in) {
     state_t state;
-    uint32_t *rk = roundkey;
+    int round = 0;
     // Add the First round key to the state before starting the rounds.
-    XorRoundKey(&state, in, rk);
-    for (int round = 1; ; round++) {
-        rk += 4;
+    AddRoundKey(&state, in, round);
+    for(;;) {
+        round++;
         SubBytes(&state);
         ShiftRows(&state);
         if (round == ROUNDS) {
             break;
         }
         MixColumns(&state);
-        XorRoundKey(&state, &state, rk);
+        AddRoundKey(&state, &state, round);
     }
-    XorRoundKey(out, &state, rk);
+    AddRoundKey(out, &state, round);
 }
 
 void rijndael_decrypt(uint32_t *out, const uint32_t *in) {
     state_t state;
-    uint32_t *rk = roundkey + 4 * ROUNDS;
-    XorRoundKey(&state, in, rk);
-    for (int round = 1; ; round++) {
-        rk -= 4;
+    int round = ROUNDS;
+    AddRoundKey(&state, in, round);
+    for(;;) {
+        round--;
         InvShiftRows(&state);
         InvSubBytes(&state);
-        if (round == ROUNDS) {
+        if (round == 0) {
             break;
         }
-        XorRoundKey(&state, &state, rk);
+        AddRoundKey(&state, &state, round);
         InvMixColumns(&state);
     }
-    XorRoundKey(out, &state, rk);
+    AddRoundKey(out, &state, round);
 }
