@@ -70,13 +70,14 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_CIPHER_ARC4     | Rivest RC-4                  | Stream     | 128      | N/A     | Unsafe                   |
 |DFU_CIPHER_CHACHA   | RFC7539-CHACHA20             | Stream     | 256      | 96      |                          |
 |DFU_CIPHER_CHACHA_A | RFC7539-CHACHA20             | Stream     | 256      | 96      | THUMB ASM version        |
-|DFU_CIPHER_GOST     | GOST R 34.12-2015 MAGMA      |  64        | 256      | 64      | treat data as LE32       |
+|DFU_CIPHER_GOST     | GOST R 34.12-2015 MAGMA      |  64        | 256      | 64      | treat data as LE64       |
+|DFU_CIPHER_MAGMA    | GOST R 34.12-2015 MAGMA      |  64        | 256      | 64      |                          |
 |DFU_CIPHER_RAIDEN   | RAIDEN                       |  64        | 128      | 64      |                          |
 |DFU_CIPHER_RC5      | Rivest RC5-32/12/128         |  64        | 128      | 64      |                          |
 |DFU_CIPHER_RC5_A    | Rivest RC5-32/12/128         |  64        | 128      | 64      | THUMB ASM version        |
 |DFU_CIPHER_SPECK    | SPECK 64/128                 |  64        | 128      | 64      |                          |
-|DFU_CIPHER_XTEA     | XTEA                         |  64        | 128      | 64      | treat data as LE64       |
-|DFU_CIPHER_XTEA1    | XTEA-1                       |  64        | 128      | 64      | treat data as LE64       |
+|DFU_CIPHER_XTEA     | XTEA                         |  64        | 128      | 64      | treat data as LE32       |
+|DFU_CIPHER_XTEA1    | XTEA-1                       |  64        | 128      | 64      | treat data as LE32       |
 |DFU_CIPHER_BLOWFISH | Blowfish                     |  64        | 256      | 64      | Uses xorshift instead PI |
 |DFU_CIPHER_RTEA     | Ruptor's TEA or Repaired TEA |  64        | 256      | 64      |                          |
 |DFU_CIPHER_RC6      | Rivest RC6-32/20/16          |  128       | 128      | 128     |                          |

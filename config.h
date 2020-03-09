@@ -38,6 +38,7 @@
 #define DFU_CIPHER_RC6      22  /* Rivest RC6-32/20/128 block cipher */
 #define DFU_CIPHER_RC6_A    23  /* Rivest RC6-32/20/128 block cipher (ASM)*/
 #define DFU_CIPHER_RIJNDAEL 24  /* Rinjdael AES-128 block cipher */
+#define DFU_CIPHER_MAGMA    25  /* GOST R 34.12-2015 "MAGMA" (Endianess fixed) block cipher */
 /** Modes for using with block cipher */
 #define DFU_CIPHER_ECB      0   /* Electronic Codebook (ECB) */
 #define DFU_CIPHER_CBC      1   /* Cipher Block Chaining (CBC) */

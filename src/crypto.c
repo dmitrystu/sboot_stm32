@@ -51,6 +51,17 @@ static void* memxor(void *dst, const void *src, size_t sz) __attribute__((unused
     #define crypto_encrypt(out, in) gost_encrypt(out, in)
     #define crypto_decrypt(out, in) gost_decrypt(out, in)
 
+#elif (DFU_CIPHER == DFU_CIPHER_MAGMA)
+    #include "magma.h"
+    #define CRYPTO_BLKSIZE 8
+    #define CRYPTO_KEYSIZE 32
+    #define CRYPTO_NAME "GOST R 34.12-2015 \"MAGMA\""
+    #define CRYPTO_KEY DFU_AES_KEY_256
+    #define CRYPTO_NONCE DFU_AES_IV_64
+    #define crypto_init(key, nonce) magma_init(key)
+    #define crypto_encrypt(out, in) magma_encrypt(out, in)
+    #define crypto_decrypt(out, in) magma_decrypt(out, in)
+
 #elif (DFU_CIPHER == DFU_CIPHER_SPECK)
     #include "speck.h"
     #define CRYPTO_BLKSIZE 8

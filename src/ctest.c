@@ -14,6 +14,7 @@
 #include "arc4.h"
 #include "rc6.h"
 #include "rijndael.h"
+#include "magma.h"
 
 #define _countof(x) (sizeof(x) / sizeof(*x))
 
@@ -106,6 +107,17 @@ const test_t data[] = {
         .init    = gost_init,
         .encrypt = gost_encrypt,
         .decrypt = gost_decrypt,
+    },
+   {
+        .blocksize = 8,
+        .name    = "GOST R 34.12-2015 \"MAGMA\" (FIXED) Standard",
+        .key     = "FF EE DD CC BB AA 99 88 77 66 55 44 33 22 11 00"
+                   "F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF",
+        .plain   = "FE DC BA 98 76 54 32 10",
+        .cipher  = "4E E9 01 E5 C2 D8 CA 3D",
+        .init    = magma_init,
+        .encrypt = magma_encrypt,
+        .decrypt = magma_decrypt,
     },
     {
         .blocksize = 8,
