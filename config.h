@@ -175,7 +175,7 @@
 #endif
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
 #ifndef DFU_CIPHER
-#define DFU_CIPHER          DFU_CIPHER_RC5
+#define DFU_CIPHER          DFU_CIPHER_RC5_A
 #endif
 #ifndef DFU_CIPHER_MODE
 #define DFU_CIPHER_MODE     DFU_CIPHER_CBC
