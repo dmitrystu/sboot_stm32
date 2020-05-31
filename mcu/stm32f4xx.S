@@ -34,6 +34,7 @@
 #define GPIO_MODER      0x00
 #define GPIO_PUPDR      0x0C
 #define GPIO_IDR        0x10
+#define GPIO_ODR        0x14
 #define GPIO_AFRL       0x20
 #define GPIO_AFRH       0x24
 
@@ -116,6 +117,34 @@ __isr_vector:
     .globl  Reset_Handler
     .type   Reset_Handler, %function
 Reset_Handler:
+
+/* Forcing bus disconnect pulling down UD+ UD- for 20mS */
+/* Workaround for the board with fixed UD+ pullup */
+    ldr     r0, = RCC_BASE
+    movs    r1, 0x01
+    strb    r1, [r0, RCC_AHB1ENR]
+    ldr     r2, = GPIOA
+    ldr     r1, [r2, GPIO_MODER]
+    ldr     r3, = 0x03C00000
+    bics    r1, r3
+    ldr     r3, = 0x01400000
+    orrs    r1, r3
+    str     r1, [r2, GPIO_MODER]
+    movs    r2, 0x00
+    str     r2, [r2, GPIO_ODR]
+/* Do dealy */
+    ldr     r2, = (20 * 16000 / 3)
+.L_bus_rst_dly:
+    subs    r2, 1
+    bhs     .L_bus_rst_dly
+/* Restore GPIO state back */
+    movs    r1, 0x01
+    strb    r1, [r0, RCC_AHB1RSTR]
+    movs    r1, 0x00
+    strb    r1, [r0, RCC_AHB1RSTR]
+    strb    r1, [r0, RCC_AHB1ENR]
+/* End workaround */
+
 #if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
     ldr     r1, =#_KEY_ADDR
     ldr     r2, =#DFU_BOOTKEY
@@ -130,7 +159,7 @@ Reset_Handler:
 /* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
  * In case of RESET at this time bootloader will start from code above. */
     str     r2, [r1]
-/* STM32L100 startup clock is about 16 MHz HSI
+/* STM32F4 startup clock is about 16 MHz HSI
  * so, we need T(mS)*16000 ticks to make a required delay */
     ldr     r0, =#(DFU_DBLRESET_MS * 16000 / 3)
 .L_rst_delay:
