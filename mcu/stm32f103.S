@@ -107,156 +107,168 @@ __isr_vector:
 
     .section .text
     .thumb_func
+
+    .globl  System_Reset
+    .type   System_Reset, %function
+
     .globl Reset_Handler
     .type Reset_Handler, %function
 Reset_Handler:
-/* pulling down GPIOA12 (USB-DP)*/
+/* pulling down GPIOA12 GPIOA11 (USB-DP)*/
 /* this will force re-enumeration. Very useful if no DP control pin used */
-    ldr     r0, =#RCC_BASE
-    movs    r2, #(0x04 | BOOTSTRAP_RCC)
-    strb    r2, [r0, #RCC_APB2ENR]
-    ldr     r1, =#GPIOA
-    ldr     r2, [r1, #GPIO_CRH]
-    ldr     r3, =#0x000F0000
+    ldr     r5, = RCC_BASE
+    movs    r2, 0x04
+    strb    r2, [r5, RCC_APB2ENR]
+    ldr     r1, = GPIOA
+    ldr     r2, [r1, GPIO_CRH]
+    ldr     r3, = 0x000FF000
     bics    r2, r3
-    ldr     r3, =#0x00020000
+    ldr     r3, = 0x00022000
     orrs    r2, r3
-    str     r2, [r1, #GPIO_CRH]
-    ldr     r2, =#0x10000000
-    str     r2, [r1, #GPIO_BSRR]
-#if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
-/* checking DFU SW bootkey */
-    ldr     r1, =#_KEY_ADDR
-    ldr     r2, =#DFU_BOOTKEY
-    movs    r3, #0x00
+    str     r2, [r1, GPIO_CRH]
+    ldr     r2, = 0x18000000
+    str     r2, [r1, GPIO_BSRR]
+/* Check key */
+    ldr     r1, = _KEY_ADDR
+    ldr     r2, = DFU_BOOTKEY
+    movs    r3, 0x00
     ldr     r4, [r1]
     str     r3, [r1]
-    subs     r4, r2
-    beq     .L_reset_gpio
-#endif
+    eors    r4, r2  //R4: 0xFFFFFFFF - force APP; 0x00000000 - force BOOT
 
-#if (DFU_DBLRESET_MS != _DISABLE)
 /* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
- * In case of RESET at this time bootloader will start from code above. */
+ * STM32F103 startup clock is 8.0MHz HSI
+ * so, we need T(mS)*8000 ticks to make a required delay
+ * In case of RESET at this time bootloader will start from code above.
+ */
+#if (DFU_DBLRESET_MS != DISABLE)
     str     r2, [r1]
-/* STM32F103 startup clock is 8.0MHz HSI
- * so, we need T(mS)*8000 ticks to make a required delay */
-    ldr     r4, =#(DFU_DBLRESET_MS * 8000 / 3)
-.L_rst_delay:
-    subs    r4, #1              //+1 tick
-    bhs     .L_rst_delay        //+2 ticks, 3 ticks/cycle
-/* Clearing bootkey and continue */
-    str     r3, [r1]
 #endif
+/* At least 20 ms delay with pulled low DP+ DP- */
+#if (DFU_DBLRESET_MS > 20)
+    #define USB_RST_MS DFU_DBLRESET_MS
+#else
+    #define USB_RST_MS 20
+#endif
+    ldr     r3, = (USB_RST_MS * 8000 / 3)
+.L_rst_delay:
+    subs    r3, 1               //+1 tick
+    bne     .L_rst_delay        //+2 ticks, 3 ticks/cycle
+    str     r3, [r1]
+/* Reset GPIOA */
+    movs    r2, 0x04
+    strb    r2, [r5, RCC_APB2RSTR]
+    strb    r3, [r5, RCC_APB2RSTR]  //R3 = 0
+/* Continue with key */
+    mvns    r0, r4
+    bne     .L_check_boot
+/* jump to user section */
+    ldr     r0, = _APP_START
+    ldr     r1, = SCB
+    str     r0, [r1, SCB_VTOR]  //set VTOR
+    ldr     r1, [r0, 0x00]      //load new MSP
+    msr     MSP, r1             //set MSP
+    ldr     r3, [r0, 0x04]      //load reet vector
+    bx      r3                  //jump to user_app
+.L_check_boot:
+/* Setup clock 48Mhz HSI PLL for USB */
+/* set flash latency 1 */
+    ldr     r3, = FLASH_R_BASE
+    movs    r0, 0x31
+    str     r0, [r3, FLASH_ACR]
+/* setup RCC */
+    movs    r2, 0x68               // PLLMIL12  | USB_PRE
+    strb    r2, [r5, RCC_CFGR + 2]
+    movs    r2, 0x01
+    strb    r2, [r5, RCC_CR + 3]
+.L_wait_PLL:
+    ldr     r0, [r5, RCC_CR]
+    lsrs    r0, 26                 // PLLRDY -> CF
+    bcc     .L_wait_PLL
+/* switch to PLL */
+    movs    r2, 0x02
+    strb    r2, [r5, RCC_CFGR + 0]
+    cbz     r4, .L_start_boot
 
 #if (DFU_BOOTSTRAP_GPIO != _DISABLE)
 /* checking bootstrap pin */
-    ldr     r1, =#DFU_BOOTSTRAP_GPIO
-    ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    movs    r2, BOOTSTRAP_RCC
+    strb    r2, [r5, RCC_APB2ENR]
+    ldr     r1, = DFU_BOOTSTRAP_GPIO
+    ldr     r3, = (0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
 #if (DFU_BOOTSTRAP_PULL == _DISABLE)
-    ldr     r2, =#(0x00 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r2, = (0x00 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
 #else
-    ldr     r2, =#(0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r2, = (0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
 #endif
-    ldr     r4, [r1, #BOOTSTRAP_CRx]
+    ldr     r4, [r1, BOOTSTRAP_CRx]
     bics    r4, r3
     orrs    r4, r2
-    str     r4, [r1, #BOOTSTRAP_CRx]
+    str     r4, [r1, BOOTSTRAP_CRx]
 #if ((DFU_BOOTSTRAP_PULL == _LOW) || ((DFU_BOOTSTRAP_PULL == _AUTO) && (DFU_BOOTSTRAP_LEVEL == _HIGH)))
-    ldr     r2, =#(0x01 << (DFU_BOOTSTRAP_PIN * 2)) //pulldown
+    ldr     r2, = (0x01 << (DFU_BOOTSTRAP_PIN * 2)) //pulldown
 #else
-    ldr     r2, =#(0x01 << DFU_BOOTSTRAP_PIN)   //pullup
+    ldr     r2, = (0x01 << DFU_BOOTSTRAP_PIN)   //pullup
 #endif
-    str     r2, [r1, #GPIO_BSRR]
-    movs    r4, #0x08
+    str     r2, [r1, GPIO_BSRR]
+    movs    r4, 0x08
 .L_scan_bootstrap:
-    ldr     r2, [r1, #GPIO_IDR]
-    lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
+    ldr     r2, [r1, GPIO_IDR]
+    lsrs    r2, (DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
     sbcs    r3, r3
-    movs    r2, #0x01
+    movs    r2, 0x01
     orrs    r2, r3
 #if (DFU_BOOTSTRAP_LEVEL == _HIGH)
     subs    r4, r2
 #else
     adds    r4, r2
 #endif
-    beq     .L_reset_gpio
-    cmp     r4, #0x10
+    beq     .L_start_boot
+    cmp     r4, 0x10
     bne     .L_scan_bootstrap
 #endif
 
-.L_reset_gpio:
-/* do a 20ms delay for device re-enumeration */
-    ldr     r1, =#(20 * 8000 / 3)
-.L_dp_delay:
-    subs    r1, #1              //+1 tick
-    bne     .L_dp_delay         //+2 ticks, 3 ticks/cycle
-/* resetting gpio back */
-    movs    r2, #(0x04 | BOOTSTRAP_RCC)
-    strb    r2, [r0, #RCC_APB2RSTR]
-    movs    r2, #0x00
-    strb    r2, [r0, #RCC_APB2RSTR]
-    strb    r2, [r0, #RCC_APB2ENR]
-    cbz     r4, .L_start_boot
-
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
-    ldr     r0, =#_APP_START
-    ldr     r1, =__romend
-    sub     r1, r0
+    ldr     r0, = _APP_START
+    ldr     r1, = __romend
+    subs    r1, r0
     bl      validate_checksum
     cbz     r0, .L_start_boot
 #endif
-
-/* jump to user section */
-    ldr     r0, =#_APP_START
-    ldr     r1, =#SCB
-    str     r0, [r1, #SCB_VTOR] //set VTOR
-    ldr     r1, [r0, #0x00]     //load new MSP
-    msr     MSP, r1             //set MSP
-    ldr     r3, [r0, #0x04]     //load reset vector
-    bx      r3                  //jump to user_app
+/* Reset and start app */
+    ldr     r1, = _KEY_ADDR
+    ldr     r2, = DFU_BOOTKEY
+    mvns    r2, r2
+    str     r2, [r1]
+System_Reset:
+    dsb
+    ldr     r1, = SCB
+    ldr     r2, = 0x05FA0004;
+    str     r2, [r1, SCB_AIRCR]
+    b .
 
 /* jump to bootloader */
 .L_start_boot:
 /* do copy data */
-    ldr     r1, =__etext
-    ldr     r2, =__data_start__
-    ldr     r3, =__data_end__
+    ldr     r1, = __etext
+    ldr     r2, = __data_start__
+    ldr     r3, = __data_end__
 .L_copy_data:
-    ldr     r0, [r1], #0x04
-    str     r0, [r2], #0x04
+    ldr     r0, [r1], 0x04
+    str     r0, [r2], 0x04
     cmp     r3, r2
     bhi     .L_copy_data
 .L_clear_bss:
-    movs    r0, #0x00
-    ldr     r2, =__bss_start__
-    ldr     r3, =__bss_end__
+    movs    r0, 0x00
+    ldr     r2, = __bss_start__
+    ldr     r3, = __bss_end__
 .L_clear_bss_loop:
-    str     r0, [r2], #0x04
+    str     r0, [r2], 0x04
     cmp     r3, r2
     bhi     .L_clear_bss_loop
 
-/* Setup clock 48Mhz HSI PLL for USB */
-/* set flash latency 1 */
-    ldr     r3, =#FLASH_R_BASE
-    movs    r0, #0x31
-    str     r0, [r3, #FLASH_ACR]
-/* setup RCC */
-    ldr     r3, =#RCC_BASE
-    movs    r2, #0x68               // PLLMIL12  | USB_PRE
-    strb    r2, [r3, #RCC_CFGR + 2]
-    movs    r2, #0x01
-    strb    r2, [r3, #RCC_CR + 3]
-.L_wait_PLL:
-    ldr     r0, [r3, #RCC_CR]
-    lsrs    r0, #26                 // PLLRDY -> CF
-    bcc     .L_wait_PLL
-
-/* switch to PLL */
-    movs    r2, 0x02
-    strb    r2, [r3, #RCC_CFGR + 0 ]
 #if (DFU_SEAL_LEVEL != 0)
-    ldr     r3, =#seal_flash
+    ldr     r3, = seal_flash
     blx     r3
 #endif
     bl      main
@@ -301,32 +313,32 @@ _default_handler:
 program_flash:
     push    {r4, r5, lr}
 /* checking halfword alignment */
-    lsrs    r4, r0, #0x01
+    lsrs    r4, r0, 0x01
     bcs     Err_unaligned
 /* unlocking flash */
-    ldr     r3, =#FLASH_R_BASE
-    ldr     r4, =#FLASH_KEY0
-    ldr     r5, =#FLASH_KEY1
-    str     r4, [r3, #FLASH_KEYR]
-    str     r5, [r3, #FLASH_KEYR]
+    ldr     r3, = FLASH_R_BASE
+    ldr     r4, = FLASH_KEY0
+    ldr     r5, = FLASH_KEY1
+    str     r4, [r3, FLASH_KEYR]
+    str     r5, [r3, FLASH_KEYR]
 /* main flash loop */
 .L_flash_loop:
-    subs    r2, #0x02
+    subs    r2, 0x02
     blt     Err_done
 /* check for the page start (1k page)*/
-    lsls    r4, r0, #22
+    lsls    r4, r0, 22
     bne     .L_do_write
 /* erasing page */
-    movs    r4, #0x02               // PER
-    str     r4, [r3, #FLASH_CR]
-    str     r0, [r3, #FLASH_AR]
-    movs    r4, #0x42               // PER + START
-    str     r4, [r3, #FLASH_CR]
+    movs    r4, 0x02               // PER
+    str     r4, [r3, FLASH_CR]
+    str     r0, [r3, FLASH_AR]
+    movs    r4, 0x42               // PER + START
+    str     r4, [r3, FLASH_CR]
     bl      wait_prog_done
     bcc     Err_erase
 .L_do_write:
-    mov     r4, #0x01               // PG
-    str     r4, [r3, #FLASH_CR]
+    mov     r4, 0x01               // PG
+    str     r4, [r3, FLASH_CR]
     ldrh    r5, [r1]
     strh    r5, [r0]
     bl      wait_prog_done
@@ -334,30 +346,30 @@ program_flash:
     ldrh    r4, [r0]
     cmp     r5, r4
     bne     Err_verify
-    adds    r0, #0x02
-    adds    r1, #0x02
+    adds    r0, 0x02
+    adds    r1, 0x02
     b       .L_flash_loop
 Err_done:
-    movs    r0, #0x00       //OK
+    movs    r0, 0x00       //OK
     b       .L_exit
 Err_unaligned:
-    movs    r0, #0x03       //errWRITE (unaligned access)
+    movs    r0, 0x03       //errWRITE (unaligned access)
     b       .L_exit
 Err_erase:
-    movs    r0, #0x04       //errERASE
+    movs    r0, 0x04       //errERASE
     b       .L_exit
 Err_prog:
-    movs    r0, #0x06       //errPROG
+    movs    r0, 0x06       //errPROG
     b       .L_exit
 Err_verify:
-    movs    r0, #0x07       //errVERIFY
+    movs    r0, 0x07       //errVERIFY
 .L_exit:
 /* clear FLASH_SR */
-    movs    r4, #0x64
-    str     r4, [r3, #FLASH_SR]
+    movs    r4, 0x64
+    str     r4, [r3, FLASH_SR]
 /* locking flash */
     movs    r4, 0x80
-    str     r4, [r3, #FLASH_CR]
+    str     r4, [r3, FLASH_CR]
     pop     {r4, r5, pc}
     .size program_flash, . - program_flash
 
@@ -365,12 +377,12 @@ Err_verify:
     .thumb_func
     .type wait_prog_done, %function
 wait_prog_done:
-    ldr     r4, [r3, #FLASH_SR]
-    lsrs    r4, #0x01               //BSY -> CF
+    ldr     r4, [r3, FLASH_SR]
+    lsrs    r4, 0x01                //BSY -> CF
     bcs     wait_prog_done          //wait BSY low
-    lsrs    r4, #0x05               //EOP -> CF
-    ldr     r4, [r3, #FLASH_SR]
-    str     r4, [r3, #FLASH_SR]     // clean FLASH_SR
+    lsrs    r4, 0x05                //EOP -> CF
+    ldr     r4, [r3, FLASH_SR]
+    str     r4, [r3, FLASH_SR]      // clean FLASH_SR
     bx      lr
 
 
@@ -379,37 +391,37 @@ wait_prog_done:
     .type seal_flash, %function
 /* R0 -> DFU_STATUS */
 seal_flash:
-    ldr     r3, =#FLASH_R_BASE
-    ldr     r0, [r3, #FLASH_OBR]
-    lsrs    r0, #2                  //RDPRT -> CF
+    ldr     r3, = FLASH_R_BASE
+    ldr     r0, [r3, FLASH_OBR]
+    lsrs    r0, 2                   //RDPRT -> CF
     bcc     .L_seal
     bx      lr
 .L_seal:
 /* unlocking flash */
-    ldr     r1, =#FLASH_KEY0
-    ldr     r2, =#FLASH_KEY1
-    str     r1, [r3, #FLASH_KEYR]
-    str     r2, [r3, #FLASH_KEYR]
+    ldr     r1, = FLASH_KEY0
+    ldr     r2, = FLASH_KEY1
+    str     r1, [r3, FLASH_KEYR]
+    str     r2, [r3, FLASH_KEYR]
 /* unlocking OPTION programming */
-    str     r1, [r3, #FLASH_OPTKEYR]
-    str     r2, [r3, #FLASH_OPTKEYR]
+    str     r1, [r3, FLASH_OPTKEYR]
+    str     r2, [r3, FLASH_OPTKEYR]
 /* erasing OPTION data. */
-    movs    r1, #0x20               // OPTER
-    str     r1, [r3, #FLASH_CR]
-    movs    r1, #0x60               // START + OPTER
-    str     r1, [r3, #FLASH_CR]
+    movs    r1, 0x20               // OPTER
+    str     r1, [r3, FLASH_CR]
+    movs    r1, 0x60               // START + OPTER
+    str     r1, [r3, FLASH_CR]
     bl      wait_prog_done
 /* set RDP */
-    movs    r1, #0x10
-    str     r1, [r3, #FLASH_CR]
-    ldr     r0, =#FLASH_OP_BASE
-    ldr     r1, =#0x33CC
-    strh    r1, [r0, #0x00]
+    movs    r1, 0x10
+    str     r1, [r3, FLASH_CR]
+    ldr     r0, = FLASH_OP_BASE
+    ldr     r1, = 0x33CC
+    strh    r1, [r0, 0x00]
     bl      wait_prog_done
 /* reset */
-    ldr     r3, =#SCB
-    ldr     r1, =#0x05FA0004
-    str     r1, [r3, #SCB_AIRCR]
+    ldr     r3, = SCB
+    ldr     r1, = 0x05FA0004
+    str     r1, [r3, SCB_AIRCR]
     b       .                       //loop forever till reset
     .size seal_flash, . - seal_flash
 #endif
