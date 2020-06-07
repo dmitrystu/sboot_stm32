@@ -81,7 +81,8 @@ program: $(OUTDIR)/$(FWNAME).hex
 
 bootloader: $(OUTDIR)/$(FWNAME).hex $(OUTDIR)/$(FWNAME).bin
 
-crypter: $(OUTDIR)/$(SWNAME)
+crypter: swclean
+	$(MAKE) $(OUTDIR)/$(SWNAME)
 
 testsuite: $(OUTDIR)/$(TESTSUITE)
 

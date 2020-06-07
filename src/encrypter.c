@@ -110,11 +110,14 @@ int main(int argc, char **argv)
     uint8_t  *buf8 = (uint8_t*)buf;
 
     if (buf == NULL) {
-        printf("Failed to allocate buffer. length %zd\n", length);
+        printf("Failed to allocate buffer. length %zd\n", blen);
         exit(3);
     }
 
-    fread(buf, 1, length, fi);
+    if (length != fread(buf, 1, length, fi)) {
+        printf("Failed to read input file.");
+        exit(4);
+    }
     fclose(fi);
 
     aes_init();
