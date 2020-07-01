@@ -401,28 +401,34 @@ stm32f103xb :
 	                   LDPARAMS='ROMLEN=128K RAMLEN=20K'
 
 stm32f303xb :
-	$(MAKE) bootloader FWCPU='-mcpu=cortex-m3' \
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
 	                   FWSTARTUP='mcu/stm32f303.S' \
-	                   FWDEFS='STM32F3 STM32F303xB USBD_ASM_DRIVER' \
+	                   FWDEFS='STM32F3 STM32F303xC USBD_ASM_DRIVER' \
 	                   LDPARAMS='ROMLEN=128K RAMLEN=40K'
 
 stm32f303xc :
-	$(MAKE) bootloader FWCPU='-mcpu=cortex-m3' \
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
 	                   FWSTARTUP='mcu/stm32f303.S' \
-	                   FWDEFS='STM32F3 STM32F303xB USBD_ASM_DRIVER' \
+	                   FWDEFS='STM32F3 STM32F303xC USBD_ASM_DRIVER' \
 	                   LDPARAMS='ROMLEN=256K RAMLEN=40K'
 
 stm32f303xd :
-	$(MAKE) bootloader FWCPU='-mcpu=cortex-m3' \
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
 	                   FWSTARTUP='mcu/stm32f303.S' \
 	                   FWDEFS='STM32F3 STM32F303xE USBD_ASM_DRIVER' \
 	                   LDPARAMS='ROMLEN=384K RAMLEN=64K'
 
 stm32f303xe :
-	$(MAKE) bootloader FWCPU='-mcpu=cortex-m3' \
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
 	                   FWSTARTUP='mcu/stm32f303.S' \
 	                   FWDEFS='STM32F3 STM32F303xE USBD_ASM_DRIVER' \
 	                   LDPARAMS='ROMLEN=512K RAMLEN=64K'
+
+stm32f373xc :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f303.S' \
+	                   FWDEFS='STM32F3 STM32F373xC USBD_ASM_DRIVER' \
+	                   LDPARAMS='ROMLEN=256K RAMLEN=32K'
 
 stm32f429xe :
 	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \

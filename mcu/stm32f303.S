@@ -36,6 +36,8 @@
 #define GPIO_IDR        0x10
 #define GPIO_ODR        0x14
 #define GPIO_BSRR       0x18
+#define GPIO_AFRL       0x20
+#define GPIO_AFRH       0x24
 
 #define SCB             0xE000ED00
 #define SCB_VTOR        0x08
@@ -252,16 +254,30 @@ Reset_Handler:
     ldr     r3, =#RCC_BASE
     movs    r2, #0x68               // PLLMIL12  | USB_PRE
     strb    r2, [r3, #RCC_CFGR + 2]
+    movs    r2, 0x04
+    strb    r2, [r3, #RCC_CFGR + 1] // PPRE1 DIV/2 (24Mhz APB1)
     movs    r2, #0x01
     strb    r2, [r3, #RCC_CR + 3]
 .L_wait_PLL:
     ldr     r0, [r3, #RCC_CR]
     lsrs    r0, #26                 // PLLRDY -> CF
     bcc     .L_wait_PLL
-
 /* switch to PLL */
     movs    r2, 0x02
     strb    r2, [r3, #RCC_CFGR + 0 ]
+#if defined(STM32F373xC)
+/* Enabling AF 0x0E for PA11, PA12 */
+    strb    r2, [r3, RCC_AHBENR + 2]
+    ldr     r3, =GPIOA
+    movs    r2, 0xEE
+    ldr     r1, [r3, GPIO_AFRH]
+    bfi     r1, r2, 12, 8
+    str     r1, [r3, GPIO_AFRH]
+    movs    r2, 0x0A
+    ldr     r1, [r3, GPIO_MODER]
+    bfi     r1, r2, 22, 4
+    str     r1, [r3, GPIO_MODER]
+#endif
 #if (DFU_SEAL_LEVEL != 0)
     ldr     r3, =#seal_flash
     blx     r3

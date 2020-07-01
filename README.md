@@ -37,7 +37,9 @@
   + STM32L476xx (OTG FS in device mode)
   + STM32F103
   + STM32F105, STM32F107 (OTG FS in device mode)
-  + STM32F429
+  + STM32F0 series
+  + STM32F3 series
+  + STM32F4 series
   + STM32G4 series
 
 #### Usage:
@@ -109,6 +111,8 @@ Bootloader can be configured trough the make parameters. See CONFIG.md for detai
 | stm32g474xb   | STM32G471xB, STM32G473xB, STM32G474xB, STM32G483xB |                 |
 | stm32g474xc   | STM32G471xC, STM32G473xC, STM32G474xC, STM32G483xC |                 |
 | stm32g474xe   | STM32G471xE, STM32G473xE, STM32G474xE, STM32G483xE | tested G747RE   |
+| stm32f303xe   | STM32F303xE                                        | tested          |
+| stm32f373xc   | STM32F373xC                                        | tested          |
 
 #### Adjusting user firmware
 + check bootloader's linker map for the ````__app_start```` address. This is the new ROM origin for the user firmware (isr vectors).
