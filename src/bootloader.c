@@ -253,7 +253,7 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
             return dfu_upload(dev, req->wLength);
         case USB_DFU_GETSTATUS:
             return dfu_getstatus(req->data);
-        case USB_DFU_CLRSTATAUS:
+        case USB_DFU_CLRSTATUS:
             return dfu_clrstatus();
         case USB_DFU_GETSTATE:
             return dfu_getstate(req->data);
