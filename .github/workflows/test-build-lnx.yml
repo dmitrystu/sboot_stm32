@@ -1,7 +1,15 @@
 name: LNX build
 on:
   pull_request:
+    branches:
+    - master
+    paths-ignore:
+    - '**.md'
   push:
+    branches:
+    - master
+    paths-ignore:
+    - '**.md'
 
 jobs:
   build:
