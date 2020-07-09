@@ -50,13 +50,28 @@ Bootloader can be configured trough the make parameters. See CONFIG.md for detai
 #### Building bootloader
 1. Prerequisites
 + GNU make
-+ arm-none-eabi-gcc toolchain v4.9 or later to build bootloader
++ arm-none-eabi-gcc toolchaipren v4.9 or later to build bootloader
 + gcc toolchain to build fwcrypt software
++ [CMSIS V4](https://github.com/ARM-software/CMSIS) or [CMSIS V5](https://github.com/ARM-software/CMSIS_5).
++ Device peripheral access layer header files for STM32. See [Vendor Template](https://github.com/ARM-software/CMSIS/tree/master/Device/_Template_Vendor) for details.
++ [stm32.h](https://github.com/dmitrystu/stm32h) STM32 universal header
 + optional [st-util](https://github.com/texane/stlink) tool to program bootloader
 2. Makefile targets
++ **make prerequisites** to download required libs and headers
 + **make mcu_target** to build bootloader
 + **make program** to flash bootloader using st-flash
 + **make crypter** to build encryption software
+3. Makefile and environmental variables
+
+| Variable | Default Value                       | Description                         |
+|----------|-------------------------------------|-------------------------------------|
+| CMSIS    | CMSIS                               | path to CMSIS root folder           |
+| CMSISDEV | $(CMSIS)/Device                     | path to CMSIS device folder         |
+| OUTDIR   | build                               | output folder for binaries          |
+| FWNAME   | firmware                            | name for bootloader binary          |
+| SWNAME   | fwcrypt                             | name for encrypter binary           |
+
+4. MCU targets
 
 | mcu_target    | MCU                                                | remarks         |
 |---------------|----------------------------------------------------|-----------------|

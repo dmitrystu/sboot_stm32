@@ -3,7 +3,7 @@ OUTDIR     ?= build
 FWNAME     ?= firmware
 SWNAME     ?= fwcrypt
 FWTOOLS    ?= $(TOOLSET)
-CMSIS      ?= $(abspath ../CMSIS)
+CMSIS      ?= CMSIS
 CMSISDEV   ?= $(CMSIS)/Device
 TESTSUITE  ?= cipher_test
 
@@ -87,6 +87,17 @@ crypter: swclean
 
 testsuite: $(OUTDIR)/$(TESTSUITE)
 
+prerequisites: $(CMSISDEV)/ST $(addsuffix /.git, $(MODULES))
+
+$(CMSISDEV)/ST: $(CMSIS)
+	@git clone --recurse-submodules --depth 1 https://github.com/dmitrystu/stm32h.git $@
+
+$(CMSIS):
+	@git clone --depth 1 https://github.com/ARM-software/CMSIS_5.git $@
+
+%/.git: %
+	@git submodule update --init $<
+
 $(OUTDIR)/$(SWNAME): $(SWOBJ)
 	@echo creating crypter
 	@$(SWTOOLS)gcc $(SWCFLAGS) $+ -o $@
@@ -114,7 +125,7 @@ $(LDSCRIPT):
 
 $(FWODIR)/lib%.a: %
 	@echo building module $<
-	@$(MAKE) module -C $< MODULE=$(abspath $@) DEFINES='$(FWDEFS) $(MDEFS)' CFLAGS='$(FWXFLAGS) $(FWCPU)' CMSIS='$(CMSIS)'
+	@$(MAKE) module -C $< MODULE=$(abspath $@) DEFINES='$(FWDEFS) $(MDEFS)' CFLAGS='$(FWXFLAGS) $(FWCPU)' CMSIS='$(abspath $(CMSIS))'
 
 $(SWOBJ): | $(SWODIR)
 
@@ -526,4 +537,4 @@ stm32f446xc :
 	                   LDPARAMS='ROMLEN=256K RAMLEN=128K APPALIGN=0x4000'
 
 
-.PHONY: clean bootloader crypter all program program_stcube rebuild fwclean testsuite $(FWTARGETS)
+.PHONY: clean bootloader crypter all program program_stcube rebuild fwclean testsuite prerequisites $(FWTARGETS)
