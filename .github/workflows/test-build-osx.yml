@@ -1,0 +1,30 @@
+name: OSX build
+on:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    name: OSX
+    env:
+      CMSIS: CMSIS_5
+    runs-on: macos-latest
+    steps:
+    - name: ARM GCC setup
+      uses: fiam/arm-none-eabi-gcc@v1.0.2
+      with:
+        release: 8-2019-q3
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Update make
+      run: brew install make
+    - name: Resolve prerequisites
+      run: gmake prerequisites
+    - name: Build firmware
+      run: gmake stm32f103x8
+    - name: Build encrypter
+      run: gmake crypter
+    - name: Build testsuite
+      run: gmake testsuite
+    - name: Vector test
+      run: build/cipher_test

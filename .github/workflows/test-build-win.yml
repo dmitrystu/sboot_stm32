@@ -1,0 +1,28 @@
+name: WIN build
+on:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    name: Windows
+    env:
+      CMSIS: CMSIS_5
+    runs-on: windows-latest
+    steps:
+    - name: ARM GCC setup
+      uses: fiam/arm-none-eabi-gcc@v1.0.2
+      with:
+        release: 8-2019-q3
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Resolve prerequisites
+      run: make prerequisites
+    - name: Build firmware
+      run: make stm32f103x8 SHELL=cmd
+    - name: Build encrypter
+      run: make crypter SHELL=cmd SWTOOLS=
+    - name: Build testsuite
+      run: make testsuite SHELL=cmd SWTOOLS=
+    - name: Vector test
+      run: build/cipher_test

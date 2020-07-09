@@ -328,13 +328,13 @@ int test(const test_t* algo) {
         ret = -1;
     }
     printf(" %s\n", (ret == 0) ? "PASS" : "\nFAIL");
-
+    return ret;
 }
 
 int main(int argc, char **argv) {
     int ret = 0;
     for (int i = 0; i < _countof(data); i++) {
-        test(&data[i]);
+        ret |= test(&data[i]);
     }
     return ret;
 }

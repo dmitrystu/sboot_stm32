@@ -73,4 +73,4 @@ all: $(OUTFILE)
 	@echo Building linker script
 
 $(OUTFILE):
-	$(file >> $@,$(LDSCRIPT))
+	$(file >$@,$(LDSCRIPT))

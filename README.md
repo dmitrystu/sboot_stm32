@@ -1,3 +1,6 @@
+![LNX build](https://github.com/dmitrystu/sboot_stm32/workflows/LNX%20build/badge.svg)
+![WIN build](https://github.com/dmitrystu/sboot_stm32/workflows/WIN%20build/badge.svg)
+![OSX build](https://github.com/dmitrystu/sboot_stm32/workflows/OSX%20build/badge.svg)
 ### Secure USB DFU1.1 bootloader for STM32
 #### Features
 + Small size. Fits in 4K ROM segment (ASM or no encription, otherwise a bit more).
