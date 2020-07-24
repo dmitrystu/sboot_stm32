@@ -42,12 +42,12 @@ void aes_decrypt(void *out, const void *in, size_t sz);
 /**
  * @brief Cipher name and mode
  */
-const char *aes_name;
+extern const char *aes_name;
 
 /**
  * @brief Cipher block size
  */
-const size_t aes_blksize;
+extern const size_t aes_blksize;
 
 #if defined(__cplusplus)
     }

@@ -23,8 +23,8 @@
     extern "C" {
 #endif
 
-const char *checksum_name;
-const size_t checksum_length;
+extern const char *checksum_name;
+extern const size_t checksum_length;
 
 /**
  * @brief Calculate and append checksum to data.
