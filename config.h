@@ -81,7 +81,7 @@
 #endif
 /** Whether application image is verified by a checksum algorithm */
 #ifndef DFU_VERIFY_CHECKSUM
-#define DFU_VERIFY_CHECKSUM CRC64SMALL
+#define DFU_VERIFY_CHECKSUM _DISABLE
 #endif
 /** Memory Readout Protection level **/
 #ifndef DFU_SEAL_LEVEL
@@ -150,7 +150,7 @@
 #define DFU_BOOTSTRAP_GPIO  GPIOA
 #endif
 #ifndef DFU_BOOTSTRAP_PIN
-#define DFU_BOOTSTRAP_PIN   2
+#define DFU_BOOTSTRAP_PIN   1
 #endif
 /* Active bootstrap pin logic level. _HIGH, _LOW */
 #ifndef DFU_BOOTSTRAP_LEVEL
@@ -175,7 +175,7 @@
 #endif
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
 #ifndef DFU_CIPHER
-#define DFU_CIPHER          DFU_CIPHER_RC5_A
+#define DFU_CIPHER          DFU_CIPHER_RC5
 #endif
 #ifndef DFU_CIPHER_MODE
 #define DFU_CIPHER_MODE     DFU_CIPHER_CBC

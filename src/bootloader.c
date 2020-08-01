@@ -24,7 +24,6 @@
 #include "flash.h"
 #include "crypto.h"
 
-
 /* Checking for the EEPROM */
 #if defined(DATA_EEPROM_BASE)
     #define _EE_START    DATA_EEPROM_BASE
