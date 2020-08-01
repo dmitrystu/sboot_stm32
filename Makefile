@@ -173,13 +173,14 @@ FWTARGETS  += stm32l073v8 stm32l073xb stm32l073xc
 FWTARGETS  += stm32l476xc stm32l476xe stm32l476xg
 FWTARGETS  += stm32f103x4 stm32f103x6 stm32f103x8 stm32f103xb
 FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
-FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi
+FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi stm32f429xi_hs
 FWTARGETS  += stm32f105xb stm32f107xb
 FWTARGETS  += stm32l433xb stm32l433xc
 FWTARGETS  += stm32f070x6 stm32f070xb
 FWTARGETS  += stm32g431x6 stm32g431x8 stm32g431xb
 FWTARGETS  += stm32g474xb stm32g474xc stm32g474xe
-FWTARGETS  += stm32f446xc
+FWTARGETS  += stm32f446xc stm32f446xc_hs stm32f446xe stm32f446xe_hs
+FWTARGETS  += stm32f405xg stm32f405xg_hs
 
 $(FWTARGETS) : fwclean
 
@@ -459,6 +460,12 @@ stm32f429xi :
 	                   FWDEFS='STM32F4 STM32F429xx' \
 	                   LDPARAMS='ROMLEN=2048K RAMLEN=192K APPALIGN=0x4000'
 
+stm32f429xi_hs :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F429xx USBD_PRIMARY_OTGHS' \
+	                   LDPARAMS='ROMLEN=2048K RAMLEN=192K APPALIGN=0x4000'
+
 stm32f105xb :
 	$(MAKE) bootloader FWCPU='-mcpu=cortex-m3' \
 	                   FWSTARTUP='mcu/stm32f105.S' \
@@ -536,5 +543,34 @@ stm32f446xc :
 	                   FWDEFS='STM32F4 STM32F446xx' \
 	                   LDPARAMS='ROMLEN=256K RAMLEN=128K APPALIGN=0x4000'
 
+stm32f446xc_hs :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F446xx USBD_PRIMARY_OTGHS' \
+	                   LDPARAMS='ROMLEN=256K RAMLEN=128K APPALIGN=0x4000'
+
+stm32f446xe :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F446xx' \
+	                   LDPARAMS='ROMLEN=512K RAMLEN=128K APPALIGN=0x4000'
+
+stm32f446xe_hs :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F446xx USBD_PRIMARY_OTGHS' \
+	                   LDPARAMS='ROMLEN=512K RAMLEN=128K APPALIGN=0x4000'
+
+stm32f405xg :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F405xx' \
+	                   LDPARAMS='ROMLEN=1024K RAMLEN=128K APPALIGN=0x4000'
+
+stm32f405xg_hs :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F405xx USBD_PRIMARY_OTGHS' \
+	                   LDPARAMS='ROMLEN=1024K RAMLEN=128K APPALIGN=0x4000'
 
 .PHONY: clean bootloader crypter all program program_stcube rebuild fwclean testsuite prerequisites $(FWTARGETS)

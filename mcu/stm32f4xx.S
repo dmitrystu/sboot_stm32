@@ -267,9 +267,18 @@ System_Reset:
     adds    r1, 0x04
     cmp     r1, r2
     bcc     .L_bss_loop
-
-/* Enabling USB pins GPIOA11 GPIO12 AF10*/
-    mov     r1, 0x01
+#if defined(USBD_PRIMARY_OTGHS)
+/* Enabling USB pins GPIOB14 GPIOB15 AF12*/
+    movs    r1, 0x02
+    strb    r1, [r5, RCC_AHB1ENR]
+    ldr     r0, = GPIOB
+    movs    r1, 0xA0
+    strb    r1, [r0, GPIO_MODER + 0x03]
+    movs    r1, 0xCC
+    strb    r1, [r0, GPIO_AFRH + 0x03]
+#else
+/* Enabling USB pins GPIOA11 GPIOA12 AF10*/
+    movs    r1, 0x01
     strb    r1, [r5, RCC_AHB1ENR]
     ldr     r0, = GPIOA
     ldr     r1, [r0, GPIO_MODER]
@@ -278,6 +287,7 @@ System_Reset:
     str     r1, [r0, GPIO_MODER]
     lsls    r2, #12
     str     r2, [r0, GPIO_AFRH]
+#endif
 #if (DFU_SEAL_LEVEL != 0)
     ldr     r3, = seal_flash
     blx     r3
