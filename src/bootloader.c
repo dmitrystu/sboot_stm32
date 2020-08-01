@@ -95,6 +95,8 @@ static usbd_respond dfu_set_idle(void) {
     return usbd_ack;
 }
 
+extern void System_Reset(void);
+
 static usbd_respond dfu_err_badreq(void) {
     dfu_data.bState  = USB_DFU_STATE_DFU_ERROR;
     dfu_data.bStatus = USB_DFU_STATUS_ERR_STALLEDPKT;
@@ -214,7 +216,7 @@ static void dfu_reset(usbd_device *dev, uint8_t ev, uint8_t ep) {
     (void)ev;
     (void)ep;
     /** TODO : add firmware checkout */
-    NVIC_SystemReset();
+    System_Reset();
 }
 
 static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_callback *callback) {

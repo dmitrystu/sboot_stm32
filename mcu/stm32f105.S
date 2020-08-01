@@ -108,62 +108,129 @@ __isr_vector:
 
     .section .text
     .thumb_func
+
+    .globl  System_Reset
+    .type   System_Reset, %function
+
     .globl Reset_Handler
     .type Reset_Handler, %function
 Reset_Handler:
-#if (DFU_BOOTKEY_ADDR != _DISABLE) || (DFU_DBLRESET_MS != _DISABLE)
-/* checking DFU SW bootkey */
-    ldr     r1, =#_KEY_ADDR
-    ldr     r2, =#DFU_BOOTKEY
-    movs    r3, #0x00
+/* Check key */
+    ldr     r1, = _KEY_ADDR
+    ldr     r2, = DFU_BOOTKEY
+    movs    r3, 0x00
     ldr     r4, [r1]
     str     r3, [r1]
-    subs     r4, r2
-    beq     .L_start_boot
-#endif
-
+    eors    r4, r2  //R4: 0xFFFFFFFF - force APP; 0x00000000 - force BOOT
+    mvns    r0, r4
+    bne     .L_check_boot
+/* jump to user section */
+    ldr     r0, = _APP_START
+    ldr     r1, = SCB
+    str     r0, [r1, SCB_VTOR]  //set VTOR
+    ldr     r1, [r0, 0x00]      //load new MSP
+    msr     MSP, r1             //set MSP
+    ldr     r3, [r0, 0x04]      //load reet vector
+    bx      r3                  //jump to user_app
+.L_check_boot:
 #if (DFU_DBLRESET_MS != _DISABLE)
 /* Storing DFU_BOOTKEY at DFU_BOOTKEY_ADDR and do a delay.
  * In case of RESET at this time bootloader will start from code above. */
     str     r2, [r1]
 /* STM32F105/7 startup clock is 8.0MHz HSI
  * so, we need T(mS)*8000 ticks to make a required delay */
-    ldr     r4, =#(DFU_DBLRESET_MS * 8000 / 3)
+    ldr     r0, =(DFU_DBLRESET_MS * 8000 / 3)
 .L_rst_delay:
-    subs    r4, #1              //+1 tick
+    subs    r0, 1              //+1 tick
     bhs     .L_rst_delay        //+2 ticks, 3 ticks/cycle
 /* Clearing bootkey and continue */
     str     r3, [r1]
 #endif
+/* Setup clock 48Mhz HSE PLL for USB */
+/* set flash latency 2 */
+    ldr     r3, = FLASH_R_BASE
+    movs    r0, 0x32
+    str     r0, [r3, FLASH_ACR]
+/* setup RCC */
+    ldr     r5, = RCC_BASE
+    movs    r2, 0x1d               // PLLMUL9  | PLLSRC
+    strb    r2, [r5, RCC_CFGR + 2]
+    movs    r2, 0xc4               // ADCPRE = 8, PPRE2 = 1, PPRE1 = 2
+    strb    r2, [r5, RCC_CFGR + 1]
+#if defined(HSE_25MHZ)
+    movs    r2, 0x01               // PREDIV1SRC = PLL2
+    strb    r2, [r5, RCC_CFGR2 + 2]
+    movs    r2, 0x66               // PLL3MUL = 8, PLL2MUL = 8
+    strb    r2, [r5, RCC_CFGR2 + 1]
+    movs    r2, 0x44               // PREDIV2 = 5, PREDIV1 = 5
+    strb    r2, [r5, RCC_CFGR2 + 0]
+    movs    r2, 0x01               // HSEON = 1
+    strb    r2, [r5, RCC_CR + 2]
+.L_wait_HSE:
+    ldr     r0, [r5, RCC_CR]
+    lsrs    r0, 18                 // HSERDY
+    bcc     .L_wait_HSE
+    movs    r2, 0x04               // PLL2ON = 1
+    strb    r2, [r5, RCC_CR + 3]
+.L_wait_PLL2:
+    ldr     r0, [r5, RCC_CR]
+    lsrs    r0, 28                 // PLL2RDY -> CF
+    bcc     .L_wait_PLL2
+    movs    r2, 0x05               // PLLON = 1, PLL2ON = 1
+    strb    r2, [r5, RCC_CR + 3]
+#else
+    movs    r2, 0x00               // PREDIV1SRC = HSE
+    strb    r2, [r5, RCC_CFGR2 + 2]
+    movs    r2, 0x66               // PLL3MUL = 8, PLL2MUL = 8
+    strb    r2, [r5, RCC_CFGR2 + 1]
+    movs    r2, 0x40               // PREDIV2 = 5, PREDIV1 = 1
+    strb    r2, [r5, RCC_CFGR2 + 0]
+    movs    r2, 0x01               // HSEON = 1
+    strb    r2, [r5, RCC_CR + 2]
+.L_wait_HSE:
+    ldr     r0, [r5, RCC_CR]
+    lsrs    r0, 18                 // HSERDY
+    bcc     .L_wait_HSE
+    movs    r2, 0x01               // PLLON = 1
+    strb    r2, [r5, RCC_CR + 3]
+#endif
+.L_wait_PLL:
+    ldr     r0, [r5, RCC_CR]
+    lsrs    r0, 26                 // PLLRDY -> CF
+    bcc     .L_wait_PLL
+/* switch to PLL */
+    movs    r2, 0x02               // SW = PLL, HPRE = 1
+    strb    r2, [r5, RCC_CFGR + 0 ]
+/* Jump to bootloader if bootkey match */
+    cbz     r4, .L_start_boot
 
 #if (DFU_BOOTSTRAP_GPIO != _DISABLE)
-    ldr     r0, =#RCC_BASE
-    movs    r2, #BOOTSTRAP_RCC
-    strb    r2, [r0, #RCC_APB2ENR]
+    movs    r2, BOOTSTRAP_RCC
+    strb    r2, [r5, RCC_APB2ENR]
 /* checking bootstrap pin */
-    ldr     r1, =#DFU_BOOTSTRAP_GPIO
-    ldr     r3, =#(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r1, = DFU_BOOTSTRAP_GPIO
+    ldr     r3, =(0x0F << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
 #if (DFU_BOOTSTRAP_PULL == _DISABLE)
-    ldr     r2, =#(0x00 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r2, =(0x00 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
 #else
-    ldr     r2, =#(0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
+    ldr     r2, =(0x08 << ((DFU_BOOTSTRAP_PIN & 0x07) << 2))
 #endif
-    ldr     r4, [r1, #BOOTSTRAP_CRx]
-    bics    r4, r3
-    orrs    r4, r2
-    str     r4, [r1, #BOOTSTRAP_CRx]
+    ldr     r0, [r1, BOOTSTRAP_CRx]
+    bics    r0, r3
+    orrs    r0, r2
+    str     r0, [r1, BOOTSTRAP_CRx]
 #if ((DFU_BOOTSTRAP_PULL == _LOW) || ((DFU_BOOTSTRAP_PULL == _AUTO) && (DFU_BOOTSTRAP_LEVEL == _HIGH)))
-    ldr     r2, =#(0x01 << (DFU_BOOTSTRAP_PIN * 2)) //pulldown
+    ldr     r2, =(0x01 << (DFU_BOOTSTRAP_PIN * 2)) //pulldown
 #else
-    ldr     r2, =#(0x01 << DFU_BOOTSTRAP_PIN)   //pullup
+    ldr     r2, =(0x01 << DFU_BOOTSTRAP_PIN)   //pullup
 #endif
-    str     r2, [r1, #GPIO_BSRR]
-    movs    r4, #0x08
+    str     r2, [r1, GPIO_BSRR]
+    movs    r4, 0x08
 .L_scan_bootstrap:
-    ldr     r2, [r1, #GPIO_IDR]
-    lsrs    r2, #(DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
+    ldr     r2, [r1, GPIO_IDR]
+    lsrs    r2, (DFU_BOOTSTRAP_PIN + 1)    //Pin -> CF
     sbcs    r3, r3
-    movs    r2, #0x01
+    movs    r2, 0x01
     orrs    r2, r3
 #if (DFU_BOOTSTRAP_LEVEL == _HIGH)
     subs    r4, r2
@@ -171,35 +238,36 @@ Reset_Handler:
     adds    r4, r2
 #endif
     beq     .L_reset_gpio
-    cmp     r4, #0x10
+    cmp     r4, 0x10
     bne     .L_scan_bootstrap
-#endif
-
 .L_reset_gpio:
 /* resetting gpio back */
-    movs    r2, #(0x04 | BOOTSTRAP_RCC)
-    strb    r2, [r0, #RCC_APB2RSTR]
-    movs    r2, #0x00
-    strb    r2, [r0, #RCC_APB2RSTR]
-    strb    r2, [r0, #RCC_APB2ENR]
+    movs    r2, BOOTSTRAP_RCC
+    strb    r2, [r5, RCC_APB2RSTR]
+    movs    r2, 0x00
+    strb    r2, [r5, RCC_APB2RSTR]
+    strb    r2, [r5, RCC_APB2ENR]
     cbz     r4, .L_start_boot
+#endif
 
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
-    ldr     r0, =#_APP_START
-    ldr     r1, =__romend
+    ldr     r0, = _APP_START
+    ldr     r1, = __romend
     sub     r1, r0
     bl      validate_checksum
     cbz     r0, .L_start_boot
 #endif
 
-/* jump to user section */
-    ldr     r0, =#_APP_START
-    ldr     r1, =#SCB
-    str     r0, [r1, #SCB_VTOR] //set VTOR
-    ldr     r1, [r0, #0x00]     //load new MSP
-    msr     MSP, r1             //set MSP
-    ldr     r3, [r0, #0x04]     //load reset vector
-    bx      r3                  //jump to user_app
+    ldr     r1, = _KEY_ADDR
+    ldr     r2, = DFU_BOOTKEY
+    mvns    r2, r2
+    str     r2, [r1]
+System_Reset:
+    dsb
+    ldr     r1, = SCB
+    ldr     r2, = 0x05FA0004;
+    str     r2, [r1, SCB_AIRCR]
+    b .
 
 /* jump to bootloader */
 .L_start_boot:
@@ -208,80 +276,20 @@ Reset_Handler:
     ldr     r2, =__data_start__
     ldr     r3, =__data_end__
 .L_copy_data:
-    ldr     r0, [r1], #0x04
-    str     r0, [r2], #0x04
+    ldr     r0, [r1], 0x04
+    str     r0, [r2], 0x04
     cmp     r3, r2
     bhi     .L_copy_data
 .L_clear_bss:
-    movs    r0, #0x00
+    movs    r0, 0x00
     ldr     r2, =__bss_start__
     ldr     r3, =__bss_end__
 .L_clear_bss_loop:
-    str     r0, [r2], #0x04
+    str     r0, [r2], 0x04
     cmp     r3, r2
     bhi     .L_clear_bss_loop
-
-/* Setup clock 48Mhz HSE PLL for USB */
-/* set flash latency 1 */
-    ldr     r3, =#FLASH_R_BASE
-    movs    r0, #0x31
-    str     r0, [r3, #FLASH_ACR]
-/* setup RCC */
-    ldr     r3, =#RCC_BASE
-    movs    r2, #0x1d               // PLLMUL9  | PLLSRC
-    strb    r2, [r3, #RCC_CFGR + 2]
-    movs    r2, #0xc4               // ADCPRE = 8, PPRE2 = 1, PPRE1 = 2
-    strb    r2, [r3, #RCC_CFGR + 1]
-#if defined(HSE_25MHZ)
-    movs    r2, #0x01               // PREDIV1SRC = PLL2
-    strb    r2, [r3, #RCC_CFGR2 + 2]
-    movs    r2, #0x66               // PLL3MUL = 8, PLL2MUL = 8
-    strb    r2, [r3, #RCC_CFGR2 + 1]
-    movs    r2, #0x44               // PREDIV2 = 5, PREDIV1 = 5
-    strb    r2, [r3, #RCC_CFGR2 + 0]
-    movs    r2, #0x01               // HSEON = 1
-    strb    r2, [r3, #RCC_CR + 2]
-.L_wait_HSE:
-    ldr     r0, [r3, #RCC_CR]
-    lsrs    r0, #18                 // HSERDY
-    bcc     .L_wait_HSE
-    movs    r2, #0x04               // PLL2ON = 1
-    strb    r2, [r3, #RCC_CR + 3]
-.L_wait_PLL2:
-    ldr     r0, [r3, #RCC_CR]
-    lsrs    r0, #28                 // PLL2RDY -> CF
-    bcc     .L_wait_PLL2
-    movs    r2, #0x05               // PLLON = 1, PLL2ON = 1
-    strb    r2, [r3, #RCC_CR + 3]
-#else
-    movs    r2, #0x00               // PREDIV1SRC = HSE
-    strb    r2, [r3, #RCC_CFGR2 + 2]
-    movs    r2, #0x66               // PLL3MUL = 8, PLL2MUL = 8
-    strb    r2, [r3, #RCC_CFGR2 + 1]
-    movs    r2, #0x40               // PREDIV2 = 5, PREDIV1 = 1
-    strb    r2, [r3, #RCC_CFGR2 + 0]
-    movs    r2, #0x01               // HSEON = 1
-    strb    r2, [r3, #RCC_CR + 2]
-.L_wait_HSE:
-    ldr     r0, [r3, #RCC_CR]
-    lsrs    r0, #18                 // HSERDY
-    bcc     .L_wait_HSE
-    movs    r2, #0x01               // PLLON = 1
-    strb    r2, [r3, #RCC_CR + 3]
-#endif
-.L_wait_PLL:
-    ldr     r0, [r3, #RCC_CR]
-    lsrs    r0, #26                 // PLLRDY -> CF
-    bcc     .L_wait_PLL
-/* set flash latency 2 */
-    ldr     r1, =#FLASH_R_BASE
-    movs    r0, #0x32
-    str     r0, [r1, #FLASH_ACR]
-/* switch to PLL */
-    movs    r2, 0x02                // SW = PLL, HPRE = 1
-    strb    r2, [r3, #RCC_CFGR + 0 ]
 #if (DFU_SEAL_LEVEL != 0)
-    ldr     r3, =#seal_flash
+    ldr     r3, =seal_flash
     blx     r3
 #endif
     bl      main
