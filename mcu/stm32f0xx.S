@@ -34,6 +34,7 @@
 #define GPIO_IDR        0x10
 
 #define SCB             0xE000ED00
+#define SCB_ICSR        0x04
 #define SCB_VTOR        0x08
 #define SCB_AIRCR       0x0C
 
@@ -101,7 +102,36 @@ __isr_vector:
     .long    0                              // Reserved
     .long    PendSV_Handler                 // PendSV Handler
     .long    SysTick_Handler                // SysTick Handler
-/* Peripheral interrupts are not used */
+/* Peripheral interrupts are not used
+ * but must be  */
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
+    .long    _default_handler
     .size    __isr_vector, . - __isr_vector
 
     .section .text
@@ -125,8 +155,8 @@ Reset_Handler:
     bne     .L_check_boot
 /* jump to user section */
     ldr     r0, = _APP_START
-    ldr     r1, = SCB
-    str     r0, [r1, SCB_VTOR] //set VTOR
+//    ldr     r1, = SCB
+//    str     r0, [r1, SCB_VTOR] //set VTOR
     ldr     r1, [r0, 0x00]
     msr     MSP, r1             //set MSP
     ldr     r3, [r0, 0x04]     //load reset vector
@@ -237,7 +267,7 @@ Reset_Handler:
 System_Reset:
     dsb
     ldr     r1, = SCB
-    ldr     r2, = 0x05FA0004;
+    ldr     r2, = 0x05FA0004
     str     r2, [r1, SCB_AIRCR]
     b .
 
@@ -274,15 +304,22 @@ System_Reset:
 
     .size Reset_Handler, . - Reset_Handler
 
-/*    Macro to define default handlers. Default handler
- *    will be weak symbol and just dead loops. They can be
- *    overwritten by other handlers */
+/*    Macro to define default handlers.
+ *    Since F0 doesn't support relocation of the ISR table
+ *    we need to resolve a new ISR vector via SCB->ICSR.
+ */
     .align 2
     .thumb_func
     .type _default_handler, %function
 
 _default_handler:
-    b .
+    ldr     r0, = SCB
+    ldr     r1, = _APP_START
+    ldr     r0, [r0, SCB_ICSR]
+    lsls    r0, #26
+    lsrs    r0, #24
+    ldr     r0, [r1, r0]
+    bx      r0
     .size _default_handler, . - _default_handler
 
     .pool
