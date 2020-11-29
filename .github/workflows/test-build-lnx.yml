@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: ARM GCC setup
-      uses: fiam/arm-none-eabi-gcc@v1.0.2
+      uses: fiam/arm-none-eabi-gcc@v1
       with:
         release: 8-2019-q3
     - name: Checkout
