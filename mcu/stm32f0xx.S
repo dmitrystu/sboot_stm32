@@ -87,51 +87,54 @@
 __isr_vector:
     .long    __stack                        // Top of Stack
     .long    Reset_Handler                  // Reset Handler
-    .long    NMI_Handler                    // NMI Handler
-
-    .long    HardFault_Handler              // Hard Fault Handler
-    .long    0                              // Reserved
-    .long    0                              // Reserved
-    .long    0                              // Reserved
-    .long    0                              // Reserved
-    .long    0                              // Reserved
-    .long    0                              // Reserved
-    .long    0                              // Reserved
-    .long    SVC_Handler                    // SVCall Handler
-    .long    DebugMon_Handler               // Debug Monitor Handler
-    .long    0                              // Reserved
-    .long    PendSV_Handler                 // PendSV Handler
-    .long    SysTick_Handler                // SysTick Handler
+    .long    _default_handler               // NMI Handler
+    .long    _default_handler               // Hard Fault Handler
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // SVCall Handler
+    .long    _default_handler               // Debug Monitor Handler
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // PendSV Handler
+    .long    _default_handler               // SysTick Handler
 // Peripheral interrupts are not used but must be handled
 // to redirect to the application.
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
-    .long    _default_handler
+    .long    _default_handler               // Window WatchDog
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // RTC through the EXTI line
+    .long    _default_handler               // FLASH
+    .long    _default_handler               // RCC
+    .long    _default_handler               // EXTI Line 0 and 1
+    .long    _default_handler               // EXTI Line 2 and 3
+    .long    _default_handler               // DMA1 Channel 1
+    .long    _default_handler               // DMA1 Channel 2 and Channel 3
+    .long    _default_handler               // DMA1 Channel 4 and Channel 5
+    .long    _default_handler               // ADC1
+    .long    _default_handler               // TIM1 Break, Update, Trigger and Commutation
+    .long    _default_handler               // TIM1 Capture Compare
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // TIM3
+    .long    _default_handler               // TIM6
+    .long    _default_handler               // TIM7
+    .long    _default_handler               // TIM14
+    .long    _default_handler               // TIM15
+    .long    _default_handler               // TIM16
+    .long    _default_handler               // TIM17
+    .long    _default_handler               // I2C1
+    .long    _default_handler               // I2C2
+    .long    _default_handler               // SPI1
+    .long    _default_handler               // SPI2
+    .long    _default_handler               // USART1
+    .long    _default_handler               // USART2
+    .long    _default_handler               // USART3 and USART4
+    .long    _default_handler               // Reserved
+    .long    _default_handler               // USB
+    .long    _default_handler               // Extra
+    .long    _default_handler               // Extra
     .size    __isr_vector, . - __isr_vector
 
     .section .text
@@ -322,19 +325,6 @@ _default_handler:
     .size _default_handler, . - _default_handler
 
     .pool
-
-    .macro    def_irq_handler    handler_name
-    .weak    \handler_name
-    .thumb_set \handler_name, _default_handler
-    .endm
-
-    def_irq_handler    NMI_Handler
-    def_irq_handler    HardFault_Handler
-    def_irq_handler    SVC_Handler
-    def_irq_handler    DebugMon_Handler
-    def_irq_handler    PendSV_Handler
-    def_irq_handler    SysTick_Handler
-
 
     .section .data.program_flash
     .align 2
