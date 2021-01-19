@@ -170,7 +170,7 @@ Reset_Handler:
 /* checking bootstrap pin */
     ldr     r1, = DFU_BOOTSTRAP_GPIO
     movs    r2,  BOOTSTRAP_RCC
-    strb    r2, [r0, RCC_AHB2ENR]
+    strb    r2, [r5, RCC_AHB2ENR]
     movs    r2, 0x03
     lsls    r2, (DFU_BOOTSTRAP_PIN * 2)
     ldr     r3, [r1, GPIO_MODER]
