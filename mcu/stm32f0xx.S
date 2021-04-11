@@ -71,7 +71,7 @@
 #endif
 
 #if defined(STM32F030x4) || defined(STM32F030x6) || \
-    defined(STM32F030x8) || defined(STM32F070x8)
+    defined(STM32F030x8) || defined(STM32F070x6)
     #define FLASH_PAGESZ 0x400
 #else
     #define FLASH_PAGESZ 0x800
@@ -352,7 +352,7 @@ program_flash:
     subs    r2, 0x02
     blt     Err_done
 /* check for the page start (1k/2k page)*/
-#if (FLASH_PAGESZ == 0x200)
+#if (FLASH_PAGESZ == 0x400)
     lsls    r4, r0, 22
 #else
     lsls    r4, r0, 21
