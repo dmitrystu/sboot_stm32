@@ -60,12 +60,13 @@ MLIBS       = $(addprefix $(FWODIR)/lib, $(addsuffix .a, $(MODULES)))
 MDEFS       = USBD_SOF_DISABLED
 
 #compiler flags
-SWCFLAGS    = -O2
-FWCFLAGS    = -mthumb -Os -Wall -std=gnu99 -fdata-sections -ffunction-sections
-FWXFLAGS    = -flto
+DEBUG = -g
+SWCFLAGS    = -O2 $(DEBUG)
+FWCFLAGS    = -mthumb -Os -Wall -std=gnu99 -fdata-sections -ffunction-sections $(DEBUG)
+FWXFLAGS    = -flto $(DEBUG)
 
 #linker flags
-FWLDFLAGS   = -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,-Map=$(OUTDIR)/$(FWNAME).map
+FWLDFLAGS   = -specs=nano.specs $(DEBUG) -nostartfiles -Wl,--gc-sections -Wl,-Map=$(OUTDIR)/$(FWNAME).map
 SWLDFLAGS   = -libstd
 LDSCRIPT    = $(FWODIR)/script.ld
 
@@ -149,7 +150,7 @@ $(FWODIR)/%.o: %.c
 
 $(FWODIR)/%.o: %.S
 	@echo assembling $<
-	@$(FWTOOLS)gcc $(addprefix -D,$(FWDEFS) $(USERDEFS)) $(addprefix -I,$(FWINCS)) -c $< -o $@
+	@$(FWTOOLS)gcc $(addprefix -D,$(FWDEFS) $(USERDEFS)) $(addprefix -I,$(FWINCS)) $(DEBUG) -c $< -o $@
 
 fwclean: | $(FWODIR)
 	@$(RM) $(call FixPath, $(FWODIR)/*.*)
