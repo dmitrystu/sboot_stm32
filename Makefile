@@ -176,7 +176,7 @@ FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
 FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi stm32f429xi_hs
 FWTARGETS  += stm32f105xb stm32f107xb
 FWTARGETS  += stm32l433xb stm32l433xc
-FWTARGETS  += stm32f070x6 stm32f070xb
+FWTARGETS  += stm32f070x6 stm32f070xb stm32f072x8
 FWTARGETS  += stm32g431x6 stm32g431x8 stm32g431xb
 FWTARGETS  += stm32g474xb stm32g474xc stm32g474xe
 FWTARGETS  += stm32f446xc stm32f446xc_hs stm32f446xe stm32f446xe_hs
@@ -572,5 +572,11 @@ stm32f405xg_hs :
 	                   FWSTARTUP='mcu/stm32f4xx.S' \
 	                   FWDEFS='STM32F4 STM32F405xx USBD_PRIMARY_OTGHS' \
 	                   LDPARAMS='ROMLEN=1024K RAMLEN=128K APPALIGN=0x4000'
+
+stm32f072x8 :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m0' \
+	                   FWSTARTUP='mcu/stm32f0xx.S' \
+	                   FWDEFS='STM32F0 STM32F072xB USBD_ASM_DRIVER' \
+	                   LDPARAMS='ROMLEN=64K RAMLEN=16K APPALIGN=0x1000'
 
 .PHONY: clean bootloader crypter all program program_stcube rebuild fwclean testsuite prerequisites $(FWTARGETS)
