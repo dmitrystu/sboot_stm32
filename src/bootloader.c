@@ -105,7 +105,6 @@ static usbd_respond dfu_err_badreq(void) {
 
 static usbd_respond dfu_upload(usbd_device *dev, size_t blksize) {
     switch (dfu_data.bState) {
-#if (DFU_CAN_UPLOAD == _ENABLE)
     case USB_DFU_STATE_DFU_IDLE:
     case USB_DFU_STATE_DFU_UPLOADIDLE:
         if (dfu_data.remained == 0) {
@@ -119,7 +118,6 @@ static usbd_respond dfu_upload(usbd_device *dev, size_t blksize) {
         dfu_data.remained -= blksize;
         dfu_data.dptr += blksize;
         return usbd_ack;
-#endif
     default:
         return dfu_err_badreq();
     }
@@ -250,9 +248,17 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
             return usbd_ack;
 #endif
         case USB_DFU_DNLOAD:
-            return dfu_dnload(req->data, req->wLength);
+            if (req->wLength <= DFU_BLOCKSZ) {
+                return dfu_dnload(req->data, req->wLength);
+            }
+            break;
         case USB_DFU_UPLOAD:
-            return dfu_upload(dev, req->wLength);
+#if (DFU_CAN_UPLOAD == _ENABLE)
+            if (req->wLength <= DFU_BLOCKSZ) {
+                return dfu_upload(dev, req->wLength);
+            }
+#endif
+            break;
         case USB_DFU_GETSTATUS:
             return dfu_getstatus(req->data);
         case USB_DFU_CLRSTATUS:
@@ -262,8 +268,9 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
         case USB_DFU_ABORT:
             return dfu_abort();
         default:
-            return dfu_err_badreq();
+            break;
         }
+        return dfu_err_badreq();
     }
     return usbd_fail;
 }
