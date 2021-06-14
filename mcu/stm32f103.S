@@ -325,8 +325,13 @@ program_flash:
 .L_flash_loop:
     subs    r2, 0x02
     blt     Err_done
+#if defined(STM32F103xE)
+/* check for the page start (2k page) on STM32F103xC/D/E devices*/
+    lsls    r4, r0, 21
+#else
 /* check for the page start (1k page)*/
     lsls    r4, r0, 22
+#endif
     bne     .L_do_write
 /* erasing page */
     movs    r4, 0x02               // PER
