@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "bootloader.h"
 #include "config.h"
 #include "stm32.h"
 #include "usb.h"
@@ -25,7 +26,7 @@
 #include "crypto.h"
 
 /* Checking for the EEPROM */
-#if defined(DATA_EEPROM_BASE)
+#if defined(DATA_EEPROM_BASE) && defined(DATA_EEPROM_END)
     #define _EE_START    DATA_EEPROM_BASE
     #define _EE_LENGTH   (DATA_EEPROM_END - DATA_EEPROM_BASE + 1)
 #elif defined(FLASH_EEPROM_BASE)
@@ -272,6 +273,11 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
         }
         return dfu_err_badreq();
     }
+#if (DFU_WCID != _DISABLE)
+    if ((req->bmRequestType & USB_REQ_TYPE) == USB_REQ_VENDOR) {
+        return dfu_get_vendor_descriptor(req, &dev->status.data_ptr, &dev->status.data_count);
+    }
+#endif
     return usbd_fail;
 }
 
@@ -301,9 +307,17 @@ static void dfu_init (void) {
     usbd_connect(&dfu, 1);
 }
 
+void __attribute__ ((weak)) user_init() {
+}
+
+void __attribute__ ((weak)) user_poll() {
+}
+
 int main (void) {
     dfu_init();
+    user_init();
     while(1) {
         usbd_poll(&dfu);
+        user_poll();
     }
 }

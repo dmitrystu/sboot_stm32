@@ -21,6 +21,9 @@
 
 usbd_respond dfu_get_descriptor(usbd_ctlreq *req, void **address, uint16_t *len);
 
+#if (DFU_WCID != _DISABLE)
+usbd_respond dfu_get_vendor_descriptor(usbd_ctlreq *req, void**address, uint16_t *len);
+#endif
 
 #if defined (__cplusplus)
     }
