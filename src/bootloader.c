@@ -16,7 +16,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "bootloader.h"
 #include "config.h"
 #include "stm32.h"
 #include "usb.h"
@@ -307,17 +306,9 @@ static void dfu_init (void) {
     usbd_connect(&dfu, 1);
 }
 
-void __attribute__ ((weak)) user_init() {
-}
-
-void __attribute__ ((weak)) user_poll() {
-}
-
 int main (void) {
     dfu_init();
-    user_init();
     while(1) {
         usbd_poll(&dfu);
-        user_poll();
     }
 }
