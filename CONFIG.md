@@ -41,7 +41,8 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_BOOTSTRAP_PULL  | Bootstrap pin pullup control        | _DISABLE/**_AUTO**/_LOW/_HIGH  |                         |
 |DFU_DBLRESET_MS     | Doublereset activation time (ms)    | TIMEOUT/_DISABLE               | **300**                 |
 |DFU_APP_START       | Start address for user code         | ROM ADDRESS/**_AUTO**          | must be page aligned    |
-|DFU_APP_SIZE        | User application max size           | AMMOUNT/**_AUTO**              | up to the ROM end       |
+|DFU_APP_SIZE        | User application max size           | AMOUNT/**_AUTO**               | up to the ROM end       |
+|DFU_WCID            | Enables Microsoft OS Descriptors    | _ENABLE/**_DISABLE**           | Aut. Win. driver assign.|
 |DFU_CIPHER          | Type of ciper                       | See Table 3                    | **DFU_CIPHER_RC5**      |
 |DFU_CIPHER_MODE     | Cipher mode of operation            | See Table 4                    | **DFU_CIPHER_CBC**      |
 |DFU_AES_KEY_128     | 128-bit cipher key                  | Comma separated bytes          |                         |
@@ -93,3 +94,7 @@ You can find configuration parameters in the following tables. Defaults marked *
 |DFU_CIPHER_CFB  | Cipher Feedback (CFB)                    |
 |DFU_CIPHER_OFB  | Output Feedback (OFB)                    |
 |DFU_CIPHER_CTR  | Counter (CTR) (simply IV increment)      |
+
+
+### WCID
+DFU_WCID can be enabled to obtain a Microsoft-defined mechanism called WCID which is used by Windows to automatically assign a USB driver upon device connection. You probably want this as it enhances Windows user experience massively. See https://github.com/pbatard/libwdi/wiki/WCID-Devices

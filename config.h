@@ -173,6 +173,11 @@
 #ifndef DFU_APP_SIZE
 #define DFU_APP_SIZE        _AUTO
 #endif
+/* Microsoft WCID allows automatic driver (WinUSB) installation on device
+ * connection. Use _ENABLE to make your device likeable by Windows. */
+#ifndef DFU_WCID
+#define DFU_WCID _DISABLE
+#endif
 /* Cipher to use. set _DISABLE or choose from implemented ciphers */
 #ifndef DFU_CIPHER
 #define DFU_CIPHER          DFU_CIPHER_RC5

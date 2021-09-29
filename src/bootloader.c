@@ -272,6 +272,11 @@ static usbd_respond dfu_control (usbd_device *dev, usbd_ctlreq *req, usbd_rqc_ca
         }
         return dfu_err_badreq();
     }
+#if (DFU_WCID != _DISABLE)
+    if ((req->bmRequestType & USB_REQ_TYPE) == USB_REQ_VENDOR) {
+        return dfu_get_vendor_descriptor(req, &dev->status.data_ptr, &dev->status.data_count);
+    }
+#endif
     return usbd_fail;
 }
 
