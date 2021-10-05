@@ -25,9 +25,12 @@
 #include "crypto.h"
 
 /* Checking for the EEPROM */
-#if defined(DATA_EEPROM_BASE)
+#if defined(DATA_EEPROM_BASE) && defined(DATA_EEPROM_END)
     #define _EE_START    DATA_EEPROM_BASE
     #define _EE_LENGTH   (DATA_EEPROM_END - DATA_EEPROM_BASE + 1)
+#elif defined(DATA_EEPROM_BASE) && defined(DATA_EEPROM_BANK2_END)
+    #define _EE_START    DATA_EEPROM_BASE
+    #define _EE_LENGTH   (DATA_EEPROM_BANK2_END - DATA_EEPROM_BASE + 1)
 #elif defined(FLASH_EEPROM_BASE)
     #define _EE_START    FLASH_EEPROM_BASE
     #define _EE_LENGTH   (FLASH_EEPROM_END - FLASH_EEPROM_BASE + 1 )
