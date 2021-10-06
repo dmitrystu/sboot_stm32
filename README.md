@@ -51,7 +51,7 @@
 
 #### Usage:
 
-#### Configure bootloader
+#### Configuring bootloader
 The bootloader can be configured through the make parameters. See CONFIG.md for details.
 
 #### Building bootloader
