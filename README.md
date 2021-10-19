@@ -3,10 +3,10 @@
 ![OSX build](https://github.com/dmitrystu/sboot_stm32/workflows/OSX%20build/badge.svg)
 ### Secure USB DFU1.1 bootloader for STM32
 #### Features
-+ Small size. Fits in 4K ROM segment (ASM or no encription, otherwise a bit more).
++ Small size. Fits in 4K ROM segment (ASM or no encryption, otherwise a bit more).
 + USB DFU1.1 compatible
-+ supports by [dfu-util](http://dfu-util.sourceforge.net/)
-+ Supports one of the following ciphers
++ Supported by [dfu-util](http://dfu-util.sourceforge.net/)
++ Supported ciphers:
   + No encryption
   + ARCFOUR stream cipher
   + CHACHA20 stream cipher
@@ -19,22 +19,22 @@
   + RTEA block cipher
   + BLOWFISH type block cipher
   + Rijndael AES-128/192/256 block cipher
-+ Cipher modes for block ciphers
++ Supported cipher modes for block ciphers:
   + Electronic Codebook (ECB)
   + Cipher Block Chaining (CBC)
   + Propagating CBC (PCBC)
   + Cipher Feedback (CFB)
   + Output Feedback (OFB)
   + Counter (CTR)
-+ Frmware verification signature
++ Supported firmware verification methods:
   + CRC (CRC32, CRC64)
   + Fowler-Noll-Vo (FNV-1A-32, FNV1A-64)
-+ Different interfaces for flash and eeprom programming
++ Separate interfaces for flash and EEPROM programming
 + Autoseal using RDP level 1 or 2 (prevents reading decrypted FW trough debug interface).
   Be careful when you set RDP to level 2. **This operation is irreversible and disables
   all debug functions and option bytes programming.**
-+ Software for firmaware encryption/decription included
-+ Supported STM32 family
++ Software for firmware encryption/decryption included
++ Supported STM32 families:
   + STM32L0x2
   + STM32L1xx
   + STM32L476xx (OTG FS in device mode)
@@ -51,8 +51,8 @@
 
 #### Usage:
 
-#### Configure bootloader
-Bootloader can be configured trough the make parameters. See CONFIG.md for details.
+#### Configuring bootloader
+The bootloader can be configured through the make parameters. See CONFIG.md for details.
 
 #### Building bootloader
 1. Prerequisites
@@ -108,7 +108,7 @@ Bootloader can be configured trough the make parameters. See CONFIG.md for detai
 | stm32l062x8   | STM32L062K8                                        |                 |
 | stm32l063x8   | STM32L063C8, STM32L063R8                           |                 |
 | stm32l072v8   | STM32L072V8                                        |                 |
-| stm32l072xb   | STM32L072KB, STM32L072CB, STM32L072RB, STM32L072VB |                 |
+| stm32l072xb   | STM32L072KB, STM32L072CB, STM32L072RB, STM32L072VB | tested          |
 | stm32l072xz   | STM32L072KZ, STM32L072CZ, STM32L072RZ, STM32L072VZ |                 |
 | stm32l073v8   | STM32L073V8                                        |                 |
 | stm32l073xb   | STM32L073CB, STM32L073RB, STM32L073VB              |                 |
@@ -126,7 +126,7 @@ Bootloader can be configured trough the make parameters. See CONFIG.md for detai
 | stm32f070xb   | STM32F070CB                                        | tested          |
 | stm32f429xe   | STM32F429xE series (single bank mode)              |                 |
 | stm32f429xg   | STM32F429xG series (single bank mode)              |                 |
-| stm32f429xi   | STM32F429xI series (single and dual bank)          | teted           |
+| stm32f429xi   | STM32F429xI series (single and dual bank)          | tested           |
 | stm32g431x6   | STM32G431x6, STM32G441x6                           |                 |
 | stm32g431x8   | STM32G431x8, STM32G441x8                           |                 |
 | stm32g431xb   | STM32G431xB, STM32G441xB                           | tested G431RB   |
@@ -137,26 +137,25 @@ Bootloader can be configured trough the make parameters. See CONFIG.md for detai
 | stm32f373xc   | STM32F373xC                                        | tested          |
 
 #### Adjusting user firmware
-+ check bootloader's linker map for the ````__app_start```` address. This is the new ROM origin for the user firmware (isr vectors).
-+ Adjust your linker script to set new ROM origin and ROM length
++ Check bootloader's linker map for the ````__app_start```` address. This is the new ROM origin for the user firmware (ISR vectors).
++ Adjust your linker script to set new ROM origin and ROM length.
 
 #### Utilizing usbd core and usbd driver from bootloader in the user firmware
-+ check bootloader's linker map for the ````usbd_poll```` entry point and usbd driver (````usbd_devfs````, ````usbd_otgfs````, e.t.c. depends used MCU). It's located just after ```.isr_vector``` section
-+ add address for usbd_driver structure to your linker script. For example ````usbd_drv    = 0x08000040;````
-+ add address for usbd_poll entry point to your linker script. For example ````usbd_poll   = 0x08000074;````
-+ add ````extern struct usbd_driver usbd_drv;```` driver declaration to your code
-+ include at least "usbd_core.h" and "usb_std.h" to your code
++ Check bootloader's linker map for the ````usbd_poll```` entry point and usbd driver (````usbd_devfs````, ````usbd_otgfs````, e.t.c. depends used MCU). It's located just after the ```.isr_vector``` section.
++ Add address for usbd_driver structure to your linker script. For example ````usbd_drv    = 0x08000040;````
++ Add address for usbd_poll entry point to your linker script. For example ````usbd_poll   = 0x08000074;````
++ Add ````extern struct usbd_driver usbd_drv;```` driver declaration to your code.
++ Include at least "usbd_core.h" and "usb_std.h" to your code.
 
-Now you can use usbd core and driver from bootloader in your application. Don't forget to set GPIO and RCC for USB according to MCU requirements.
+Now you can use the usbd core and driver from the bootloader in your application. Don't forget to set GPIO and RCC for USB according to MCU requirements.
 
 #### Activating bootloader
-+ put DFU_BOOTKEY on DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset
-+ by DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT on startup (optional)
-+ make a double reset in DFU_DBLRESET_MS period (optional)
-+
++ Write DFU_BOOTKEY at DFU_BOOTKEY_ADDR (RAM top by default) and make a software reset.
++ Assert DFU_BOOTSTRAP_PIN on DFU_BOOTSTRAP_PORT on startup (optional).
++ Make a double reset during the DFU_DBLRESET_MS period (optional).
 
-#### Encryption/Decryption user firmware
-At this moment only binary files supported
+#### Encrypting user firmware
+We provide a utility for encryption and decryption of firmware images. At this moment, only raw binary files are supported.
 
 To encrypt:
 ````
