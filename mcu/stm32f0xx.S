@@ -395,7 +395,7 @@ Err_verify:
     movs    r0, 0x07       //errVERIFY
 .L_exit:
 /* clear FLASH_SR */
-    movs    r4, 0x64
+    movs    r4, 0x34
     str     r4, [r3, FLASH_SR]
 /* locking flash */
     movs    r4, 0x80
