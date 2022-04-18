@@ -39,6 +39,7 @@ static void exithelp(void) {
            "\t -d Decrypt\n"
            "\t -n No output (dry run)\n"
            "\t -c Without checksum signature\n"
+           "\t -C Skip encryption/decryption\n"
            "\t -v VID:PID append DFU suffix (encrypt only)\n"
     );
     exit(0);
@@ -129,6 +130,7 @@ int main(int argc, char **argv)
     int dir = 1;
     int crc = 1;
     int dry = 0;
+    int enc = 1;
     char *infile = NULL;
     char *outfile = NULL;
     int c;
@@ -136,9 +138,12 @@ int main(int argc, char **argv)
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "edchni:o:v:")) != -1)
+    while ((c = getopt(argc, argv, "edchnCi:o:v:")) != -1)
         switch (c)
         {
+        case 'C':
+            enc = 0;
+            break;    
         case 'e':
             dir = 1;
             break;
@@ -174,6 +179,11 @@ int main(int argc, char **argv)
 
     if (infile == NULL) {
         exithelp();
+    }
+
+    if (!enc && !crc) {
+        printf("Nothing to do. Exiting.\n");
+        exit(0);
     }
 
     FILE *fi = fopen(infile, "rb");
@@ -228,11 +238,15 @@ int main(int argc, char **argv)
 #endif
 
 #if(DFU_CIPHER != _DISABLE)
-        if (length % aes_blksize) {
-            length += (aes_blksize - (length % aes_blksize));
+        if (enc) {
+            if (length % aes_blksize) {
+                length += (aes_blksize - (length % aes_blksize));
+            }
+            printf("Encrypting %zd bytes using %s cipher.\n", length, aes_name);
+            aes_encrypt(buf, buf, length);
+        } else {
+            printf("Skipping encryption.\n");
         }
-        printf("Encrypting %zd bytes using %s cipher.\n", length, aes_name);
-        aes_encrypt(buf, buf, length);
 #endif
 
         if (vidpid != 0) {
@@ -253,8 +267,12 @@ int main(int argc, char **argv)
     } else {
 
 #if(DFU_CIPHER != _DISABLE)
-        printf("Decrypting %zd bytes using %s cipher.\n", length, aes_name);
-        aes_decrypt(buf, buf, length);
+        if (enc) {
+            printf("Decrypting %zd bytes using %s cipher.\n", length, aes_name);
+            aes_decrypt(buf, buf, length);
+        } else {
+            printf("Skipping decryption.\n");
+        }
 #endif
 
 #if (DFU_VERIFY_CHECKSUM != _DISABLE)
