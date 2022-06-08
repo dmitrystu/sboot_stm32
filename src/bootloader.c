@@ -106,6 +106,7 @@ static usbd_respond dfu_err_badreq(void) {
     return usbd_fail;
 }
 
+#if (DFU_CAN_UPLOAD == _ENABLE)
 static usbd_respond dfu_upload(usbd_device *dev, size_t blksize) {
     switch (dfu_data.bState) {
     case USB_DFU_STATE_DFU_IDLE:
@@ -125,6 +126,7 @@ static usbd_respond dfu_upload(usbd_device *dev, size_t blksize) {
         return dfu_err_badreq();
     }
 }
+#endif
 
 static usbd_respond dfu_dnload(void *buf, size_t blksize) {
     switch(dfu_data.bState) {
