@@ -148,7 +148,7 @@ static usbd_respond dfu_dnload(void *buf, size_t blksize) {
         if (dfu_data.bStatus == USB_DFU_STATUS_OK) {
             dfu_data.dptr += blksize;
             dfu_data.remained -= blksize;
-#if (DFU_DNLOAD_NOSYNC == _ENABLED)
+#if (DFU_DNLOAD_NOSYNC == _ENABLE)
             dfu_data.bState = USB_DFU_STATE_DFU_DNLOADIDLE;
 #else
             dfu_data.bState = USB_DFU_STATE_DFU_DNLOADSYNC;

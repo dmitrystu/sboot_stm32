@@ -134,7 +134,7 @@ Reset_Handler:
     str     r0, [r1, SCB_VTOR]  //set VTOR
     ldr     r1, [r0, 0x00]      //load new MSP
     msr     MSP, r1             //set MSP
-    ldr     r3, [r0, 0x04]      //load reet vector
+    ldr     r3, [r0, 0x04]      //load reset vector
     bx      r3                  //jump to user_app
 
 .L_check_boot:

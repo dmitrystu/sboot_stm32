@@ -173,7 +173,7 @@ FWTARGETS  += stm32l073v8 stm32l073xb stm32l073xc
 FWTARGETS  += stm32l476xc stm32l476xe stm32l476xg
 FWTARGETS  += stm32f103x4 stm32f103x6 stm32f103x8 stm32f103xb stm32f103xc
 FWTARGETS  += stm32f303xb stm32f303xc stm32f303xd stm32f303xe
-FWTARGETS  += stm32f429xe stm32f429xg stm32f429xi stm32f429xi_hs
+FWTARGETS  += stm32f401xe stm32f411xe stm32f429xe stm32f429xg stm32f429xi stm32f429xi_hs
 FWTARGETS  += stm32f105xb stm32f107xb
 FWTARGETS  += stm32l433xb stm32l433xc
 FWTARGETS  += stm32f070x6 stm32f070xb stm32f072x8
@@ -447,6 +447,18 @@ stm32f373xc :
 	                   FWSTARTUP='mcu/stm32f303.S' \
 	                   FWDEFS='STM32F3 STM32F373xC USBD_ASM_DRIVER' \
 	                   LDPARAMS='ROMLEN=256K RAMLEN=32K'
+
+stm32f401xe :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F401xE' \
+	                   LDPARAMS='ROMLEN=512K RAMLEN=96K APPALIGN=0x4000'
+
+stm32f411xe :
+	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32f4xx.S' \
+	                   FWDEFS='STM32F4 STM32F411xE' \
+	                   LDPARAMS='ROMLEN=512K RAMLEN=128K APPALIGN=0x4000'
 
 stm32f429xe :
 	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \
