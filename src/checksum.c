@@ -27,11 +27,13 @@
 #if ((DFU_VERIFY_CHECKSUM == CRC32FAST) || (DFU_VERIFY_CHECKSUM == CRC32SMALL))
     typedef uint32_t checksum_t;
     const char *checksum_name = "CRC-32";
+    const size_t checksum_length = 4U;
     #define CRC_POLY 0xEDB88320UL
     #define CRC_INIT 0xFFFFFFFFUL
 
 #elif ((DFU_VERIFY_CHECKSUM == CRC64FAST) || (DFU_VERIFY_CHECKSUM == CRC64SMALL))
     typedef uint64_t checksum_t;
+    const size_t checksum_length = 8U;
     const char *checksum_name = "CRC-64";
     #define CRC_POLY 0x95AC9329AC4BC9B5ULL
     #define CRC_INIT 0xFFFFFFFFFFFFFFFFULL
@@ -39,17 +41,20 @@
 #elif (DFU_VERIFY_CHECKSUM == FNV1A32)
     typedef uint32_t checksum_t;
     const char *checksum_name = "FNV1A-32";
+    const size_t checksum_length = 4U;
     #define FNV_OFFS 0x811c9dc5UL
     #define FNV_PRIM 16777619UL
 
 #elif (DFU_VERIFY_CHECKSUM == FNV1A64)
     const char *checksum_name = "FNV1A-64";
+    const size_t checksum_length = 8U;
     typedef uint64_t checksum_t;
     #define FNV_OFFS 0xcbf29ce484222325ULL
     #define FNV_PRIM 1099511628211ULL
 
 #else
     const char *checksum_name = "NONE";
+    const size_t checksum_length = 0U;
     typedef uint32_t checksum_t;
 #endif
 
@@ -117,6 +122,25 @@ static void init_checksum(checksum_t *cs) { *cs = 0; }
 
 #endif
 
+
+
+size_t append_checksum(void *data, size_t len, size_t bsize) {
+    checksum_t cs;
+    uint8_t *buf = data;
+    if (bsize < len + checksum_length) {
+        return 0;
+    }
+    init_checksum(&cs);
+    for (size_t i = 0; i < len; i++) {
+        update_checksum(&cs, *buf);
+        buf++;
+    }
+    memcpy(buf, &cs, sizeof(cs));
+    return len + checksum_length;
+}
+
+#if ((DFU_VERIFY_CHECKSUM == FNV1A32) || (DFU_VERIFY_CHECKSUM == FNV1A64))
+
 static int __memcmp(const void *a, const void *b, size_t len) {
     const int8_t *x = a;
     const int8_t *y = b;
@@ -127,28 +151,11 @@ static int __memcmp(const void *a, const void *b, size_t len) {
     return 0;
 }
 
-const size_t checksum_length = sizeof(checksum_t);
-
-size_t append_checksum(void *data, size_t len, size_t bsize) {
-    checksum_t cs;
-    uint8_t *buf = data;
-    if (bsize < len + sizeof(checksum_t)) {
-        return 0;
-    }
-    init_checksum(&cs);
-    for (size_t i = 0; i < len; i++) {
-        update_checksum(&cs, *buf);
-        buf++;
-    }
-    memcpy(buf, &cs, sizeof(cs));
-    return len + sizeof(checksum_t);
-}
-
 size_t validate_checksum(const void *data, size_t bsize)  {
     checksum_t cs;
     const uint8_t *buf = data;
     init_checksum(&cs);
-    while(sizeof(checksum_t) <= bsize--) {
+    while(checksum_length <= bsize--) {
         if (__memcmp(&cs, buf, sizeof(cs)) == 0) {
             return (size_t)(buf - (uint8_t *)data);
         }
@@ -157,3 +164,15 @@ size_t validate_checksum(const void *data, size_t bsize)  {
     }
     return 0;
 }
+#else
+size_t validate_checksum(const void *data, size_t bsize) {
+    checksum_t cs;
+    const uint8_t *buf = data;
+    init_checksum(&cs);
+    while (bsize--) {
+        update_checksum(&cs, *buf++);
+        if (cs == 0) return (size_t)(buf - (uint8_t *)data - checksum_length);
+    }
+    return 0;
+}
+#endif
