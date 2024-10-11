@@ -115,7 +115,14 @@
 #define DFU_DSC_FLASH       _ENABLE
 #endif
 #ifndef DFU_STR_FLASH
+#if defined(STM32G491xx) //Cat4
+// NB: overstated for STM32G4x1xc which is only 256K
+#define DFU_STR_FLASH       "Internal flash/0x08000000/256*2KE"
+#elif defined(STM32F429xx)
+#define DFU_STR_FLASH       "Internal flash/0x08000000/4*16KE,1*64KE,6*128KE,4*16KE,1*64KE,6*128KE"
+#else
 #define DFU_STR_FLASH       "Internal flash"
+#endif
 #endif
 /* USB string for DFU EEPROM interface sreing descriptor */
 #ifndef DFU_DSC_EEPROM
@@ -128,13 +135,21 @@
 #define DFU_EP0_SIZE        8
 /* DFU properties */
 #ifndef DFU_POLL_TIMEOUT
+#if defined(STM32G491xx) //Cat4
+#define DFU_POLL_TIMEOUT    50
+#else
 #define DFU_POLL_TIMEOUT    20
+#endif
 #endif
 #ifndef DFU_DETACH_TIMEOUT
 #define DFU_DETACH_TIMEOUT  200
 #endif
 #ifndef DFU_BLOCKSZ
+#if defined(STM32G491xx) //Cat4
+#define DFU_BLOCKSZ         0x800
+#else
 #define DFU_BLOCKSZ         0x80
+#endif
 #endif
 /* 32 bit DFU bootkey value */
 #ifndef DFU_BOOTKEY

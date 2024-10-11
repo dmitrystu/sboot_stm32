@@ -179,6 +179,7 @@ FWTARGETS  += stm32l433xb stm32l433xc
 FWTARGETS  += stm32f070x6 stm32f070xb stm32f072x8
 FWTARGETS  += stm32g431x6 stm32g431x8 stm32g431xb
 FWTARGETS  += stm32g474xb stm32g474xc stm32g474xe
+FWTARGETS  += stm32g491xe stm32g491xc stm32g4a1xe stm32g4a1xc
 FWTARGETS  += stm32f446xc stm32f446xc_hs stm32f446xe stm32f446xe_hs
 FWTARGETS  += stm32f405xg stm32f405xg_hs
 
@@ -554,6 +555,30 @@ stm32g474xe :
 	                   FWSTARTUP='mcu/stm32g4xx.S' \
 	                   FWDEFS='STM32G4 STM32G474xx USBD_ASM_DRIVER' \
 	                   LDPARAMS='ROMLEN=512K RAMLEN=96K APPALIGN=0x1000'
+
+stm32g491xe :
+	${MAKE} bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32g4xx.S' \
+	                   FWDEFS='STM32G4 STM32G491xx USBD_ASM_DRIVER' \
+	                   LDPARAMS='ROMLEN=512K RAMLEN=96K APPALIGN=0x4000'
+
+stm32g491xc :
+	${MAKE} bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32g4xx.S' \
+	                   FWDEFS='STM32G4 STM32G491xx USBD_ASM_DRIVER' \
+	                   LDPARAMS='ROMLEN=256K RAMLEN=96K APPALIGN=0x4000'
+
+stm32g4a1xe :
+	${MAKE} bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32g4xx.S' \
+	                   FWDEFS='STM32G4 STM32G491xx USBD_ASM_DRIVER' \
+	                   LDPARAMS='ROMLEN=512K RAMLEN=96K APPALIGN=0x4000'
+
+stm32g4a1xc :
+	${MAKE} bootloader FWCPU='-mcpu=cortex-m4' \
+	                   FWSTARTUP='mcu/stm32g4xx.S' \
+	                   FWDEFS='STM32G4 STM32G491xx USBD_ASM_DRIVER' \
+	                   LDPARAMS='ROMLEN=256K RAMLEN=96K APPALIGN=0x4000'
 
 stm32f446xc :
 	$(MAKE) bootloader FWCPU='-mcpu=cortex-m4' \

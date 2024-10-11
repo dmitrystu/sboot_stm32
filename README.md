@@ -133,6 +133,8 @@ The bootloader can be configured through the make parameters. See CONFIG.md for 
 | stm32g474xb   | STM32G471xB, STM32G473xB, STM32G474xB, STM32G483xB |                 |
 | stm32g474xc   | STM32G471xC, STM32G473xC, STM32G474xC, STM32G483xC |                 |
 | stm32g474xe   | STM32G471xE, STM32G473xE, STM32G474xE, STM32G483xE | tested G747RE   |
+| stm32g491xe   | STM32G491xE, STM32G4A1xE                           |
+| stm32g491xc   | STM32G491xC, STM32G4A1xC                           |
 | stm32f303xe   | STM32F303xE                                        | tested          |
 | stm32f373xc   | STM32F373xC                                        | tested          |
 

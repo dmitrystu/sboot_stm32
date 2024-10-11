@@ -326,6 +326,10 @@ program_flash:
 /* calculating PNB[6:0]: ADDR[17:11] -> CR[9:3] */
     lsrs    r4, 11
     bfi     r5, r4, 3, 7
+#elif defined(STM32G491xx) //Cat4
+/* calculating PNB[7:0]: ADDR[18:11] -> CR[10:3] */
+    lsrs    r4, 11
+    bfi     r5, r4, 3, 8
 #else // Cat3
 /* check dual bank */
     ldr     r5, [r3, FLASH_OPTR]
