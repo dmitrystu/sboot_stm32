@@ -19,6 +19,9 @@ else
 EXT =
 endif
 
+
+
+
 ifeq ($(findstring cmd,$(SHELL)),cmd)
 FixPath = $(subst /,\,$1)
 RM = del /Q
@@ -61,7 +64,14 @@ FWINCS = . $(addprefix $(THISPATH),. inc) $(CMSISINC) $(LIBUSB_PATH)inc
 SWINCS = . $(addprefix $(THISPATH),. inc)
 
 #compiler flags
+COMPILER_MACROS := $(shell gcc -dM -E - </dev/null)
+ifneq (,$(findstring __clang__,$(COMPILER_MACROS)))
+SWCFLAGS = -Os -std=c11 -fdata-sections -ffunction-sections -Werror -Wl,-dead_strip
+else ifneq (,$(findstring __GNUC__,$(COMPILER_MACROS)))
 SWCFLAGS = -Os -std=c11 -fdata-sections -ffunction-sections -Werror -Wl,--gc-sections -s
+endif
+
+
 FWCFLAGS = -Os -flto -ffunction-sections -fdata-sections
 
 #linker flags
