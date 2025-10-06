@@ -31,10 +31,8 @@ static const uint32_t S[] = {
     0x0BC3B4D9, 0x3D9E43AC, 0xF0692E3B, 0x1F0BC072,
     };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 static uint32_t sbox(uint32_t in) {
-    uint32_t out;
+    uint32_t out = 0;
     for(int i = 0; i < 8; i++) {
         out <<= 4;
         out += (S[in >> 28] >> (i * 4)) & 0x0F;
@@ -42,8 +40,6 @@ static uint32_t sbox(uint32_t in) {
     }
     return out;
 }
-#pragma GCC diagnostic pop
-
 
 static uint32_t F(uint32_t data, uint32_t round) {
     return __rol32(sbox(data + RK[round]), 11);
