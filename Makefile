@@ -15,10 +15,8 @@ STPROG_CLI ?= ~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Progr
 
 ifeq ($(OS),Windows_NT)
 EXT = .exe
-SWTOOLS ?= mingw32-
 else
 EXT =
-SWTOOLS ?=
 endif
 
 ifeq ($(findstring cmd,$(SHELL)),cmd)
@@ -64,100 +62,18 @@ SWINCS = . $(addprefix $(THISPATH),. inc)
 
 #compiler flags
 SWCFLAGS = -Os -std=c11 -fdata-sections -ffunction-sections -Werror -Wl,--gc-sections -s
-FWCFLAGS = -Os -specs=nano.specs -nostartfiles -Wl,--gc-sections -flto -ffunction-sections -fdata-sections
+FWCFLAGS = -Os -flto -ffunction-sections -fdata-sections
 
 #linker flags
 LDSCRIPT = $(LOADER_OUT:.elf=.ld)
 LDMAP = $(LOADER_OUT:.elf=.map)
-LDFLAGS = -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,-Map=$(LDMAP).map -Wl,--script=$(LDSCRIPT)
+LDFLAGS = -specs=nano.specs -nostartfiles -Wl,--gc-sections -Wl,-Map=$(LDMAP) -Wl,--script=$(LDSCRIPT)
 
 #passing DFU related variables
 USERDEFS = $(foreach v,$(filter DFU_%,$(.VARIABLES)),$(v)=$($(v)) )
 
-all: bootloader crypter
-
-program_stcube: $(LOADER_OUT:%.elf=%.hex)
-	$(STPROG_CLI) -c port=SWD reset=HWrst -d $< -hardRst
-
-program: $(LOADER_OUT:%.elf=%.hex)
-	st-flash --reset --format ihex write $<
-
-crypter: $(SCRAMBLER_OUT)
-scrambler: $(SCRAMBLER_OUT)
-
-testsuite: $(TEST_OUT)
-	$(TEST_OUT)
-
-prerequisites: $(CMSISDEV)/ST $(LIBUSB_PATH)/.git
-
-%/.git: %
-	@git submodule update --init $<
-
-fwclean:
-	$(RM) $(LDSCRIPT) $(LDMAP) $(LOADER_OUT)
-
-swclean:
-	$(RM) $(SCRAMBLER_OUT) $(TEST_OUT)
-
-clean: fwclean swclean
-
-FORCE:
-
-
-#external dependency
-$(LIBUSB_PATH):
-	@git clone --depth 1 https://github.com/dmitrystu/libusb_stm32.git $@
-
-$(CMSISDEV)/ST: $(CMSIS)
-	@git clone --recurse-submodules --depth 1 https://github.com/dmitrystu/stm32h.git $@
-
-$(CMSIS):
-	@git clone --depth 1 https://github.com/ARM-software/CMSIS_5.git $@
-
-#target folders handling
-$(sort $(FWODIR) $(SWODIR)):
-	$(MKDIR) $@
-
-$(LOADER_OUT): $(LIBUSB_PATH) $(CMSISDEV)/ST $(FWODIR) FORCE
-
-$(SCRAMBLER_OUT) : $(SWODIR) FORCE
-
-#build scripts
-$(LDSCRIPT): $(FWODIR)
-	@$(MAKE) -f $(THISPATH)ldscript.mk $(LDPARAMS) OUTFILE=$@
-
-$(LOADER_OUT): $(LDSCRIPT) $(FW_SRC)
-	@echo Building bootloader $@
-	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPU) $(addprefix -I,$(FWINCS)) $(addprefix -D,$(USERDEFS) $(FWDEFS)) $(LDFLAGS) -o $@
-	@$(FWTOOLS)size $@
-
-$(SCRAMBLER_OUT): $(SW_SRC)
-	@echo Building scrambler $@
-	@$(SWTOOLS)gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(addprefix -D,$(USERDEFS)) $^ -o $@
-
-$(TEST_OUT): $(TS_SRC)
-	@echo creating cipher testsuite
-	@$(SWTOOLS)gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $^ -o $@
-
-%.hex: %.elf
-	@echo Building HEX $@
-	@$(FWTOOLS)objcopy -O ihex $< $@
-
-%.bin: %.elf
-	@echo Building binary $@
-	@$(FWTOOLS)objcopy -O binary $< $@
-
-%.srec: %.elf
-	@echo Building Motorolla Srec $@
-	@$(FWTOOLS)objcopy -O srec $< $@
-
-.PHONY: swclean fwclean clean bootloader scrambler crypter all testsuite program program_stcube $(FWTARGETS) FORCE
-.INTERMEDIATE: $(LDSCRIPT)
-
 #preconfigured targets
-$(FWTARGETS): $(LOADER_OUT)
-
-FWTARGETS := bootloader
+FWTARGETS  := bootloader
 FWTARGETS  += stm32l100x6a stm32l100x8a stm32l100xba stm32l100xc
 FWTARGETS  += stm32l151x6a stm32l151x8a stm32l151xba stm32l151xc stm32l151xd stm32l151xe
 FWTARGETS  += stm32l152x6a stm32l152x8a stm32l152xba stm32l152xc stm32l152xd stm32l152xe
@@ -178,6 +94,83 @@ FWTARGETS  += stm32g474xb stm32g474xc stm32g474xe
 FWTARGETS  += stm32f446xc stm32f446xc_hs stm32f446xe stm32f446xe_hs
 FWTARGETS  += stm32f405xg stm32f405xg_hs
 
+all: bootloader crypter
+
+program_stcube: $(LOADER_OUT:%.elf=%.hex)
+	$(STPROG_CLI) -c port=SWD reset=HWrst -d $< -hardRst
+
+program: $(LOADER_OUT:%.elf=%.hex)
+	st-flash --reset --format ihex write $<
+
+crypter: $(SCRAMBLER_OUT)
+scrambler: $(SCRAMBLER_OUT)
+
+testsuite: $(TEST_OUT)
+	@echo Running tests
+	@$(TEST_OUT)
+
+$(FWTARGETS): $(LOADER_OUT)
+
+prerequisites: $(CMSISDEV)/ST $(LIBUSB_PATH)/.git
+
+%/.git: %
+	@git submodule update --init $<
+
+fwclean:
+	$(RM) $(LDSCRIPT) $(LDMAP) $(LOADER_OUT)
+
+swclean:
+	$(RM) $(SCRAMBLER_OUT) $(TEST_OUT)
+
+clean: fwclean swclean
+
+FORCE:
+
+#external dependency
+$(LIBUSB_PATH):
+	@git clone --depth 1 https://github.com/dmitrystu/libusb_stm32.git $@
+
+$(CMSISDEV)/ST: $(CMSIS)
+	@git clone --recurse-submodules --depth 1 https://github.com/dmitrystu/stm32h.git $@
+
+$(CMSIS):
+	@git clone --depth 1 https://github.com/ARM-software/CMSIS_5.git $@
+
+#target folders handling
+$(sort $(FWODIR) $(SWODIR)):
+	$(MKDIR) $@
+
+#build scripts
+%.hex: %.elf
+	@echo Building HEX $@
+	@$(FWTOOLS)objcopy -O ihex $< $@
+
+%.bin: %.elf
+	@echo Building binary $@
+	@$(FWTOOLS)objcopy -O binary $< $@
+
+%.srec: %.elf
+	@echo Building Motorolla Srec $@
+	@$(FWTOOLS)objcopy -O srec $< $@
+
+.SECONDEXPANSION:
+$(LDSCRIPT): $(FWODIR)
+	@$(MAKE) -f $(THISPATH)ldscript.mk $(LDPARAMS) OUTFILE=$@
+
+$(LOADER_OUT): $(LIBUSB_PATH) $(CMSISDEV)/ST $(FWODIR) $(LDSCRIPT) FORCE | $(FW_SRC)
+	@echo Building bootloader $@
+	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPU) $(addprefix -I,$(FWINCS)) $(addprefix -D,$(USERDEFS) $(FWDEFS)) $(LDFLAGS) $| -o $@
+	@$(FWTOOLS)size $@
+
+$(SCRAMBLER_OUT): $(SWODIR) FORCE | $(SW_SRC)
+	@echo Building scrambler $@
+	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(addprefix -D,$(USERDEFS)) $| -o $@
+
+$(TEST_OUT): $(SWODIR) | $(TS_SRC)
+	@echo creating cipher testsuite
+	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $| -o $@
+
+#predefines
 stm32l052x6 : LDPARAMS = ROMLEN=32K RAMLEN=8K
 stm32l052x6 : FWDEFS = STM32L0 STM32L052xx USBD_ASM_DRIVER
 stm32l052x6 : FWCPU = -mcpu=cortex-m0plus
@@ -522,3 +515,7 @@ stm32g474xe: LDPARAMS = ROMLEN=512K RAMLEN=96K APPALIGN=0x1000
 stm32g474xe: FWDEFS = STM32G4 STM32G474xx USBD_ASM_DRIVER
 stm32g474xe: FWCPU = -mcpu=cortex-m4 -mthumb
 stm32g474xe: FWSTARTUP = mcu/stm32g4xx.S
+
+.PHONY: swclean fwclean clean bootloader scrambler crypter all testsuite program program_stcube $(FWTARGETS) FORCE
+
+.INTERMEDIATE: $(LDSCRIPT)
