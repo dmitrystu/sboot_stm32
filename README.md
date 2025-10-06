@@ -70,13 +70,16 @@ The bootloader can be configured through the make parameters. See CONFIG.md for 
 + **make crypter** to build encryption software
 3. Makefile and environmental variables
 
-| Variable | Default Value                       | Description                         |
-|----------|-------------------------------------|-------------------------------------|
-| CMSIS    | CMSIS                               | path to CMSIS root folder           |
-| CMSISDEV | $(CMSIS)/Device                     | path to CMSIS device folder         |
-| OUTDIR   | build                               | output folder for binaries          |
-| FWNAME   | firmware                            | name for bootloader binary          |
-| SWNAME   | fwcrypt                             | name for encrypter binary           |
+|    Variable   | Default Value              | Description                             |
+|---------------|----------------------------|-----------------------------------------|
+| CMSIS         | CMSIS                      | path to CMSIS root folder               |
+| CMSISDEV      | $(CMSIS)/Device            | path to CMSIS device folder             |
+| LIBUSB_PATH   | ./usb                      | path to USB library                     |
+| LOADER_OUT    | ./build/firmware.elf       | output file for bootloader              |
+| SCRAMBLER_OUT | ./build/fwcrypt            | output file for scrambler               |
+| OUTDIR        | build                      | output folder for binaries (deprecated) |
+| FWNAME        | firmware                   | name for bootloader binary (deprecated) |
+| SWNAME        | fwcrypt                    | name for encrypter binary (deprecated)  |
 
 4. MCU targets
 
