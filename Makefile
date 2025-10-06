@@ -138,7 +138,7 @@ $(CMSIS):
 
 #target folders handling
 $(sort $(FWODIR) $(SWODIR)):
-	$(MKDIR) $@
+	@$(MKDIR) $(@D)
 
 #build scripts
 %.hex: %.elf
