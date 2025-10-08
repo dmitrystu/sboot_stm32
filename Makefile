@@ -167,18 +167,18 @@ $(sort $(FWODIR) $(SWODIR)):
 $(LDSCRIPT): $(FWODIR)
 	@$(MAKE) -f $(THISPATH)ldscript.mk $(LDPARAMS) OUTFILE=$@
 
-$(LOADER_OUT): $(LIBUSB_PATH) $(CMSISDEV)/ST $(FWODIR) $(LDSCRIPT) FORCE | $(FW_SRC)
+$(LOADER_OUT): $$(FW_SRC) $(LDSCRIPT) FORCE | $(LIBUSB_PATH) $(CMSISDEV)/ST $(FWODIR)
 	@echo Building bootloader $@
-	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPU) $(addprefix -I,$(FWINCS)) $(addprefix -D,$(USERDEFS) $(FWDEFS)) $(LDFLAGS) $| -o $@
+	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPU) $(addprefix -I,$(FWINCS)) $(addprefix -D,$(USERDEFS) $(FWDEFS)) $(FW_SRC) $(LDFLAGS) -o $@
 	@$(FWTOOLS)size $@
 
-$(SCRAMBLER_OUT): $(SWODIR) FORCE | $(SW_SRC)
+$(SCRAMBLER_OUT): $(SW_SRC) FORCE | $(SWODIR)
 	@echo Building scrambler $@
-	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(addprefix -D,$(USERDEFS)) $| -o $@
+	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(addprefix -D,$(USERDEFS)) $(SW_SRC) -o $@
 
-$(TEST_OUT): $(SWODIR) | $(TS_SRC)
+$(TEST_OUT): $(TS_SRC) | $(SWODIR)
 	@echo creating cipher testsuite
-	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $| -o $@
+	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(TS_SRC) -o $@
 
 #predefines
 stm32l052x6 : LDPARAMS = ROMLEN=32K RAMLEN=8K
