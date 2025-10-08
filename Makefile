@@ -48,7 +48,7 @@ CRYPT_SRC  += src/xtea.c src/xtea1.c src/blowfish.c src/rtea.c src/rc6.c src/rij
 CRYPT_SRC  += src/magma.c
 CRYPT_SRC  += src/checksum.c src/crypto.c
 
-FW_SRC = $(addprefix $(THISPATH),$(CRYPT_SRC) $(FWSTARTUP))
+FW_SRC = $(addprefix $(THISPATH),$(CRYPT_SRC))
 FW_SRC += $(addprefix $(THISPATH), src/bootloader.c src/descriptors.c src/rc5a.S src/chacha_a.S src/rc6a.S)
 FW_SRC += $(wildcard $(LIBUSB_PATH)src/*.c) $(wildcard $(LIBUSB_PATH)src/*.S)
 SW_SRC = $(addprefix $(THISPATH),$(CRYPT_SRC) src/encrypter.c)
@@ -167,18 +167,18 @@ $(sort $(FWODIR) $(SWODIR)):
 $(LDSCRIPT): $(FWODIR)
 	@$(MAKE) -f $(THISPATH)ldscript.mk $(LDPARAMS) OUTFILE=$@
 
-$(LOADER_OUT): $(LIBUSB_PATH) $(CMSISDEV)/ST $(FWODIR) $(LDSCRIPT) FORCE | $(FW_SRC)
+$(LOADER_OUT): $(FW_SRC) $(FWSTARTUP) $(LDSCRIPT) FORCE | $(LIBUSB_PATH) $(CMSISDEV)/ST $(FWODIR) 
 	@echo Building bootloader $@
-	@$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPU) $(addprefix -I,$(FWINCS)) $(addprefix -D,$(USERDEFS) $(FWDEFS)) $(LDFLAGS) $| -o $@
+	$(FWTOOLS)gcc $(FWCFLAGS) $(FWCPU) $(addprefix -I,$(FWINCS)) $(addprefix -D,$(USERDEFS) $(FWDEFS)) $(FW_SRC) $(FWSTARTUP) $(LDFLAGS) -o $@
 	@$(FWTOOLS)size $@
 
-$(SCRAMBLER_OUT): $(SWODIR) FORCE | $(SW_SRC)
+$(SCRAMBLER_OUT): $(SW_SRC) FORCE | $(SWODIR)
 	@echo Building scrambler $@
-	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(addprefix -D,$(USERDEFS)) $| -o $@
+	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(addprefix -D,$(USERDEFS)) $(SW_SRC) -o $@
 
-$(TEST_OUT): $(SWODIR) | $(TS_SRC)
+$(TEST_OUT): $(TS_SRC) | $(SWODIR)
 	@echo creating cipher testsuite
-	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $| -o $@
+	@gcc $(SWCFLAGS) $(addprefix -I,$(SWINCS)) $(TS_SRC) -o $@
 
 #predefines
 stm32l052x6 : LDPARAMS = ROMLEN=32K RAMLEN=8K
